@@ -1,92 +1,119 @@
-# homework-draft
+# Шаблон репозитория для реализации проекта на курсе Route 256
+
+  Поздравляем с зачислением на курс "Продвинутая разработка микросервисов на Go"! Надеемся, что процесс обучения будет
+увлекательным, а полученные знания пригодятся в работе!
+
+  В рамках курса вам предстоит разработать проект– копию Озона в миниатюре. Не нужно пугаться, ведь на этом пути вас
+будет сопровождать команда преподавателей и тьюторов. Работа над проектом будет разбита из 8 модулей, каждому из
+которых, посвящены две лекции и одно практическое занятие. Действующие инженеры Озона поделятся своим опытом и обратят
+внимание на важные аспекты, которые неизбежно возникают при разработке высоконагруженных распределенных систем. По 
+окончании каждого модуля будет предложено реализовать ту или иную часть из курсового проекта, имеющую непосредственное
+отношение к теме модуля.
+  
+Желаем успехов в прохождении курса!
+
+# Работа над курсовым проектом
+
+## Инициализация проекта
+
+Для работы над курсовым проектом необходимо выполнить инициализацию репозитория:
+
+1. Открыть репозиторий https://gitlab.ozon.dev/go/classroom-20/students/homework-draft (вы уже в нем);
+2. Создать копию данного репозитория https://gitlab.ozon.dev/go/classroom-20/students/homework-draft (форк проекта в свой 
+  приватный репозиторий (см. рис. 1));
+3. Разорвать связь с шаблонным репозиторием, для этого в GitLab необходимо выполнить: Settings › Advanced › Remove
+  fork relationship (см. рис. 2 и 3);
+4. Добавить тьютора в Members проекта. Для этого: Project information › Members › Invite member, пригласить своего
+  тьютора с правами Maintainer (см. рис. 4, 5 и 6).
+
+<em><strong>
+Обрати внимание!
+Если не разорвать связь с проектом, можно случайно отправить изменения в общий проект с шаблоном курсового проекта!
+</strong></em>
+
+![Рис. 1. Форк проекта](./docs/readme/img/fork-project.png)
+Рис. 1. Создаем копию проекта
+
+![Рис. 2. Продвинутые настройки](./docs/readme/img/advanced-settings.png)
+Рис. 2. Переходим в продвинутые настройки репозитория
+
+![Рис. 3. Разрыв связи](./docs/readme/img/unlink-fork.png)
+Рис. 3. Разрываем связь в шаблонным проектом
+
+![Рис. 4. Настройки участников проекта](./docs/readme/img/project-members.png)
+Рис. 4. Настройки участников проекта
+
+![Рис. 5. Добавить новых участников](./docs/readme/img/invite-member.png)
+Рис. 5. Добавить новых участников
+
+![Рис. 6. Добавление тьютора с ролью Maintainer](./docs/readme/img/make-tutor-a-maintainer.png)
+Рис. 6. Добавление тьютора с ролью Maintainer
 
 
+## Выполнение домашнего задания:
 
-## Getting started
+1. В своём форке проекта необходимо создать ветку от master под выполняемое задание. Ветку **необходимо (MUST)** назвать
+  hw-N, где N– номер модуля, к которому относится выполняемое задание;
+2. Выполнить задание;
+3. Создать мерж-реквест ветки с решением в master в своём форке проекта;
+4. Уведомить тьютора об отправке решения на проверку и поделиться ссылкой на мерж-реквест в Telegram;
+5. После проверки задания тьютором он может оставить комментарии к решению. Если требующие исправления замечания
+  отсутствуют, тьютор засчитывает решение, оставляя отметку (approve) на мерж-реквесте. По итогам проверки тьютор
+  проставляет оценку за работу в таблице прогресса;
+6. Необходимо устранить все обязательные замечания и добиться успешного прохождения проверки тьютором;
+7. После того как решение зачтено тьютором, и работа над ним со стороны студента завершена, решение необходимо вмержить
+  в ветку master.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Формат названий на курсе Go на примере домашнего задания №1 (HW1):
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+| Формат наименования | Пример                       |
+|--------------------|------------------------------|
+| Для ветки          | hw-1                         |
+| Для коммита        | [hw-1] Свободный комментарий |
+| Для мерж-реквеста  | [hw-1] Свободный комментарий |
 
-## Add your files
+## Прохождение автоматизированных проверок
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+  На текущем потоке мы в пилотном режиме запускаем систему автоматизированной проверки решений. Это не означает, что
+тьюторы будут проверять решения менее тщательно, напротив– мы хотим освободить тьюторов от рутинных проверок и
+помочь им фокусироваться на проверке других важных аспектов реализации. Это требует от вас внимательнее относится
+к именованию веток, потому что для запуска проверок необходимо чтобы ветки удовлетворяли указанному шаблону `hw-N`.
+
+  Поскольку это пилотный запуск тестирующей системы, возможно возникновение проблем в ее работе, в том числе ложно
+негативных срабатываний, **успешное прохождения решением всех автоматизированных проверок не является обязательным**.
+Тем не менее постарайтесь, чтобы ваше решение проходило столько проверок, на сколько это возможно. Уделите внимание
+проверкам кода (линтеру golangci-lint). Все это поможет избежать лишних замечаний в мерж-реквестах, которые непременно
+оставит тьютор, и позволит сдать задание быстрее и за меньшее количество проверок.
+
+  Блюдите культуру и гигиену работы с git, постарайтесь не пушить бессодержательные коммиты в систему контроля версий.
+**Количество коммитов не оценивается**. Большое количество коммитов вызывает запуск автоматизированных проверок, а
+ввиду ограниченности ресурсов это может создать очередь в их прохождении. Более того, большое количество коммитов в
+репозитории, где одновременно работает много разработчиков (как обычно и бывает на настоящем крупном проекте), может
+затруднить слияние и разрешение конфликтов, сложнее понять состояние репозитория и ориентироваться в истории. Хорошей
+практикой считается выполнение объединения коммитов в один (squash) перед созданием мерж-реквеста и аналогичное
+объединение коммитов с исправлениями в один перед повторной отправкой тьютору на повторную. Таким образом количество
+коммитов в ветке будет соответствовать количеству итераций проверки. Мы не считаем количество коммитов и не оцениваем
+работу по этому признаку. Сказанное выше является рекомендацией, но не требованием.
+
+## Чтение файла конфигурации
+В вашем решинии каждый из сервисов должен (MUST) использовать переменную окружения `CONFIG_FILE` в которой указан ПУТЬ 
+до файла конфигурации. 
+
+[Пример](cart/configs/values_ci.yaml) такого файла для сервиса `cart`, который используется в CI/CD пайплайне 
+(НЕ МОДИФИЦИРОВАТЬ).
+
+Файлы конфигурации для локального запуска так-же [находятся в репозитории](cart/configs/values_local.yaml).
+
+## Troubleshooting
+1. Чтобы запустить product-service локально требуется выполнить команду
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.ozon.dev/go/classroom-20/students/homework-draft.git
-git branch -M master
-git push -uf origin master
+docker login gitlab-registry.ozon.dev
 ```
+ логин и пароль такие-же, как для доступа к https://gitlab.ozon.dev/
 
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.ozon.dev/go/classroom-20/students/homework-draft/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+2. Если при прохождении джобы с тестами вы получаете ошибку
+```
+ERROR: Job failed: failed to pull image "gitlab-registry.ozon.dev/go/...." with specified policies [always]: Error response from daemon: pull access denied for gitlab-registry.ozon.dev/go/...., repository does not exist or may require 'docker login': denied: requested access to the resource is denied
+```
+напишите об этом тьютору, чтобы он сделал необходимые настройки. После подтверждения от тьютора, что работы проведены - просто перезапустите пайплайн
