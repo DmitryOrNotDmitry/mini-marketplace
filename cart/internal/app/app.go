@@ -57,8 +57,8 @@ func (app *App) bootstrapHandlers() http.Handler {
 		fmt.Sprintf("%s://%s:%s", app.config.ProductService.Protocol, app.config.ProductService.Host, app.config.ProductService.Port),
 	)
 
-	const reviewsCap = 100
-	cartRepository := repository.NewInMemoryCartRepository(reviewsCap)
+	const cartsStorageCap = 100
+	cartRepository := repository.NewInMemoryCartRepository(cartsStorageCap)
 	cartService := service.NewCartService(cartRepository, productService)
 
 	s := handler.NewServer(cartService)
@@ -66,6 +66,7 @@ func (app *App) bootstrapHandlers() http.Handler {
 	mx := http.NewServeMux()
 	mx.HandleFunc("POST /user/{user_id}/cart/{sku_id}", s.AddCartItemHandler)
 	mx.HandleFunc("DELETE /user/{user_id}/cart/{sku_id}", s.DeleteCartItemHandler)
+	mx.HandleFunc("DELETE /user/{user_id}/cart", s.ClearCartHandler)
 
 	//h := middlewares.NewTimerMiddleware(mx)
 

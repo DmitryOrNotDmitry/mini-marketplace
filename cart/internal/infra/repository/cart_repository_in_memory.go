@@ -25,7 +25,7 @@ func (r *CartRepositoryInMemory) getUserCart(userId int64) (*domain.Cart, error)
 
 	cart, ok := r.storage[userId]
 	if !ok {
-		cart = &domain.Cart{Items: make([]*domain.CartItem, 0)}
+		cart = &domain.Cart{Items: make([]*domain.CartItem, 0, 1)}
 		r.storage[userId] = cart
 	}
 
@@ -72,4 +72,14 @@ func (r *CartRepositoryInMemory) DeleteCartItem(ctx context.Context, userId, sku
 	}
 
 	return nil, nil
+}
+
+func (r *CartRepositoryInMemory) ClearCart(ctx context.Context, userId int64) (*domain.Cart, error) {
+	r.mx.Lock()
+	defer r.mx.Unlock()
+
+	cart := r.storage[userId]
+	delete(r.storage, userId)
+
+	return cart, nil
 }
