@@ -10,11 +10,12 @@ type Config struct {
 	Server struct {
 		Host string `yaml:"host"`
 		Port string `yaml:"port"`
-	} `yaml:"server"`
+	} `yaml:"service"`
 	ProductService struct {
-		Host  string `yaml:"host"`
-		Port  string `yaml:"port"`
-		Token string `yaml:"token"`
+		Protocol string `yaml:"protocol"`
+		Host     string `yaml:"host"`
+		Port     string `yaml:"port"`
+		Token    string `yaml:"token"`
 	} `yaml:"product_service"`
 }
 

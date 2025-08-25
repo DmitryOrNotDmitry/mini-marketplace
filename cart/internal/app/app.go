@@ -4,8 +4,12 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
 
+	"route256/cart/internal/handler"
 	"route256/cart/internal/infra/config"
+	"route256/cart/internal/infra/repository"
+	"route256/cart/internal/service"
 )
 
 type App struct {
@@ -33,36 +37,34 @@ func (app *App) ListenAndServe() error {
 		return err
 	}
 
-	fmt.Println("app bootstrap")
+	fmt.Printf("app bootstrap on %s\n", address)
 
 	return app.server.Serve(l)
 }
 
 func (app *App) bootstrapHandlers() http.Handler {
 
-	//transport := http.DefaultTransport
+	transport := http.DefaultTransport
 	//transport = round_trippers.NewLogRoundTripper(transport)
-	// httpClient := http.Client{
-	// 	Transport: transport,
-	// 	Timeout:   10 * time.Second,
-	// }
+	httpClient := http.Client{
+		Transport: transport,
+		Timeout:   10 * time.Second,
+	}
 
-	// productService := product_service.NewProductService(
-	// 	httpClient,
-	// 	app.config.ProductService.Token,
-	// 	fmt.Sprintf("%s:%s", app.config.ProductService.Host, app.config.ProductService.Port),
-	// )
+	productService := service.NewProductService(
+		httpClient,
+		app.config.ProductService.Token,
+		fmt.Sprintf("%s://%s:%s", app.config.ProductService.Protocol, app.config.ProductService.Host, app.config.ProductService.Port),
+	)
 
-	// var counter atomic.Uint64
-	// const reviewsCap = 100
-	// reviewRepository := repository.NewInMemoryRepository(reviewsCap, &counter)
-	// reviewService := service.NewReviewService(reviewRepository, productService)
+	const reviewsCap = 100
+	cartRepository := repository.NewInMemoryCartRepository(reviewsCap)
+	cartService := service.NewCartService(cartRepository, productService)
 
-	//s := handler.NewServer()
+	s := handler.NewServer(cartService)
 
 	mx := http.NewServeMux()
-	// mx.HandleFunc("POST /products/{sku}/reviews", s.AddReviewHandler)
-	// mx.HandleFunc("GET /products/{sku}/reviews", s.GetReviewsBySkuHandler)
+	mx.HandleFunc("POST /user/{user_id}/cart/{sku_id}", s.AddCartItemHandler)
 
 	//h := middlewares.NewTimerMiddleware(mx)
 
