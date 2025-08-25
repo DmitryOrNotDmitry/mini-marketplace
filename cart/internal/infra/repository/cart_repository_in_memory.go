@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"cmp"
 	"context"
 	"route256/cart/internal/domain"
+	"slices"
 	"sync"
 )
 
@@ -32,7 +34,7 @@ func (r *CartRepositoryInMemory) getOrCreateUserCart(userId int64) (*domain.Cart
 	return cart, nil
 }
 
-func (r *CartRepositoryInMemory) AddCartItem(ctx context.Context, userId int64, newItem *domain.CartItem) (*domain.CartItem, error) {
+func (r *CartRepositoryInMemory) UpsertCartItem(ctx context.Context, userId int64, newItem *domain.CartItem) (*domain.CartItem, error) {
 	cart, err := r.getOrCreateUserCart(userId)
 	if err != nil {
 		return nil, err
@@ -74,7 +76,7 @@ func (r *CartRepositoryInMemory) DeleteCartItem(ctx context.Context, userId, sku
 	return nil, nil
 }
 
-func (r *CartRepositoryInMemory) ClearCart(ctx context.Context, userId int64) (*domain.Cart, error) {
+func (r *CartRepositoryInMemory) DeleteCart(ctx context.Context, userId int64) (*domain.Cart, error) {
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
@@ -84,15 +86,23 @@ func (r *CartRepositoryInMemory) ClearCart(ctx context.Context, userId int64) (*
 	return cart, nil
 }
 
-func (r *CartRepositoryInMemory) GetCart(ctx context.Context, userId int64) (*domain.Cart, error) {
+func (r *CartRepositoryInMemory) GetCartByUserIdOrderBySku(ctx context.Context, userId int64) (*domain.Cart, error) {
 	cart, err := r.getOrCreateUserCart(userId)
 	if err != nil {
 		return nil, err
 	}
 
+	r.mx.RLock()
+
 	cartCopy := *cart
 	cartCopy.Items = make([]*domain.CartItem, len(cart.Items))
 	copy(cartCopy.Items, cart.Items)
+
+	r.mx.RUnlock()
+
+	slices.SortFunc(cartCopy.Items, func(a, b *domain.CartItem) int {
+		return cmp.Compare(a.Sku, b.Sku)
+	})
 
 	return &cartCopy, nil
 }
