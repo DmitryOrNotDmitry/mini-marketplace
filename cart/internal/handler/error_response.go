@@ -19,6 +19,4 @@ func MakeErrorResponse(w http.ResponseWriter, err error, statusCode int) {
 		fmt.Println(errE)
 		return
 	}
-
-	return
 }

@@ -53,15 +53,23 @@ func (r *CartRepositoryInMemory) AddCartItem(ctx context.Context, userId int64, 
 	return newItem, nil
 }
 
-// func (r *CartRepositoryInMemory) GetReviewsBySku(_ context.Context, sku model.Sku) ([]*model.Review, error) {
-// 	// todo validation
+func (r *CartRepositoryInMemory) DeleteCartItem(ctx context.Context, userId, skuId int64) (*domain.CartItem, error) {
+	cart, err := r.getUserCart(userId)
+	if err != nil {
+		return nil, err
+	}
 
-// 	r.mx.RLock()
-// 	defer r.mx.RUnlock()
+	r.mx.Lock()
+	defer r.mx.Unlock()
 
-// 	if reviews, ok := r.storage[sku]; ok {
-// 		return reviews, nil
-// 	}
+	for i, item := range cart.Items {
+		if item.Sku == skuId {
+			delItem := item
+			cart.Items[i] = cart.Items[len(cart.Items)-1]
+			cart.Items = cart.Items[:len(cart.Items)-1]
+			return delItem, nil
+		}
+	}
 
-// 	return nil, model.ErrReviewsNotFound
-// }
+	return nil, nil
+}

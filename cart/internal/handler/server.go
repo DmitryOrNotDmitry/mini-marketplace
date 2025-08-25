@@ -7,6 +7,7 @@ import (
 
 type CartService interface {
 	AddCartItem(ctx context.Context, userId int64, newItem *domain.CartItem) (*domain.CartItem, error)
+	DeleteCartItem(ctx context.Context, userId, skuId int64) (*domain.CartItem, error)
 }
 
 type Server struct {

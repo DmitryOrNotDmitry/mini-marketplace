@@ -8,6 +8,7 @@ import (
 
 type CartRepository interface {
 	AddCartItem(ctx context.Context, userId int64, newItem *domain.CartItem) (*domain.CartItem, error)
+	DeleteCartItem(ctx context.Context, userId, skuId int64) (*domain.CartItem, error)
 }
 
 type ProductService interface {
@@ -38,4 +39,13 @@ func (s *CartService) AddCartItem(ctx context.Context, userId int64, newItem *do
 	}
 
 	return addedCartItem, nil
+}
+
+func (s *CartService) DeleteCartItem(ctx context.Context, userId, skuId int64) (*domain.CartItem, error) {
+	deletedCartItem, err := s.cartRepository.DeleteCartItem(ctx, userId, skuId)
+	if err != nil {
+		return nil, fmt.Errorf("cartRepository.DeleteCartItem: %w", err)
+	}
+
+	return deletedCartItem, nil
 }
