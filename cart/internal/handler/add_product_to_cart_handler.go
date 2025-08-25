@@ -73,7 +73,6 @@ func (s *Server) AddCartItemHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		MakeErrorResponse(w, err, http.StatusInternalServerError)
-
 		return
 	}
 }

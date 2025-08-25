@@ -67,6 +67,7 @@ func (app *App) bootstrapHandlers() http.Handler {
 	mx.HandleFunc("POST /user/{user_id}/cart/{sku_id}", s.AddCartItemHandler)
 	mx.HandleFunc("DELETE /user/{user_id}/cart/{sku_id}", s.DeleteCartItemHandler)
 	mx.HandleFunc("DELETE /user/{user_id}/cart", s.ClearCartHandler)
+	mx.HandleFunc("GET /user/{user_id}/cart", s.GetCartHandler)
 
 	//h := middlewares.NewTimerMiddleware(mx)
 

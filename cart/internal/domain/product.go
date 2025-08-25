@@ -2,6 +2,6 @@ package domain
 
 type Product struct {
 	Name  string
-	Price int32
+	Price uint32
 	Sku   int64
 }

@@ -19,7 +19,7 @@ func NewInMemoryCartRepository(cap int) *CartRepositoryInMemory {
 	}
 }
 
-func (r *CartRepositoryInMemory) getUserCart(userId int64) (*domain.Cart, error) {
+func (r *CartRepositoryInMemory) getOrCreateUserCart(userId int64) (*domain.Cart, error) {
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
@@ -33,7 +33,7 @@ func (r *CartRepositoryInMemory) getUserCart(userId int64) (*domain.Cart, error)
 }
 
 func (r *CartRepositoryInMemory) AddCartItem(ctx context.Context, userId int64, newItem *domain.CartItem) (*domain.CartItem, error) {
-	cart, err := r.getUserCart(userId)
+	cart, err := r.getOrCreateUserCart(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (r *CartRepositoryInMemory) AddCartItem(ctx context.Context, userId int64, 
 }
 
 func (r *CartRepositoryInMemory) DeleteCartItem(ctx context.Context, userId, skuId int64) (*domain.CartItem, error) {
-	cart, err := r.getUserCart(userId)
+	cart, err := r.getOrCreateUserCart(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -82,4 +82,17 @@ func (r *CartRepositoryInMemory) ClearCart(ctx context.Context, userId int64) (*
 	delete(r.storage, userId)
 
 	return cart, nil
+}
+
+func (r *CartRepositoryInMemory) GetCart(ctx context.Context, userId int64) (*domain.Cart, error) {
+	cart, err := r.getOrCreateUserCart(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	cartCopy := *cart
+	cartCopy.Items = make([]*domain.CartItem, len(cart.Items))
+	copy(cartCopy.Items, cart.Items)
+
+	return &cartCopy, nil
 }

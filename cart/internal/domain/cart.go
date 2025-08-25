@@ -2,5 +2,5 @@ package domain
 
 type Cart struct {
 	Items      []*CartItem
-	TotalPrice int64
+	TotalPrice uint32
 }

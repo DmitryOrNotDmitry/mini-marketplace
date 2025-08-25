@@ -69,7 +69,7 @@ func (s *ProductServiceHttp) GetProductBySku(ctx context.Context, sku int64) (*d
 
 	return &domain.Product{
 		Name:  resp.Name,
-		Price: resp.Price,
+		Price: uint32(resp.Price),
 		Sku:   resp.Sku,
 	}, nil
 }

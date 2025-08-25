@@ -1,15 +1,18 @@
 package service
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"route256/cart/internal/domain"
+	"slices"
 )
 
 type CartRepository interface {
 	AddCartItem(ctx context.Context, userId int64, newItem *domain.CartItem) (*domain.CartItem, error)
 	DeleteCartItem(ctx context.Context, userId, skuId int64) (*domain.CartItem, error)
 	ClearCart(ctx context.Context, userId int64) (*domain.Cart, error)
+	GetCart(ctx context.Context, userId int64) (*domain.Cart, error)
 }
 
 type ProductService interface {
@@ -58,4 +61,21 @@ func (s *CartService) ClearCart(ctx context.Context, userId int64) (*domain.Cart
 	}
 
 	return deletedCart, nil
+}
+
+func (s *CartService) GetCart(ctx context.Context, userId int64) (*domain.Cart, error) {
+	cart, err := s.cartRepository.GetCart(ctx, userId)
+	if err != nil {
+		return nil, fmt.Errorf("cartRepository.GetCart: %w", err)
+	}
+
+	slices.SortFunc(cart.Items, func(a, b *domain.CartItem) int {
+		return cmp.Compare(a.Sku, b.Sku)
+	})
+
+	for _, item := range cart.Items {
+		cart.TotalPrice += item.Count * item.Price
+	}
+
+	return cart, nil
 }
