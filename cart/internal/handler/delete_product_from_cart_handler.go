@@ -1,26 +1,21 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
+	"route256/cart/internal/domain"
 	"strconv"
 )
 
 func (s *Server) DeleteCartItemHandler(w http.ResponseWriter, r *http.Request) {
 	skuId, err := strconv.ParseInt(r.PathValue("sku_id"), 10, 64)
-	if err != nil {
-		MakeErrorResponse(w, err, http.StatusBadRequest)
+	if err != nil || skuId < 1 {
+		MakeErrorResponse(w, domain.ErrSKUNotValid, http.StatusBadRequest)
 		return
 	}
 
 	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
-	if err != nil {
-		MakeErrorResponse(w, err, http.StatusBadRequest)
-		return
-	}
-
-	if skuId < 1 || userID < 1 {
-		MakeErrorResponse(w, errors.New("sku, user_id must be positive"), http.StatusBadRequest)
+	if err != nil || userID < 1 {
+		MakeErrorResponse(w, domain.ErrUserIdNotValid, http.StatusBadRequest)
 		return
 	}
 

@@ -30,19 +30,19 @@ func (s *Server) AddCartItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	request.Sku, err = strconv.ParseInt(r.PathValue("sku_id"), 10, 64)
-	if err != nil {
-		MakeErrorResponse(w, err, http.StatusBadRequest)
+	if err != nil || request.Sku < 1 {
+		MakeErrorResponse(w, domain.ErrSKUNotValid, http.StatusBadRequest)
 		return
 	}
 
 	request.UserID, err = strconv.ParseInt(r.PathValue("user_id"), 10, 64)
-	if err != nil {
-		MakeErrorResponse(w, err, http.StatusBadRequest)
+	if err != nil || request.UserID < 1 {
+		MakeErrorResponse(w, domain.ErrUserIdNotValid, http.StatusBadRequest)
 		return
 	}
 
-	if request.Sku < 1 || request.UserID < 1 || request.Count < 1 {
-		MakeErrorResponse(w, errors.New("sku, user_id and count must be positive"), http.StatusBadRequest)
+	if request.Count < 1 {
+		MakeErrorResponse(w, domain.ErrCountNotValid, http.StatusBadRequest)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (s *Server) AddCartItemHandler(w http.ResponseWriter, r *http.Request) {
 	addedCartItem, err := s.cartService.AddCartItem(r.Context(), request.UserID, cartItem)
 	if err != nil {
 		if errors.Is(err, domain.ErrProductNotFound) {
-			MakeErrorResponse(w, err, http.StatusBadRequest)
+			MakeErrorResponse(w, domain.ErrProductNotFound, http.StatusPreconditionFailed)
 			return
 		}
 

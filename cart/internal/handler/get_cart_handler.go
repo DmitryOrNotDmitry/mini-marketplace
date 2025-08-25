@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"route256/cart/internal/domain"
 	"strconv"
@@ -22,13 +21,8 @@ type CartItemResponse struct {
 
 func (s *Server) GetCartHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
-	if err != nil {
-		MakeErrorResponse(w, err, http.StatusBadRequest)
-		return
-	}
-
-	if userID < 1 {
-		MakeErrorResponse(w, errors.New("user_id must be positive"), http.StatusBadRequest)
+	if err != nil || userID < 1 {
+		MakeErrorResponse(w, domain.ErrUserIdNotValid, http.StatusBadRequest)
 		return
 	}
 
