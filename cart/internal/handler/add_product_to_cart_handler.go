@@ -5,13 +5,14 @@ import (
 	"errors"
 	"net/http"
 	"route256/cart/internal/domain"
+	"route256/cart/internal/handler/validate"
 	"strconv"
 )
 
 type AddCartItemRequest struct {
-	UserID int64  `json:"user_id"`
-	Sku    int64  `json:"sku_id"`
-	Count  uint32 `json:"count"`
+	UserID int64  `json:"user_id" validate:"required,gt=0"`
+	Sku    int64  `json:"sku_id" validate:"required,gt=0"`
+	Count  uint32 `json:"count" validate:"required,gt=0"`
 }
 
 type AddCartItemResponse struct {
@@ -30,19 +31,25 @@ func (s *Server) AddCartItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	request.Sku, err = strconv.ParseInt(r.PathValue("sku_id"), 10, 64)
-	if err != nil || request.Sku < 1 {
+	if err != nil {
 		MakeErrorResponse(w, domain.ErrSKUNotValid, http.StatusBadRequest)
 		return
 	}
 
 	request.UserID, err = strconv.ParseInt(r.PathValue("user_id"), 10, 64)
-	if err != nil || request.UserID < 1 {
+	if err != nil {
 		MakeErrorResponse(w, domain.ErrUserIdNotValid, http.StatusBadRequest)
 		return
 	}
 
-	if request.Count < 1 {
-		MakeErrorResponse(w, domain.ErrCountNotValid, http.StatusBadRequest)
+	fieldErrors := map[string]error{
+		"UserID": domain.ErrUserIdNotValid,
+		"Sku":    domain.ErrSKUNotValid,
+		"Count":  domain.ErrCountNotValid,
+	}
+
+	if err := validate.ValidateStruct(request, fieldErrors); err != nil {
+		MakeErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 

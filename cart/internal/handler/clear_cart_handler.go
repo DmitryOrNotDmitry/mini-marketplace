@@ -3,12 +3,13 @@ package handler
 import (
 	"net/http"
 	"route256/cart/internal/domain"
+	"route256/cart/internal/handler/validate"
 	"strconv"
 )
 
 func (s *Server) ClearCartHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
-	if err != nil || userID < 1 {
+	if err != nil || validate.ValidateUserID(userID) != nil {
 		MakeErrorResponse(w, domain.ErrUserIdNotValid, http.StatusBadRequest)
 		return
 	}
