@@ -9,6 +9,7 @@ import (
 	"route256/cart/internal/handler"
 	"route256/cart/internal/infra/config"
 	"route256/cart/internal/infra/http/middleware"
+	"route256/cart/internal/infra/http/round_tripper"
 	"route256/cart/internal/infra/logger"
 	"route256/cart/internal/infra/repository"
 	"route256/cart/internal/service"
@@ -47,7 +48,7 @@ func (app *App) ListenAndServe() error {
 func (app *App) bootstrapHandlers() http.Handler {
 
 	transport := http.DefaultTransport
-	//transport = round_trippers.NewLogRoundTripper(transport)
+	transport = round_tripper.NewRetryRoundTripper(transport, []int{420, 429}, 3)
 	httpClient := http.Client{
 		Transport: transport,
 		Timeout:   10 * time.Second,
