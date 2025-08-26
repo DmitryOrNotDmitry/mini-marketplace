@@ -8,6 +8,8 @@ import (
 
 	"route256/cart/internal/handler"
 	"route256/cart/internal/infra/config"
+	"route256/cart/internal/infra/http/middleware"
+	"route256/cart/internal/infra/logger"
 	"route256/cart/internal/infra/repository"
 	"route256/cart/internal/service"
 )
@@ -37,7 +39,7 @@ func (app *App) ListenAndServe() error {
 		return err
 	}
 
-	fmt.Printf("app bootstrap on %s\n", address)
+	logger.Info(fmt.Sprintf("Cart service listening at http://%s", address))
 
 	return app.server.Serve(l)
 }
@@ -69,7 +71,7 @@ func (app *App) bootstrapHandlers() http.Handler {
 	mx.HandleFunc("DELETE /user/{user_id}/cart", s.ClearCartHandler)
 	mx.HandleFunc("GET /user/{user_id}/cart", s.GetCartHandler)
 
-	//h := middlewares.NewTimerMiddleware(mx)
+	h := middleware.NewLoggerMiddleware(mx)
 
-	return mx
+	return h
 }

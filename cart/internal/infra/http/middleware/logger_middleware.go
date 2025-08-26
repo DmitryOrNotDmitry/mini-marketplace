@@ -1,0 +1,37 @@
+package middleware
+
+import (
+	"fmt"
+	"net/http"
+	"route256/cart/internal/infra/logger"
+	"time"
+)
+
+type LoggerMiddleware struct {
+	h http.Handler
+}
+
+func NewLoggerMiddleware(h http.Handler) http.Handler {
+	return &LoggerMiddleware{h: h}
+}
+
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusWriter) WriteHeader(code int) {
+	w.status = code
+	w.ResponseWriter.WriteHeader(code)
+}
+
+func (m *LoggerMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	sw := &statusWriter{ResponseWriter: w, status: -1}
+
+	defer func(now time.Time) {
+		logger.Info(fmt.Sprintf("%s %s -> %d (%s)",
+			r.Method, r.URL.String(), sw.status, time.Since(now)))
+	}(time.Now())
+
+	m.h.ServeHTTP(sw, r)
+}
