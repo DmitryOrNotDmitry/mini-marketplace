@@ -177,9 +177,15 @@ func TestCartRepositoryInMemory_GetCartByUserIDOrderBySku(t *testing.T) {
 			name: "get cart sorted by SKU",
 			repo: func() *CartRepositoryInMemory {
 				r := NewInMemoryCartRepository(10)
-				r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 300, Count: 1})
-				r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 100, Count: 2})
-				r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 200, Count: 3})
+				_, err1 := r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 300, Count: 1})
+				_, err2 := r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 100, Count: 2})
+				_, err3 := r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 200, Count: 3})
+				for _, err := range []error{err1, err2, err3} {
+					if err != nil {
+						t.Fatalf("r.UpsertCartItem returns error - %s", err.Error())
+						return nil
+					}
+				}
 				return r
 			}(),
 			args: args{ctx: context.Background(), userID: 1},

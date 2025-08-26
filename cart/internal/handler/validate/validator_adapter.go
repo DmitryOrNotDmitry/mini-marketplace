@@ -26,6 +26,6 @@ func UserID(userID int64) error {
 	return validateVar(userID, "required,gt=0")
 }
 
-func SkuID(skuId int64) error {
-	return validateVar(skuId, "required,gt=0")
+func SkuID(skuID int64) error {
+	return validateVar(skuID, "required,gt=0")
 }
