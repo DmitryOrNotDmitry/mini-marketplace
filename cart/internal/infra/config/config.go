@@ -19,6 +19,7 @@ type Config struct {
 	} `yaml:"product_service"`
 }
 
+// Загружает конфиг из файла .yaml
 func LoadConfig(filename string) (*Config, error) {
 	f, err := os.Open(filename) // nolint:gosec
 	if err != nil {

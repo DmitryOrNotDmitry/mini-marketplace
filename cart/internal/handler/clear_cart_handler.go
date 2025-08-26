@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+// Обрабатывает HTTP-запрос на очистку корзины пользователя
 func (s *Server) ClearCartHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
 	if err != nil || validate.UserID(userID) != nil {

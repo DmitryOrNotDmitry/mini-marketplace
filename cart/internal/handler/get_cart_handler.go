@@ -20,6 +20,7 @@ type CartItemResponse struct {
 	Count uint32 `json:"count"`
 }
 
+// Обрабатывает HTTP-запрос на получение содержимого корзины пользователя
 func (s *Server) GetCartHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
 	if err != nil || validate.UserID(userID) != nil {

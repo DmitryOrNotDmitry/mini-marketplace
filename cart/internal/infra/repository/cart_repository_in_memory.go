@@ -15,6 +15,7 @@ type CartRepositoryInMemory struct {
 	mx      sync.RWMutex
 }
 
+// Создает новый репозиторий корзины в памяти
 func NewInMemoryCartRepository(cap int) *CartRepositoryInMemory {
 	return &CartRepositoryInMemory{
 		storage: make(Storage, cap),
@@ -34,6 +35,7 @@ func (r *CartRepositoryInMemory) getOrCreateUserCart(userID int64) (*domain.Cart
 	return cart, nil
 }
 
+// Добавляет товар или обновляет количество товара в корзине пользователя в in-memory хранилище
 func (r *CartRepositoryInMemory) UpsertCartItem(_ context.Context, userID int64, newItem *domain.CartItem) (*domain.CartItem, error) {
 	cart, err := r.getOrCreateUserCart(userID)
 	if err != nil {
@@ -55,6 +57,7 @@ func (r *CartRepositoryInMemory) UpsertCartItem(_ context.Context, userID int64,
 	return newItem, nil
 }
 
+// Удаляет товар из корзины пользователя по SKU из in-memory хранилища
 func (r *CartRepositoryInMemory) DeleteCartItem(_ context.Context, userID, skuID int64) (*domain.CartItem, error) {
 	cart, err := r.getOrCreateUserCart(userID)
 	if err != nil {
@@ -76,6 +79,7 @@ func (r *CartRepositoryInMemory) DeleteCartItem(_ context.Context, userID, skuID
 	return nil, nil
 }
 
+// Удаляет корзину пользователя из in-memory хранилища
 func (r *CartRepositoryInMemory) DeleteCart(_ context.Context, userID int64) (*domain.Cart, error) {
 	r.mx.Lock()
 	defer r.mx.Unlock()
@@ -86,6 +90,7 @@ func (r *CartRepositoryInMemory) DeleteCart(_ context.Context, userID int64) (*d
 	return cart, nil
 }
 
+// Возвращает корзину пользователя с отсортированными по SKU товарами из in-memory хранилища
 func (r *CartRepositoryInMemory) GetCartByUserIDOrderBySku(_ context.Context, userID int64) (*domain.Cart, error) {
 	cart, err := r.getOrCreateUserCart(userID)
 	if err != nil {

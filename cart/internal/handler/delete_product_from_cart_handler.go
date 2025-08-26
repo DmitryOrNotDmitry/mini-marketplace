@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+// Обрабатывает HTTP-запрос на удаление товара из корзины пользователя
 func (s *Server) DeleteCartItemHandler(w http.ResponseWriter, r *http.Request) {
 	skuID, err := strconv.ParseInt(r.PathValue("sku_id"), 10, 64)
 	if err != nil || validate.SkuID(skuID) != nil {

@@ -20,6 +20,7 @@ type App struct {
 	server http.Server
 }
 
+// Конструктор главного приложения
 func NewApp(configPath string) (*App, error) {
 	c, err := config.LoadConfig(configPath)
 	if err != nil {
@@ -32,6 +33,7 @@ func NewApp(configPath string) (*App, error) {
 	return app, nil
 }
 
+// Запускает HTTP-сервер приложения
 func (app *App) ListenAndServe() error {
 	address := fmt.Sprintf("%s:%s", app.config.Server.Host, app.config.Server.Port)
 

@@ -10,6 +10,8 @@ type RetryRoundTripper struct {
 	maxRetries        int
 }
 
+// Создает http.RoundTripper с поддержкой повторных попыток.
+// Повторная попытка выполняется, если код ответа содержится в triggerStatuses.
 func NewRetryRoundTripper(rt http.RoundTripper, triggerStatuses []int, maxRetries int) http.RoundTripper {
 	l := &RetryRoundTripper{
 		rt:                rt,

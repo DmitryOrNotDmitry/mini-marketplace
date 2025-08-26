@@ -11,6 +11,7 @@ type LoggerMiddleware struct {
 	h http.Handler
 }
 
+// Создает middleware для логирования HTTP-запросов
 func NewLoggerMiddleware(h http.Handler) http.Handler {
 	return &LoggerMiddleware{h: h}
 }

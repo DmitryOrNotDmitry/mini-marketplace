@@ -22,6 +22,7 @@ type AddCartItemResponse struct {
 	Count uint32 `json:"count"`
 }
 
+// Обрабатывает HTTP-запрос на добавление товара в корзину пользователя
 func (s *Server) AddCartItemHandler(w http.ResponseWriter, r *http.Request) {
 	var request AddCartItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
