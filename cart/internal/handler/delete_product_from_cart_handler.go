@@ -8,19 +8,19 @@ import (
 )
 
 func (s *Server) DeleteCartItemHandler(w http.ResponseWriter, r *http.Request) {
-	skuId, err := strconv.ParseInt(r.PathValue("sku_id"), 10, 64)
-	if err != nil || validate.ValidateSkuId(skuId) != nil {
+	skuID, err := strconv.ParseInt(r.PathValue("sku_id"), 10, 64)
+	if err != nil || validate.SkuID(skuID) != nil {
 		MakeErrorResponse(w, domain.ErrSKUNotValid, http.StatusBadRequest)
 		return
 	}
 
 	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
-	if err != nil || validate.ValidateUserID(userID) != nil {
-		MakeErrorResponse(w, domain.ErrUserIdNotValid, http.StatusBadRequest)
+	if err != nil || validate.UserID(userID) != nil {
+		MakeErrorResponse(w, domain.ErrUserIDNotValid, http.StatusBadRequest)
 		return
 	}
 
-	_, err = s.cartService.DeleteCartItem(r.Context(), userID, skuId)
+	_, err = s.cartService.DeleteCartItem(r.Context(), userID, skuID)
 	if err != nil {
 		MakeErrorResponse(w, err, http.StatusInternalServerError)
 		return

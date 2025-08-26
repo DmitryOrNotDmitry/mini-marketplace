@@ -20,7 +20,7 @@ type Config struct {
 }
 
 func LoadConfig(filename string) (*Config, error) {
-	f, err := os.Open(filename)
+	f, err := os.Open(filename) // nolint:gosec
 	if err != nil {
 		return nil, err
 	}

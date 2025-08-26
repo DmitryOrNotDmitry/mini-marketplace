@@ -12,14 +12,14 @@ import (
 
 var ErrNotOk = errors.New("status not ok")
 
-type ProductServiceHttp struct {
+type ProductServiceHTTP struct {
 	httpClient http.Client
 	token      string
 	address    string
 }
 
-func NewProductService(httpClient http.Client, token string, address string) *ProductServiceHttp {
-	return &ProductServiceHttp{
+func NewProductServiceHTTP(httpClient http.Client, token string, address string) *ProductServiceHTTP {
+	return &ProductServiceHTTP{
 		httpClient: httpClient,
 		token:      token,
 		address:    address,
@@ -32,7 +32,7 @@ type GetProductResponse struct {
 	Sku   int64  `json:"sku"`
 }
 
-func (s *ProductServiceHttp) GetProductBySku(ctx context.Context, sku int64) (*domain.Product, error) {
+func (s *ProductServiceHTTP) GetProductBySku(ctx context.Context, sku int64) (*domain.Product, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 

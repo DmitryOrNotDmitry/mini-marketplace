@@ -13,23 +13,23 @@ type MockCartRepository struct {
 	mock.Mock
 }
 
-func (m *MockCartRepository) UpsertCartItem(ctx context.Context, userId int64, newItem *domain.CartItem) (*domain.CartItem, error) {
-	args := m.Called(ctx, userId, newItem)
+func (m *MockCartRepository) UpsertCartItem(ctx context.Context, userID int64, newItem *domain.CartItem) (*domain.CartItem, error) {
+	args := m.Called(ctx, userID, newItem)
 	return args.Get(0).(*domain.CartItem), args.Error(1)
 }
 
-func (m *MockCartRepository) DeleteCartItem(ctx context.Context, userId, skuId int64) (*domain.CartItem, error) {
-	args := m.Called(ctx, userId, skuId)
+func (m *MockCartRepository) DeleteCartItem(ctx context.Context, userID, skuID int64) (*domain.CartItem, error) {
+	args := m.Called(ctx, userID, skuID)
 	return args.Get(0).(*domain.CartItem), args.Error(1)
 }
 
-func (m *MockCartRepository) DeleteCart(ctx context.Context, userId int64) (*domain.Cart, error) {
-	args := m.Called(ctx, userId)
+func (m *MockCartRepository) DeleteCart(ctx context.Context, userID int64) (*domain.Cart, error) {
+	args := m.Called(ctx, userID)
 	return args.Get(0).(*domain.Cart), args.Error(1)
 }
 
-func (m *MockCartRepository) GetCartByUserIdOrderBySku(ctx context.Context, userId int64) (*domain.Cart, error) {
-	args := m.Called(ctx, userId)
+func (m *MockCartRepository) GetCartByUserIDOrderBySku(ctx context.Context, userID int64) (*domain.Cart, error) {
+	args := m.Called(ctx, userID)
 	return args.Get(0).(*domain.Cart), args.Error(1)
 }
 
@@ -77,7 +77,7 @@ func TestCartService_GetCart(t *testing.T) {
 			{Sku: 2, Count: 1, Price: 50},
 		},
 	}
-	mockRepo.On("GetCartByUserIdOrderBySku", mock.Anything, int64(123)).Return(cart, nil)
+	mockRepo.On("GetCartByUserIDOrderBySku", mock.Anything, int64(123)).Return(cart, nil)
 
 	got, err := service.GetCart(context.Background(), 123)
 	if err != nil {

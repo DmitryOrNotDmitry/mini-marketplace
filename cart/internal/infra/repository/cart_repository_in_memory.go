@@ -21,21 +21,21 @@ func NewInMemoryCartRepository(cap int) *CartRepositoryInMemory {
 	}
 }
 
-func (r *CartRepositoryInMemory) getOrCreateUserCart(userId int64) (*domain.Cart, error) {
+func (r *CartRepositoryInMemory) getOrCreateUserCart(userID int64) (*domain.Cart, error) {
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
-	cart, ok := r.storage[userId]
+	cart, ok := r.storage[userID]
 	if !ok {
 		cart = &domain.Cart{Items: make([]*domain.CartItem, 0, 1)}
-		r.storage[userId] = cart
+		r.storage[userID] = cart
 	}
 
 	return cart, nil
 }
 
-func (r *CartRepositoryInMemory) UpsertCartItem(ctx context.Context, userId int64, newItem *domain.CartItem) (*domain.CartItem, error) {
-	cart, err := r.getOrCreateUserCart(userId)
+func (r *CartRepositoryInMemory) UpsertCartItem(_ context.Context, userID int64, newItem *domain.CartItem) (*domain.CartItem, error) {
+	cart, err := r.getOrCreateUserCart(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +55,8 @@ func (r *CartRepositoryInMemory) UpsertCartItem(ctx context.Context, userId int6
 	return newItem, nil
 }
 
-func (r *CartRepositoryInMemory) DeleteCartItem(ctx context.Context, userId, skuId int64) (*domain.CartItem, error) {
-	cart, err := r.getOrCreateUserCart(userId)
+func (r *CartRepositoryInMemory) DeleteCartItem(_ context.Context, userID, skuID int64) (*domain.CartItem, error) {
+	cart, err := r.getOrCreateUserCart(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (r *CartRepositoryInMemory) DeleteCartItem(ctx context.Context, userId, sku
 	defer r.mx.Unlock()
 
 	for i, item := range cart.Items {
-		if item.Sku == skuId {
+		if item.Sku == skuID {
 			delItem := item
 			cart.Items[i] = cart.Items[len(cart.Items)-1]
 			cart.Items = cart.Items[:len(cart.Items)-1]
@@ -76,18 +76,18 @@ func (r *CartRepositoryInMemory) DeleteCartItem(ctx context.Context, userId, sku
 	return nil, nil
 }
 
-func (r *CartRepositoryInMemory) DeleteCart(ctx context.Context, userId int64) (*domain.Cart, error) {
+func (r *CartRepositoryInMemory) DeleteCart(_ context.Context, userID int64) (*domain.Cart, error) {
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
-	cart := r.storage[userId]
-	delete(r.storage, userId)
+	cart := r.storage[userID]
+	delete(r.storage, userID)
 
 	return cart, nil
 }
 
-func (r *CartRepositoryInMemory) GetCartByUserIdOrderBySku(ctx context.Context, userId int64) (*domain.Cart, error) {
-	cart, err := r.getOrCreateUserCart(userId)
+func (r *CartRepositoryInMemory) GetCartByUserIDOrderBySku(_ context.Context, userID int64) (*domain.Cart, error) {
+	cart, err := r.getOrCreateUserCart(userID)
 	if err != nil {
 		return nil, err
 	}

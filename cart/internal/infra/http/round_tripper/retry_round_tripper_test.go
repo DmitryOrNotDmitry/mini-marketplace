@@ -13,7 +13,7 @@ type MockRoundTripper struct {
 	mock.Mock
 }
 
-func (m MockRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
+func (m *MockRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	args := m.Called(r)
 	return args.Get(0).(*http.Response), args.Error(1)
 }

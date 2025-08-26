@@ -30,7 +30,11 @@ func TestCartRepositoryInMemory_UpsertCartItem(t *testing.T) {
 			name: "increase count for existing SKU",
 			repo: func() *CartRepositoryInMemory {
 				r := NewInMemoryCartRepository(10)
-				r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 100, Count: 2, Name: "Test", Price: 100})
+				_, err := r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 100, Count: 2, Name: "Test", Price: 100})
+				if err != nil {
+					t.Fatalf("r.UpsertCartItem returns error - %s", err.Error())
+					return nil
+				}
 				return r
 			}(),
 			args: args{ctx: context.Background(), userID: 1, newItem: &domain.CartItem{Sku: 100, Count: 3, Name: "Test", Price: 100}},
@@ -68,7 +72,11 @@ func TestCartRepositoryInMemory_DeleteCartItem(t *testing.T) {
 			name: "delete existing item",
 			repo: func() *CartRepositoryInMemory {
 				r := NewInMemoryCartRepository(10)
-				r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 200, Count: 1})
+				_, err := r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 200, Count: 1})
+				if err != nil {
+					t.Fatalf("r.UpsertCartItem returns error - %s", err.Error())
+					return nil
+				}
 				return r
 			}(),
 			args: args{ctx: context.Background(), userID: 1, skuID: 200},
@@ -111,7 +119,11 @@ func TestCartRepositoryInMemory_DeleteCart(t *testing.T) {
 			name: "delete existing cart",
 			repo: func() *CartRepositoryInMemory {
 				r := NewInMemoryCartRepository(10)
-				r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 300, Count: 1})
+				_, err := r.UpsertCartItem(context.Background(), 1, &domain.CartItem{Sku: 300, Count: 1})
+				if err != nil {
+					t.Fatalf("r.UpsertCartItem returns error - %s", err.Error())
+					return nil
+				}
 				return r
 			}(),
 			args: args{ctx: context.Background(), userID: 1},
@@ -140,7 +152,7 @@ func TestCartRepositoryInMemory_DeleteCart(t *testing.T) {
 			}
 
 			if tt.want != nil {
-				cartAfter, _ := tt.repo.GetCartByUserIdOrderBySku(tt.args.ctx, tt.args.userID)
+				cartAfter, _ := tt.repo.GetCartByUserIDOrderBySku(tt.args.ctx, tt.args.userID)
 				if len(cartAfter.Items) != 0 {
 					t.Errorf("cart was not deleted, got %v", cartAfter.Items)
 				}
@@ -149,7 +161,7 @@ func TestCartRepositoryInMemory_DeleteCart(t *testing.T) {
 	}
 }
 
-func TestCartRepositoryInMemory_GetCartByUserIdOrderBySku(t *testing.T) {
+func TestCartRepositoryInMemory_GetCartByUserIDOrderBySku(t *testing.T) {
 	type args struct {
 		ctx    context.Context
 		userID int64
@@ -182,13 +194,13 @@ func TestCartRepositoryInMemory_GetCartByUserIdOrderBySku(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.repo.GetCartByUserIdOrderBySku(tt.args.ctx, tt.args.userID)
+			got, err := tt.repo.GetCartByUserIDOrderBySku(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetCartByUserIdOrderBySku() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetCartByUserIDOrderBySku() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetCartByUserIdOrderBySku() = %v, want %v", got, tt.want)
+				t.Errorf("GetCartByUserIDOrderBySku() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -54,7 +54,7 @@ func (app *App) bootstrapHandlers() http.Handler {
 		Timeout:   10 * time.Second,
 	}
 
-	productService := service.NewProductService(
+	productService := service.NewProductServiceHTTP(
 		httpClient,
 		app.config.ProductService.Token,
 		fmt.Sprintf("%s://%s:%s", app.config.ProductService.Protocol, app.config.ProductService.Host, app.config.ProductService.Port),

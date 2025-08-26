@@ -38,17 +38,18 @@ func (s *Server) AddCartItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	request.UserID, err = strconv.ParseInt(r.PathValue("user_id"), 10, 64)
 	if err != nil {
-		MakeErrorResponse(w, domain.ErrUserIdNotValid, http.StatusBadRequest)
+		MakeErrorResponse(w, domain.ErrUserIDNotValid, http.StatusBadRequest)
 		return
 	}
 
 	fieldErrors := map[string]error{
-		"UserID": domain.ErrUserIdNotValid,
+		"UserID": domain.ErrUserIDNotValid,
 		"Sku":    domain.ErrSKUNotValid,
 		"Count":  domain.ErrCountNotValid,
 	}
 
-	if err := validate.ValidateStruct(request, fieldErrors); err != nil {
+	err = validate.Struct(request, fieldErrors)
+	if err != nil {
 		MakeErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}

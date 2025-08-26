@@ -15,7 +15,7 @@ type mockRoundTripper struct {
 	err  error
 }
 
-func (m *mockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+func (m *mockRoundTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
 	return m.resp, m.err
 }
 
@@ -33,7 +33,7 @@ func TestProductServiceHttp_GetProductBySku(t *testing.T) {
 
 	tests := []struct {
 		name string
-		s    *ProductServiceHttp
+		s    *ProductServiceHTTP
 		args struct {
 			ctx context.Context
 			sku int64
@@ -43,7 +43,7 @@ func TestProductServiceHttp_GetProductBySku(t *testing.T) {
 	}{
 		{
 			name: "successful response",
-			s: &ProductServiceHttp{
+			s: &ProductServiceHTTP{
 				httpClient: http.Client{Transport: &mockRoundTripper{resp: successResp}},
 				token:      "token",
 				address:    "http://localhost",
@@ -57,7 +57,7 @@ func TestProductServiceHttp_GetProductBySku(t *testing.T) {
 		},
 		{
 			name: "product not found",
-			s: &ProductServiceHttp{
+			s: &ProductServiceHTTP{
 				httpClient: http.Client{Transport: &mockRoundTripper{resp: notFoundResp}},
 				token:      "token",
 				address:    "http://localhost",

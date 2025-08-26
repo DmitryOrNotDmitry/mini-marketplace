@@ -22,8 +22,8 @@ type CartItemResponse struct {
 
 func (s *Server) GetCartHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
-	if err != nil || validate.ValidateUserID(userID) != nil {
-		MakeErrorResponse(w, domain.ErrUserIdNotValid, http.StatusBadRequest)
+	if err != nil || validate.UserID(userID) != nil {
+		MakeErrorResponse(w, domain.ErrUserIDNotValid, http.StatusBadRequest)
 		return
 	}
 
