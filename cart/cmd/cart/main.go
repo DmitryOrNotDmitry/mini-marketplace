@@ -8,7 +8,7 @@ import (
 func main() {
 	cfg := os.Getenv("ROUTE_256_WS1_CONFIG")
 	if cfg == "" {
-		cfg = "./configs/values_ci.yaml"
+		cfg = "cart/configs/values_ci.yaml"
 	}
 	app, err := app.NewApp(cfg)
 	if err != nil {
