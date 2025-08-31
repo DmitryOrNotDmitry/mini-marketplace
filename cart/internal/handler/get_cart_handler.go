@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"route256/cart/internal/domain"
-	"route256/cart/internal/handler/validate"
-	"strconv"
 )
 
 type CartResponse struct {
@@ -20,11 +18,14 @@ type CartItemResponse struct {
 	Count uint32 `json:"count"`
 }
 
-// Обрабатывает HTTP-запрос на получение содержимого корзины пользователя
+// GetCartHandler обрабатывает HTTP-запрос на получение содержимого корзины пользователя.
 func (s *Server) GetCartHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
-	if err != nil || validate.UserID(userID) != nil {
-		MakeErrorResponse(w, domain.ErrUserIDNotValid, http.StatusBadRequest)
+	var userID int64
+	errs := NewRequestValidator(r).
+		ParseUserID(&userID).
+		Errors()
+	if errs != nil {
+		MakeErrorResponseByErrs(w, errs)
 		return
 	}
 

@@ -2,11 +2,20 @@ package validate
 
 import "github.com/go-playground/validator/v10"
 
-var validate = validator.New()
+type ValidatorAdapter struct {
+	validate *validator.Validate
+}
 
-// Выполняет валидацию структуры с использованием ошибок для полей
-func Struct[T any](s T, fieldErrors map[string]error) error {
-	if err := validate.Struct(s); err != nil {
+// NewValidatorAdapter конструктор для ValidatorAdapter
+func NewValidatorAdapter() *ValidatorAdapter {
+	return &ValidatorAdapter{
+		validate: validator.New(),
+	}
+}
+
+// Struct выполняет валидацию структуры с использованием ошибок для полей
+func (va *ValidatorAdapter) Struct(s any, fieldErrors map[string]error) error {
+	if err := va.validate.Struct(s); err != nil {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			for _, e := range validationErrors {
 				if customErr, found := fieldErrors[e.Field()]; found {
@@ -19,16 +28,16 @@ func Struct[T any](s T, fieldErrors map[string]error) error {
 	return nil
 }
 
-func validateVar[T any](s T, tag string) error {
-	return validate.Var(s, tag)
+func validateVar(va *ValidatorAdapter, s any, tag string) error {
+	return va.validate.Var(s, tag)
 }
 
-// Валидирует идентификатор пользователя
-func UserID(userID int64) error {
-	return validateVar(userID, "required,gt=0")
+// UserID валидирует идентификатор пользователя.
+func (va *ValidatorAdapter) UserID(userID int64) error {
+	return validateVar(va, userID, "required,gt=0")
 }
 
-// Валидирует SKU товара
-func SkuID(skuID int64) error {
-	return validateVar(skuID, "required,gt=0")
+// SkuID валидирует SKU товара.
+func (va *ValidatorAdapter) SkuID(skuID int64) error {
+	return validateVar(va, skuID, "required,gt=0")
 }

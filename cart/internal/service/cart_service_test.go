@@ -18,14 +18,14 @@ func (m *MockCartRepository) UpsertCartItem(ctx context.Context, userID int64, n
 	return args.Get(0).(*domain.CartItem), args.Error(1)
 }
 
-func (m *MockCartRepository) DeleteCartItem(ctx context.Context, userID, skuID int64) (*domain.CartItem, error) {
+func (m *MockCartRepository) DeleteCartItem(ctx context.Context, userID, skuID int64) error {
 	args := m.Called(ctx, userID, skuID)
-	return args.Get(0).(*domain.CartItem), args.Error(1)
+	return args.Error(0)
 }
 
-func (m *MockCartRepository) DeleteCart(ctx context.Context, userID int64) (*domain.Cart, error) {
+func (m *MockCartRepository) DeleteCart(ctx context.Context, userID int64) error {
 	args := m.Called(ctx, userID)
-	return args.Get(0).(*domain.Cart), args.Error(1)
+	return args.Error(0)
 }
 
 func (m *MockCartRepository) GetCartByUserIDOrderBySku(ctx context.Context, userID int64) (*domain.Cart, error) {

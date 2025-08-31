@@ -1,4 +1,4 @@
-package round_tripper
+package roundtripper
 
 import (
 	"bytes"

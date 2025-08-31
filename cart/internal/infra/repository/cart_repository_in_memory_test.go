@@ -91,13 +91,10 @@ func TestCartRepositoryInMemory_DeleteCartItem(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.repo.DeleteCartItem(tt.args.ctx, tt.args.userID, tt.args.skuID)
+			err := tt.repo.DeleteCartItem(tt.args.ctx, tt.args.userID, tt.args.skuID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeleteCartItem() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DeleteCartItem() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -142,13 +139,10 @@ func TestCartRepositoryInMemory_DeleteCart(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.repo.DeleteCart(tt.args.ctx, tt.args.userID)
+			err := tt.repo.DeleteCart(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeleteCart() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DeleteCart() = %v, want %v", got, tt.want)
 			}
 
 			if tt.want != nil {

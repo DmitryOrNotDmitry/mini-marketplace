@@ -8,100 +8,104 @@ import (
 	"sync"
 )
 
-type Storage = map[int64]*domain.Cart
+type Storage = map[int64]*CartEntity
 
 type CartRepositoryInMemory struct {
 	storage Storage
 	mx      sync.RWMutex
 }
 
-// Создает новый репозиторий корзины в памяти
+// NewInMemoryCartRepository создает новый репозиторий корзины с in-memory хранилищем.
 func NewInMemoryCartRepository(cap int) *CartRepositoryInMemory {
 	return &CartRepositoryInMemory{
 		storage: make(Storage, cap),
 	}
 }
 
-func (r *CartRepositoryInMemory) getOrCreateUserCart(userID int64) (*domain.Cart, error) {
-	r.mx.Lock()
-	defer r.mx.Unlock()
-
+func (r *CartRepositoryInMemory) getCartBy(userID int64) (*CartEntity, bool) {
 	cart, ok := r.storage[userID]
-	if !ok {
-		cart = &domain.Cart{Items: make([]*domain.CartItem, 0, 1)}
-		r.storage[userID] = cart
-	}
-
-	return cart, nil
+	return cart, ok
 }
 
-// Добавляет товар или обновляет количество товара в корзине пользователя в in-memory хранилище
+func (r *CartRepositoryInMemory) createCartBy(userID int64) *CartEntity {
+	cart := &CartEntity{
+		Items: make(map[int64]*domain.CartItem),
+	}
+	r.storage[userID] = cart
+
+	return cart
+}
+
+// UpsertCartItem добавляет товар или обновляет количество товара в корзине пользователя в in-memory хранилище.
 func (r *CartRepositoryInMemory) UpsertCartItem(_ context.Context, userID int64, newItem *domain.CartItem) (*domain.CartItem, error) {
-	cart, err := r.getOrCreateUserCart(userID)
-	if err != nil {
-		return nil, err
-	}
+	r.mx.RLock()
+	cart, ok := r.getCartBy(userID)
+	r.mx.RUnlock()
 
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
-	for _, item := range cart.Items {
-		if item.Sku == newItem.Sku {
-			item.Count += newItem.Count
-			return item, nil
-		}
+	if !ok {
+		cart = r.createCartBy(userID)
 	}
 
-	cart.Items = append(cart.Items, newItem)
+	item, ok := cart.Items[newItem.Sku]
+	if ok {
+		item.Count += newItem.Count
+	} else {
+		cart.Items[newItem.Sku] = newItem
+		item = newItem
+	}
 
-	return newItem, nil
+	return item, nil
 }
 
-// Удаляет товар из корзины пользователя по SKU из in-memory хранилища
-func (r *CartRepositoryInMemory) DeleteCartItem(_ context.Context, userID, skuID int64) (*domain.CartItem, error) {
-	cart, err := r.getOrCreateUserCart(userID)
-	if err != nil {
-		return nil, err
-	}
+// DeleteCartItem удаляет товар из корзины пользователя по SKU из in-memory хранилища.
+func (r *CartRepositoryInMemory) DeleteCartItem(_ context.Context, userID, skuID int64) error {
+	r.mx.RLock()
+	cart, ok := r.getCartBy(userID)
+	r.mx.RUnlock()
 
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
-	for i, item := range cart.Items {
-		if item.Sku == skuID {
-			delItem := item
-			cart.Items[i] = cart.Items[len(cart.Items)-1]
-			cart.Items = cart.Items[:len(cart.Items)-1]
-			return delItem, nil
-		}
+	if !ok {
+		cart = r.createCartBy(userID)
 	}
 
-	return nil, nil
+	delete(cart.Items, skuID)
+
+	return nil
 }
 
-// Удаляет корзину пользователя из in-memory хранилища
-func (r *CartRepositoryInMemory) DeleteCart(_ context.Context, userID int64) (*domain.Cart, error) {
+// DeleteCart удаляет корзину пользователя из in-memory хранилища.
+func (r *CartRepositoryInMemory) DeleteCart(_ context.Context, userID int64) error {
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
-	cart := r.storage[userID]
 	delete(r.storage, userID)
 
-	return cart, nil
+	return nil
 }
 
-// Возвращает корзину пользователя с отсортированными по SKU товарами из in-memory хранилища
+// GetCartByUserIDOrderBySku возвращает корзину пользователя с отсортированными по SKU товарами из in-memory хранилища.
 func (r *CartRepositoryInMemory) GetCartByUserIDOrderBySku(_ context.Context, userID int64) (*domain.Cart, error) {
-	cart, err := r.getOrCreateUserCart(userID)
-	if err != nil {
-		return nil, err
+	r.mx.RLock()
+	cart, ok := r.getCartBy(userID)
+	r.mx.RUnlock()
+
+	if !ok {
+		return &domain.Cart{Items: []*domain.CartItem{}}, nil
 	}
 
 	r.mx.RLock()
 
-	cartCopy := *cart
-	cartCopy.Items = make([]*domain.CartItem, len(cart.Items))
-	copy(cartCopy.Items, cart.Items)
+	cartCopy := &domain.Cart{
+		Items: make([]*domain.CartItem, 0, len(cart.Items)),
+	}
+	for _, item := range cart.Items {
+		cartCopy.Items = append(cartCopy.Items, item)
+	}
 
 	r.mx.RUnlock()
 
@@ -109,5 +113,5 @@ func (r *CartRepositoryInMemory) GetCartByUserIDOrderBySku(_ context.Context, us
 		return cmp.Compare(a.Sku, b.Sku)
 	})
 
-	return &cartCopy, nil
+	return cartCopy, nil
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// Формирует и отправляет ответ с ошибкой в формате JSON
+// MakeErrorResponse формирует и отправляет ответ с ошибкой в формате JSON.
 func MakeErrorResponse(w http.ResponseWriter, err error, statusCode int) {
 	type ErrorMessage struct {
 		Message string
@@ -20,4 +20,8 @@ func MakeErrorResponse(w http.ResponseWriter, err error, statusCode int) {
 		fmt.Println(errE)
 		return
 	}
+}
+
+func MakeErrorResponseByErrs(w http.ResponseWriter, errs []error) {
+	MakeErrorResponse(w, errs[0], http.StatusBadRequest)
 }

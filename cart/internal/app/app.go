@@ -9,7 +9,7 @@ import (
 	"route256/cart/internal/handler"
 	"route256/cart/internal/infra/config"
 	"route256/cart/internal/infra/http/middleware"
-	"route256/cart/internal/infra/http/round_tripper"
+	"route256/cart/internal/infra/http/roundtripper"
 	"route256/cart/internal/infra/logger"
 	"route256/cart/internal/infra/repository"
 	"route256/cart/internal/service"
@@ -20,7 +20,7 @@ type App struct {
 	server http.Server
 }
 
-// Конструктор главного приложения
+// NewApp конструктор главного приложения.
 func NewApp(configPath string) (*App, error) {
 	c, err := config.LoadConfig(configPath)
 	if err != nil {
@@ -33,7 +33,7 @@ func NewApp(configPath string) (*App, error) {
 	return app, nil
 }
 
-// Запускает HTTP-сервер приложения
+// ListenAndServe запускает HTTP-сервер приложения.
 func (app *App) ListenAndServe() error {
 	address := fmt.Sprintf("%s:%s", app.config.Server.Host, app.config.Server.Port)
 
@@ -50,7 +50,7 @@ func (app *App) ListenAndServe() error {
 func (app *App) bootstrapHandlers() http.Handler {
 
 	transport := http.DefaultTransport
-	transport = round_tripper.NewRetryRoundTripper(transport, []int{420, 429}, 3)
+	transport = roundtripper.NewRetryRoundTripper(transport, []int{420, 429}, 3)
 	httpClient := http.Client{
 		Transport: transport,
 		Timeout:   10 * time.Second,

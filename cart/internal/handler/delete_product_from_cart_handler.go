@@ -2,26 +2,22 @@ package handler
 
 import (
 	"net/http"
-	"route256/cart/internal/domain"
-	"route256/cart/internal/handler/validate"
-	"strconv"
 )
 
-// Обрабатывает HTTP-запрос на удаление товара из корзины пользователя
+// DeleteCartItemHandler обрабатывает HTTP-запрос на удаление товара из корзины пользователя.
 func (s *Server) DeleteCartItemHandler(w http.ResponseWriter, r *http.Request) {
-	skuID, err := strconv.ParseInt(r.PathValue("sku_id"), 10, 64)
-	if err != nil || validate.SkuID(skuID) != nil {
-		MakeErrorResponse(w, domain.ErrSKUNotValid, http.StatusBadRequest)
+	var userID int64
+	var skuID int64
+	errs := NewRequestValidator(r).
+		ParseUserID(&userID).
+		ParseSkuID(&skuID).
+		Errors()
+	if errs != nil {
+		MakeErrorResponseByErrs(w, errs)
 		return
 	}
 
-	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
-	if err != nil || validate.UserID(userID) != nil {
-		MakeErrorResponse(w, domain.ErrUserIDNotValid, http.StatusBadRequest)
-		return
-	}
-
-	_, err = s.cartService.DeleteCartItem(r.Context(), userID, skuID)
+	err := s.cartService.DeleteCartItem(r.Context(), userID, skuID)
 	if err != nil {
 		MakeErrorResponse(w, err, http.StatusInternalServerError)
 		return

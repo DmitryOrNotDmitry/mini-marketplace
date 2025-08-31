@@ -18,7 +18,7 @@ type ProductServiceHTTP struct {
 	address    string
 }
 
-// Конструктор для ProductServiceHTTP
+// NewProductServiceHTTP конструктор для ProductServiceHTTP.
 func NewProductServiceHTTP(httpClient http.Client, token string, address string) *ProductServiceHTTP {
 	return &ProductServiceHTTP{
 		httpClient: httpClient,
@@ -33,7 +33,7 @@ type GetProductResponse struct {
 	Sku   int64  `json:"sku"`
 }
 
-// Возвращает информацию о товаре по SKU из внешнего сервиса
+// GetProductBySku возвращает информацию о товаре по SKU из внешнего сервиса.
 func (s *ProductServiceHTTP) GetProductBySku(ctx context.Context, sku int64) (*domain.Product, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()

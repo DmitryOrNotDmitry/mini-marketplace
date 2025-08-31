@@ -1,6 +1,7 @@
-package round_tripper
+package roundtripper
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -10,7 +11,7 @@ type RetryRoundTripper struct {
 	maxRetries        int
 }
 
-// Создает http.RoundTripper с поддержкой повторных попыток.
+// NewRetryRoundTripper создает http.RoundTripper с поддержкой повторных попыток.
 // Повторная попытка выполняется, если код ответа содержится в triggerStatuses.
 func NewRetryRoundTripper(rt http.RoundTripper, triggerStatuses []int, maxRetries int) http.RoundTripper {
 	l := &RetryRoundTripper{
@@ -34,9 +35,9 @@ func (l *RetryRoundTripper) isTriggeredStatus(statusCode int) bool {
 func copyRequest(r *http.Request) (*http.Request, error) {
 	rCopy := r
 	if r.Body != nil && r.GetBody != nil {
-		bodyCopy, errGet := r.GetBody()
-		if errGet != nil {
-			return nil, errGet
+		bodyCopy, err := r.GetBody()
+		if err != nil {
+			return nil, fmt.Errorf("r.GetBody: %w", err)
 		}
 
 		rCopy = r.Clone(r.Context())
@@ -47,28 +48,28 @@ func copyRequest(r *http.Request) (*http.Request, error) {
 }
 
 func (l *RetryRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
-	rCopy, errGet := copyRequest(r)
-	if errGet != nil {
-		return nil, errGet
+	rCopy, errCopy := copyRequest(r)
+	if errCopy != nil {
+		return nil, fmt.Errorf("copyRequest: %w", errCopy)
 	}
 
 	resp, err := l.rt.RoundTrip(rCopy)
 	if err != nil {
-		return resp, err
+		return resp, fmt.Errorf("l.rt.RoundTrip: %w", err)
 	}
 
 	curRetry := 1
 	for l.isTriggeredStatus(resp.StatusCode) && curRetry <= l.maxRetries {
 		resp.Body.Close()
 
-		rCopy, errGet = copyRequest(r)
-		if errGet != nil {
-			return nil, errGet
+		rCopy, errCopy = copyRequest(r)
+		if errCopy != nil {
+			return nil, fmt.Errorf("copyRequest: %w", errCopy)
 		}
 
 		resp, err = l.rt.RoundTrip(rCopy)
 		if err != nil {
-			return resp, err
+			return resp, fmt.Errorf("l.rt.RoundTrip: %w", err)
 		}
 
 		curRetry++
