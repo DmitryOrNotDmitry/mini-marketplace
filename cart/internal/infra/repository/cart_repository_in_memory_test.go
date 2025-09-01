@@ -229,7 +229,7 @@ func BenchmarkUpsertCartItemParallel(b *testing.B) {
 			Sku:   sku.Int64(),
 			Name:  "any",
 			Price: 10,
-			Count: uint32(count.Uint64()),
+			Count: uint32(count.Uint64()), // #nosec G115: value is guaranteed to fit in uint32
 		}
 	}
 
@@ -267,7 +267,7 @@ func BenchmarkCartRepositoryParallel(b *testing.B) {
 			Sku:   sku.Int64(),
 			Name:  "any",
 			Price: 10,
-			Count: uint32(count.Uint64()),
+			Count: uint32(count.Uint64()), // #nosec G115: value is guaranteed to fit in uint32
 		}
 	}
 
