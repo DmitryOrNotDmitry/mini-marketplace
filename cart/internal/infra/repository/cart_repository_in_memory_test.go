@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"math/rand/v2"
 	"reflect"
 	"route256/cart/internal/domain"
 	"testing"
@@ -204,4 +205,73 @@ func TestCartRepositoryInMemory_GetCartByUserIDOrderBySku(t *testing.T) {
 			}
 		})
 	}
+}
+
+func BenchmarkUpsertCartItemParallel(b *testing.B) {
+	repo := NewInMemoryCartRepository(10)
+	ctx := context.Background()
+	userID := int64(123)
+
+	cartItems := make([]*domain.CartItem, 100)
+	for i := 0; i < 100; i++ {
+		cartItems[i] = &domain.CartItem{
+			Sku:   rand.Int64(),
+			Name:  "any",
+			Price: 10,
+			Count: rand.Uint32N(1000),
+		}
+	}
+
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		i := 0
+		for pb.Next() {
+			item := cartItems[i%len(cartItems)]
+			i++
+			_, _ = repo.UpsertCartItem(ctx, userID, item)
+		}
+	})
+}
+
+func BenchmarkCartRepositoryParallel(b *testing.B) {
+	repo := NewInMemoryCartRepository(10)
+	ctx := context.Background()
+	userID := int64(123)
+
+	n := 1000
+	cartItems := make([]*domain.CartItem, n)
+	for i := 0; i < n; i++ {
+		cartItems[i] = &domain.CartItem{
+			Sku:   rand.Int64(),
+			Name:  "any",
+			Price: 10,
+			Count: rand.Uint32N(1000),
+		}
+	}
+
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		i := 0
+		for pb.Next() {
+			item := cartItems[i%n]
+			skuID := item.Sku
+			i++
+
+			_, _ = repo.UpsertCartItem(ctx, userID, item)
+
+			if i%5 == 0 {
+				_, _ = repo.GetCartByUserIDOrderBySku(ctx, userID)
+			}
+
+			if i%10 == 0 {
+				_ = repo.DeleteCartItem(ctx, userID, skuID)
+			}
+
+			if i%100 == 0 {
+				_ = repo.DeleteCart(ctx, userID)
+			}
+		}
+	})
 }

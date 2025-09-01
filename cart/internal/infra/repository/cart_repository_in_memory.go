@@ -38,13 +38,10 @@ func (r *CartRepositoryInMemory) createCartBy(userID int64) *CartEntity {
 
 // UpsertCartItem добавляет товар или обновляет количество товара в корзине пользователя в in-memory хранилище.
 func (r *CartRepositoryInMemory) UpsertCartItem(_ context.Context, userID int64, newItem *domain.CartItem) (*domain.CartItem, error) {
-	r.mx.RLock()
-	cart, ok := r.getCartBy(userID)
-	r.mx.RUnlock()
-
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
+	cart, ok := r.getCartBy(userID)
 	if !ok {
 		cart = r.createCartBy(userID)
 	}
@@ -62,13 +59,10 @@ func (r *CartRepositoryInMemory) UpsertCartItem(_ context.Context, userID int64,
 
 // DeleteCartItem удаляет товар из корзины пользователя по SKU из in-memory хранилища.
 func (r *CartRepositoryInMemory) DeleteCartItem(_ context.Context, userID, skuID int64) error {
-	r.mx.RLock()
-	cart, ok := r.getCartBy(userID)
-	r.mx.RUnlock()
-
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
+	cart, ok := r.getCartBy(userID)
 	if !ok {
 		cart = r.createCartBy(userID)
 	}
@@ -91,14 +85,12 @@ func (r *CartRepositoryInMemory) DeleteCart(_ context.Context, userID int64) err
 // GetCartByUserIDOrderBySku возвращает корзину пользователя с отсортированными по SKU товарами из in-memory хранилища.
 func (r *CartRepositoryInMemory) GetCartByUserIDOrderBySku(_ context.Context, userID int64) (*domain.Cart, error) {
 	r.mx.RLock()
-	cart, ok := r.getCartBy(userID)
-	r.mx.RUnlock()
 
+	cart, ok := r.getCartBy(userID)
 	if !ok {
+		r.mx.RUnlock()
 		return &domain.Cart{Items: []*domain.CartItem{}}, nil
 	}
-
-	r.mx.RLock()
 
 	cartCopy := &domain.Cart{
 		Items: make([]*domain.CartItem, 0, len(cart.Items)),
