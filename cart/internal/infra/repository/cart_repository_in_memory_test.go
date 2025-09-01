@@ -2,7 +2,8 @@ package repository
 
 import (
 	"context"
-	"math/rand/v2"
+	"crypto/rand"
+	"math/big"
 	"reflect"
 	"route256/cart/internal/domain"
 	"testing"
@@ -214,11 +215,21 @@ func BenchmarkUpsertCartItemParallel(b *testing.B) {
 
 	cartItems := make([]*domain.CartItem, 100)
 	for i := 0; i < 100; i++ {
+		sku, err := rand.Int(rand.Reader, big.NewInt(1000000))
+		if err != nil {
+			panic(err)
+		}
+
+		count, err := rand.Int(rand.Reader, big.NewInt(1000))
+		if err != nil {
+			panic(err)
+		}
+
 		cartItems[i] = &domain.CartItem{
-			Sku:   rand.Int64(),
+			Sku:   sku.Int64(),
 			Name:  "any",
 			Price: 10,
-			Count: rand.Uint32N(1000),
+			Count: uint32(count.Uint64()),
 		}
 	}
 
@@ -242,11 +253,21 @@ func BenchmarkCartRepositoryParallel(b *testing.B) {
 	n := 1000
 	cartItems := make([]*domain.CartItem, n)
 	for i := 0; i < n; i++ {
+		sku, err := rand.Int(rand.Reader, big.NewInt(1000000))
+		if err != nil {
+			panic(err)
+		}
+
+		count, err := rand.Int(rand.Reader, big.NewInt(1000))
+		if err != nil {
+			panic(err)
+		}
+
 		cartItems[i] = &domain.CartItem{
-			Sku:   rand.Int64(),
+			Sku:   sku.Int64(),
 			Name:  "any",
 			Price: 10,
-			Count: rand.Uint32N(1000),
+			Count: uint32(count.Uint64()),
 		}
 	}
 
