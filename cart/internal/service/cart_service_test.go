@@ -18,7 +18,7 @@ type testComponentCS struct {
 	cartService     *CartService
 }
 
-func newTestComponent(t *testing.T) *testComponentCS {
+func newTestComponentCS(t *testing.T) *testComponentCS {
 	mc := minimock.NewController(t)
 	cartRepoMock := mock.NewCartRepositoryMock(mc)
 	prouctServMock := mock.NewProductServiceMock(mc)
@@ -37,7 +37,7 @@ func TestCartService(t *testing.T) {
 	t.Run("add cart item success", func(t *testing.T) {
 		t.Parallel()
 
-		tc := newTestComponent(t)
+		tc := newTestComponentCS(t)
 
 		ctx := context.Background()
 		item := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
@@ -56,7 +56,7 @@ func TestCartService(t *testing.T) {
 	t.Run("add cart item with unexisting SKU at product service with error", func(t *testing.T) {
 		t.Parallel()
 
-		tc := newTestComponent(t)
+		tc := newTestComponentCS(t)
 
 		ctx := context.Background()
 		item := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
@@ -73,7 +73,7 @@ func TestCartService(t *testing.T) {
 	t.Run("get cart with total price success", func(t *testing.T) {
 		t.Parallel()
 
-		tc := newTestComponent(t)
+		tc := newTestComponentCS(t)
 
 		ctx := context.Background()
 		item1 := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
@@ -95,7 +95,7 @@ func TestCartService(t *testing.T) {
 	t.Run("delete item from cart", func(t *testing.T) {
 		t.Parallel()
 
-		tc := newTestComponent(t)
+		tc := newTestComponentCS(t)
 
 		ctx := context.Background()
 		item := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
