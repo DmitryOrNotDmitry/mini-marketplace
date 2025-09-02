@@ -19,3 +19,9 @@ minimock-gen-common:
 	minimock -i route256/cart/internal/service.CartRepository -o ./mocks/ -s "_mock.go"
 	minimock -i route256/cart/internal/service.ProductService -o ./mocks/ -s "_mock.go"
 	minimock -i route256/cart/internal/handler.CartService -o ./mocks/ -s "_mock.go"
+
+test:
+	go test ./... -count=1
+
+test-cover:
+	go test ./... -cover

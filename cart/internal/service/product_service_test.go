@@ -23,11 +23,7 @@ func TestProductServiceHttp_GetProductBySku(t *testing.T) {
 		}))
 		defer server.Close()
 
-		svc := &ProductServiceHTTP{
-			httpClient: http.Client{},
-			token:      "token",
-			address:    server.URL,
-		}
+		svc := NewProductServiceHTTP(http.Client{}, "token", server.URL)
 
 		got, err := svc.GetProductBySku(context.Background(), 12345)
 		require.NoError(t, err)
@@ -45,11 +41,7 @@ func TestProductServiceHttp_GetProductBySku(t *testing.T) {
 		}))
 		defer server.Close()
 
-		svc := &ProductServiceHTTP{
-			httpClient: http.Client{},
-			token:      "token",
-			address:    server.URL,
-		}
+		svc := NewProductServiceHTTP(http.Client{}, "token", server.URL)
 
 		got, err := svc.GetProductBySku(context.Background(), 99999)
 		require.Error(t, err)

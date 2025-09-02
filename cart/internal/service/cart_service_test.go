@@ -91,4 +91,21 @@ func TestCartService(t *testing.T) {
 		assert.Len(t, cart.Items, 3)
 		assert.EqualValues(t, 2*100+2*300+2*200, cart.TotalPrice)
 	})
+
+	t.Run("delete item from cart", func(t *testing.T) {
+		t.Parallel()
+
+		tc := newTestComponent(t)
+
+		ctx := context.Background()
+		item := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
+		userID := int64(1)
+
+		tc.cartRepoMock.DeleteCartItemMock.
+			When(ctx, userID, item.Sku).
+			Then(nil)
+
+		err := tc.cartService.DeleteCartItem(ctx, userID, item.Sku)
+		require.NoError(t, err)
+	})
 }
