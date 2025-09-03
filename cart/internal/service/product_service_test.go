@@ -17,9 +17,10 @@ func TestProductServiceHttp_GetProductBySku(t *testing.T) {
 	t.Run("successful response", func(t *testing.T) {
 		t.Parallel()
 
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"name":"TestProduct","price":100,"sku":12345}`))
+			_, err := w.Write([]byte(`{"name":"TestProduct","price":100,"sku":12345}`))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -35,9 +36,10 @@ func TestProductServiceHttp_GetProductBySku(t *testing.T) {
 	t.Run("product not found", func(t *testing.T) {
 		t.Parallel()
 
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(``))
+			_, err := w.Write([]byte(``))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 

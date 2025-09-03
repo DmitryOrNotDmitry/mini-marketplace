@@ -147,7 +147,6 @@ func TestCartRepositoryInMemory(t *testing.T) {
 
 		userID := int64(1)
 		countItems := 100
-		itemPrice := 100
 		for i := 0; i < countItems; i++ {
 			sku, err := rand.Int(rand.Reader, big.NewInt(1000))
 			require.NoError(t, err)
@@ -156,7 +155,7 @@ func TestCartRepositoryInMemory(t *testing.T) {
 				Sku:   sku.Int64(),
 				Name:  "Item 1",
 				Count: 1,
-				Price: uint32(itemPrice),
+				Price: 100,
 			}
 
 			_, err = repo.UpsertCartItem(ctx, userID, item)
