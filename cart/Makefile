@@ -36,3 +36,11 @@ test-api-win:
 
 allure: 
 	allure serve ./tests/allure-results
+
+lint:
+	gocyclo -over 10 -ignore "_test|mocks|tests" .
+	gocognit -over 12 -ignore "_test|mocks|tests" .
+
+lint-top:
+	gocyclo -top 10 -ignore "_test|mocks|tests" .
+	gocognit -top 10 -ignore "_test|mocks|tests" .
