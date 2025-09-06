@@ -13,14 +13,18 @@ import (
 
 var ErrNotOk = errors.New("status not ok")
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type ProductServiceHTTP struct {
-	httpClient http.Client
+	httpClient HTTPClient
 	token      string
 	address    string
 }
 
 // NewProductServiceHTTP конструктор для ProductServiceHTTP.
-func NewProductServiceHTTP(httpClient http.Client, token string, address string) *ProductServiceHTTP {
+func NewProductServiceHTTP(httpClient HTTPClient, token string, address string) *ProductServiceHTTP {
 	return &ProductServiceHTTP{
 		httpClient: httpClient,
 		token:      token,
