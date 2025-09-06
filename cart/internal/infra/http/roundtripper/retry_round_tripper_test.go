@@ -18,7 +18,7 @@ func (m *MockRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	return args.Get(0).(*http.Response), args.Error(1)
 }
 
-func TestRetryRoundTripper_RoundTrip_only_errors(t *testing.T) {
+func TestRetryRoundTripper_RoundTripOnlyErrors(t *testing.T) {
 	mockRoundTripper := new(MockRoundTripper)
 
 	// Мокнутый ответ для 420
@@ -41,7 +41,7 @@ func TestRetryRoundTripper_RoundTrip_only_errors(t *testing.T) {
 	}
 }
 
-func TestRetryRoundTripper_RoundTrip_success_on_second_call(t *testing.T) {
+func TestRetryRoundTripper_RoundTripSuccessOnSecondCall(t *testing.T) {
 	mockRoundTripper := new(MockRoundTripper)
 
 	resp420 := &http.Response{
@@ -73,7 +73,7 @@ func TestRetryRoundTripper_RoundTrip_success_on_second_call(t *testing.T) {
 	}
 }
 
-func TestRetryRoundTripper_RoundTrip_success_on_second_call_but_zero_retries(t *testing.T) {
+func TestRetryRoundTripper_RoundTripSuccessOnSecondCallButZeroRetries(t *testing.T) {
 	mockRoundTripper := new(MockRoundTripper)
 
 	resp420 := &http.Response{

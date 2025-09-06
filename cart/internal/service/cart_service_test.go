@@ -2,107 +2,110 @@ package service
 
 import (
 	"context"
-	"errors"
-	"route256/cart/internal/domain"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
+	"route256/cart/internal/domain"
+	mock "route256/cart/mocks"
+
+	"github.com/gojuno/minimock/v3"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-type MockCartRepository struct {
-	mock.Mock
+type testComponentCS struct {
+	cartRepoMock    *mock.CartRepositoryMock
+	productServMock *mock.ProductServiceMock
+	cartService     *CartService
 }
 
-func (m *MockCartRepository) UpsertCartItem(ctx context.Context, userID int64, newItem *domain.CartItem) (*domain.CartItem, error) {
-	args := m.Called(ctx, userID, newItem)
-	return args.Get(0).(*domain.CartItem), args.Error(1)
-}
+func newTestComponentCS(t *testing.T) *testComponentCS {
+	mc := minimock.NewController(t)
+	cartRepoMock := mock.NewCartRepositoryMock(mc)
+	prouctServMock := mock.NewProductServiceMock(mc)
+	cartService := NewCartService(cartRepoMock, prouctServMock)
 
-func (m *MockCartRepository) DeleteCartItem(ctx context.Context, userID, skuID int64) error {
-	args := m.Called(ctx, userID, skuID)
-	return args.Error(0)
-}
-
-func (m *MockCartRepository) DeleteCart(ctx context.Context, userID int64) error {
-	args := m.Called(ctx, userID)
-	return args.Error(0)
-}
-
-func (m *MockCartRepository) GetCartByUserIDOrderBySku(ctx context.Context, userID int64) (*domain.Cart, error) {
-	args := m.Called(ctx, userID)
-	return args.Get(0).(*domain.Cart), args.Error(1)
-}
-
-type MockProductService struct {
-	mock.Mock
-}
-
-func (m *MockProductService) GetProductBySku(ctx context.Context, sku int64) (*domain.Product, error) {
-	args := m.Called(ctx, sku)
-	return args.Get(0).(*domain.Product), args.Error(1)
-}
-
-func TestCartService_AddCartItem(t *testing.T) {
-	mockRepo := new(MockCartRepository)
-	mockProduct := new(MockProductService)
-	service := NewCartService(mockRepo, mockProduct)
-
-	newItem := &domain.CartItem{Sku: 1, Count: 2}
-	expectedProduct := &domain.Product{Name: "TestProd", Price: 100, Sku: 1}
-	expectedCartItem := &domain.CartItem{Sku: 1, Count: 2, Name: "TestProd", Price: 100}
-
-	mockProduct.On("GetProductBySku", mock.Anything, int64(1)).Return(expectedProduct, nil)
-	mockRepo.On("UpsertCartItem", mock.Anything, int64(123), mock.Anything).Return(expectedCartItem, nil)
-
-	got, err := service.AddCartItem(context.Background(), 123, newItem)
-	if err != nil {
-		t.Fatal(err)
+	return &testComponentCS{
+		cartRepoMock:    cartRepoMock,
+		productServMock: prouctServMock,
+		cartService:     cartService,
 	}
-
-	if got.Name != expectedCartItem.Name || got.Price != expectedCartItem.Price {
-		t.Errorf("unexpected result: %+v", got)
-	}
-
-	mockRepo.AssertExpectations(t)
-	mockProduct.AssertExpectations(t)
 }
 
-func TestCartService_GetCart(t *testing.T) {
-	mockRepo := new(MockCartRepository)
-	service := NewCartService(mockRepo, nil)
+func TestCartService(t *testing.T) {
+	t.Parallel()
 
-	cart := &domain.Cart{
-		Items: []*domain.CartItem{
-			{Sku: 1, Count: 2, Price: 100},
-			{Sku: 2, Count: 1, Price: 50},
-		},
-	}
-	mockRepo.On("GetCartByUserIDOrderBySku", mock.Anything, int64(123)).Return(cart, nil)
+	t.Run("add cart item success", func(t *testing.T) {
+		t.Parallel()
 
-	got, err := service.GetCart(context.Background(), 123)
-	if err != nil {
-		t.Fatal(err)
-	}
+		tc := newTestComponentCS(t)
 
-	expectedTotal := uint32(2*100 + 1*50)
-	if got.TotalPrice != expectedTotal {
-		t.Errorf("expected total %d, got %d", expectedTotal, got.TotalPrice)
-	}
+		ctx := context.Background()
+		item := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
+		returnedProduct := &domain.Product{Sku: 1, Name: "name 1", Price: 100}
+		userID := int64(1)
 
-	mockRepo.AssertExpectations(t)
-}
+		tc.productServMock.GetProductBySkuMock.When(ctx, item.Sku).Then(returnedProduct, nil)
+		tc.cartRepoMock.UpsertCartItemMock.When(ctx, userID, item).Then(item, nil)
 
-func TestCartService_AddCartItem_ProductError(t *testing.T) {
-	mockProduct := new(MockProductService)
-	service := NewCartService(nil, mockProduct)
+		addedItem, err := tc.cartService.AddCartItem(ctx, userID, item)
+		require.NoError(t, err)
 
-	var nilProduct *domain.Product
-	mockProduct.On("GetProductBySku", mock.Anything, int64(1)).Return(nilProduct, errors.New("product not found"))
+		assert.Equal(t, *item, *addedItem)
+	})
 
-	_, err := service.AddCartItem(context.Background(), 123, &domain.CartItem{Sku: 1, Count: 1})
-	if err == nil {
-		t.Errorf("expected error but got nil")
-	}
+	t.Run("add cart item with unexisting SKU at product service with error", func(t *testing.T) {
+		t.Parallel()
 
-	mockProduct.AssertExpectations(t)
+		tc := newTestComponentCS(t)
+
+		ctx := context.Background()
+		item := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
+		userID := int64(1)
+
+		tc.productServMock.GetProductBySkuMock.When(ctx, item.Sku).Then(nil, domain.ErrProductNotFound)
+
+		addedItem, err := tc.cartService.AddCartItem(ctx, userID, item)
+		require.Error(t, err)
+
+		assert.Nil(t, addedItem)
+	})
+
+	t.Run("get cart with total price success", func(t *testing.T) {
+		t.Parallel()
+
+		tc := newTestComponentCS(t)
+
+		ctx := context.Background()
+		item1 := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
+		item2 := &domain.CartItem{Sku: 2, Count: 2, Name: "name 2", Price: 300}
+		item3 := &domain.CartItem{Sku: 3, Count: 2, Name: "name 3", Price: 200}
+		userID := int64(1)
+
+		tc.cartRepoMock.GetCartByUserIDOrderBySkuMock.
+			When(ctx, userID).
+			Then(&domain.Cart{Items: []*domain.CartItem{item1, item2, item3}}, nil)
+
+		cart, err := tc.cartService.GetCart(ctx, userID)
+		require.NoError(t, err)
+
+		assert.Len(t, cart.Items, 3)
+		assert.EqualValues(t, 2*100+2*300+2*200, cart.TotalPrice)
+	})
+
+	t.Run("delete item from cart", func(t *testing.T) {
+		t.Parallel()
+
+		tc := newTestComponentCS(t)
+
+		ctx := context.Background()
+		item := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
+		userID := int64(1)
+
+		tc.cartRepoMock.DeleteCartItemMock.
+			When(ctx, userID, item.Sku).
+			Then(nil)
+
+		err := tc.cartService.DeleteCartItem(ctx, userID, item.Sku)
+		require.NoError(t, err)
+	})
 }
