@@ -6,3 +6,42 @@ bindir:
 
 build: bindir
 	echo "build cart"
+
+minimock-gen:
+	mkdir -p mocks
+	$(MAKE) minimock-gen-common
+
+minimock-gen-win:
+	mkdir mocks 2>nul || exit 0
+	$(MAKE) minimock-gen-common
+
+minimock-gen-common:
+	minimock -i route256/cart/internal/service.CartRepository -o ./mocks/ -s "_mock.go"
+	minimock -i route256/cart/internal/service.ProductService -o ./mocks/ -s "_mock.go"
+	minimock -i route256/cart/internal/service.HTTPClient -o ./mocks/ -s "_mock.go"
+	minimock -i route256/cart/internal/handler.CartService -o ./mocks/ -s "_mock.go"
+
+test:
+	go test ./... -count=1
+
+test-cover:
+	go test ./... -cover
+
+test-api:
+	rm -rf ./tests/allure-results
+	go test ./tests/... -tags=api
+
+test-api-win:
+	if exist tests\allure-results rmdir /s /q tests\allure-results
+	go test ./tests/... -tags=api
+
+allure: 
+	allure serve ./tests/allure-results
+
+lint:
+	gocyclo -over 10 -ignore "_test|mocks|tests" .
+	gocognit -over 12 -ignore "_test|mocks|tests" .
+
+lint-top:
+	gocyclo -top 10 -ignore "_test|mocks|tests" .
+	gocognit -top 10 -ignore "_test|mocks|tests" .

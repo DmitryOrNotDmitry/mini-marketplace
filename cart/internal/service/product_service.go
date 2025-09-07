@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"route256/cart/internal/domain"
 	"time"
@@ -12,14 +13,18 @@ import (
 
 var ErrNotOk = errors.New("status not ok")
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type ProductServiceHTTP struct {
-	httpClient http.Client
+	httpClient HTTPClient
 	token      string
 	address    string
 }
 
 // NewProductServiceHTTP конструктор для ProductServiceHTTP.
-func NewProductServiceHTTP(httpClient http.Client, token string, address string) *ProductServiceHTTP {
+func NewProductServiceHTTP(httpClient HTTPClient, token string, address string) *ProductServiceHTTP {
 	return &ProductServiceHTTP{
 		httpClient: httpClient,
 		token:      token,
@@ -69,9 +74,14 @@ func (s *ProductServiceHTTP) GetProductBySku(ctx context.Context, sku int64) (*d
 		return nil, fmt.Errorf("json.NewDecoder: %w", err)
 	}
 
+	price := resp.Price
+	if price < 0 || int64(price) > math.MaxUint32 {
+		return nil, fmt.Errorf("price out of range uint32: %d", price)
+	}
+
 	return &domain.Product{
 		Name:  resp.Name,
-		Price: uint32(resp.Price),
+		Price: uint32(price),
 		Sku:   resp.Sku,
 	}, nil
 }

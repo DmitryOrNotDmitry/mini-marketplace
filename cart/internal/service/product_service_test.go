@@ -1,86 +1,73 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"net/http"
-	"reflect"
 	"route256/cart/internal/domain"
+	mock "route256/cart/mocks"
+	"strings"
 	"testing"
+
+	"github.com/gojuno/minimock/v3"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-type mockRoundTripper struct {
-	resp *http.Response
-	err  error
+type testComponentPS struct {
+	httpClientMock *mock.HTTPClientMock
+	productService *ProductServiceHTTP
 }
 
-func (m *mockRoundTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
-	return m.resp, m.err
+func newTestComponentPS(t *testing.T) *testComponentPS {
+	mc := minimock.NewController(t)
+	httpClientMock := mock.NewHTTPClientMock(mc)
+	productService := NewProductServiceHTTP(httpClientMock, "token", "url-test")
+
+	return &testComponentPS{
+		httpClientMock: httpClientMock,
+		productService: productService,
+	}
 }
 
 func TestProductServiceHttp_GetProductBySku(t *testing.T) {
-	// Мокнутый ответ для 200
-	successResp := &http.Response{
-		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(bytes.NewBufferString(`{"name":"TestProduct","price":100,"sku":12345}`)),
-	}
-	// Мокнутый ответ для 404
-	notFoundResp := &http.Response{
-		StatusCode: http.StatusNotFound,
-		Body:       io.NopCloser(bytes.NewBufferString(``)),
-	}
+	t.Parallel()
 
-	tests := []struct {
-		name string
-		s    *ProductServiceHTTP
-		args struct {
-			ctx context.Context
-			sku int64
+	t.Run("successful response", func(t *testing.T) {
+		t.Parallel()
+
+		tc := newTestComponentPS(t)
+
+		body := io.NopCloser(strings.NewReader(`{"name":"TestProduct","price":100,"sku":12345}`))
+		response := &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       body,
 		}
-		want    *domain.Product
-		wantErr bool
-	}{
-		{
-			name: "successful response",
-			s: &ProductServiceHTTP{
-				httpClient: http.Client{Transport: &mockRoundTripper{resp: successResp}},
-				token:      "token",
-				address:    "http://localhost",
-			},
-			args: struct {
-				ctx context.Context
-				sku int64
-			}{ctx: context.Background(), sku: 12345},
-			want:    &domain.Product{Name: "TestProduct", Price: 100, Sku: 12345},
-			wantErr: false,
-		},
-		{
-			name: "product not found",
-			s: &ProductServiceHTTP{
-				httpClient: http.Client{Transport: &mockRoundTripper{resp: notFoundResp}},
-				token:      "token",
-				address:    "http://localhost",
-			},
-			args: struct {
-				ctx context.Context
-				sku int64
-			}{ctx: context.Background(), sku: 99999},
-			want:    nil,
-			wantErr: true,
-		},
-	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.s.GetProductBySku(tt.args.ctx, tt.args.sku)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ProductServiceHttp.GetProductBySku() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ProductServiceHttp.GetProductBySku() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+		tc.httpClientMock.DoMock.Return(response, nil)
+
+		product, err := tc.productService.GetProductBySku(context.Background(), 12345)
+		require.NoError(t, err)
+
+		expected := &domain.Product{Name: "TestProduct", Price: 100, Sku: 12345}
+		assert.Equal(t, expected, product)
+	})
+
+	t.Run("product not found", func(t *testing.T) {
+		t.Parallel()
+
+		tc := newTestComponentPS(t)
+
+		response := &http.Response{
+			StatusCode: http.StatusNotFound,
+			Body:       http.NoBody,
+		}
+
+		tc.httpClientMock.DoMock.Return(response, nil)
+
+		product, err := tc.productService.GetProductBySku(context.Background(), 99999)
+		require.Error(t, err)
+
+		assert.Nil(t, product)
+	})
 }
