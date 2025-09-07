@@ -10,9 +10,9 @@ import (
 	"route256/cart/internal/infra/config"
 	"route256/cart/internal/infra/http/middleware"
 	"route256/cart/internal/infra/http/roundtripper"
-	"route256/cart/internal/infra/logger"
 	"route256/cart/internal/infra/repository"
 	"route256/cart/internal/service"
+	"route256/cart/pkg/logger"
 )
 
 type App struct {

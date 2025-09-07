@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"route256/cart/pkg/logger"
 	"route256/loms/internal/domain"
-	"route256/loms/internal/infra/logger"
 )
 
 type OrderRepository interface {

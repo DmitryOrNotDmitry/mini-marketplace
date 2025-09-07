@@ -3,8 +3,9 @@ package middleware
 import (
 	"fmt"
 	"net/http"
-	"route256/cart/internal/infra/logger"
 	"time"
+
+	"route256/cart/pkg/logger"
 )
 
 type LoggerMiddleware struct {
