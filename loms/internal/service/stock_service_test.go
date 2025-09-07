@@ -12,17 +12,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testComponentCS struct {
+type testComponentSS struct {
 	stockRepoMock *mock.StockRepositoryMock
 	stockService  *StockService
 }
 
-func newTestComponentSS(t *testing.T) *testComponentCS {
+func newTestComponentSS(t *testing.T) *testComponentSS {
 	mc := minimock.NewController(t)
 	stockRepoMock := mock.NewStockRepositoryMock(mc)
 	stockService := NewStockService(stockRepoMock)
 
-	return &testComponentCS{
+	return &testComponentSS{
 		stockRepoMock: stockRepoMock,
 		stockService:  stockService,
 	}
