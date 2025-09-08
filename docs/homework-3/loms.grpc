@@ -35,16 +35,16 @@ EOM
 ### expected: {}
 
 
-### check actual status is "payed"
+### check actual status is "paid"
 grpcurl -plaintext -d @ localhost:8083 loms.Loms.OrderInfo <<EOM
 {
   "orderId": 1
 }
 EOM
-### expected: {"status":"payed","userId":31337,"Items":[{"sku":1076963,"count":3},{"sku":135717466,"count":2}]}
+### expected: {"status":"paid","userId":31337,"Items":[{"sku":1076963,"count":3},{"sku":135717466,"count":2}]}
 
 
-### unable to cancel payed order
+### unable to cancel paid order
 grpcurl -plaintext -d @ localhost:8083 loms.Loms.OrderCancel <<EOM
 {
   "orderId": 1

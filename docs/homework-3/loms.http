@@ -35,14 +35,14 @@ Content-Type: application/json
 ### expected: 200 (OK) {}
 
 
-### check actual status is "payed"
+### check actual status is "paid"
 GET http://localhost:8084/order/info?orderId=1
 Content-Type: application/json
 
-### expected: 200 (OK) {"status":"payed","user":31337,"Items":[{"sku":1076963,"count":3},{"sku":135717466,"count":2}]}
+### expected: 200 (OK) {"status":"paid","user":31337,"Items":[{"sku":1076963,"count":3},{"sku":135717466,"count":2}]}
 
 
-### unable to cancel payed order
+### unable to cancel paid order
 POST http://localhost:8084/order/cancel
 Content-Type: application/json
 
