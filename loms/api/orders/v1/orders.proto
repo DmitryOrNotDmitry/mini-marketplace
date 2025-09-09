@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+option go_package = "route256/loms/pkg/api/orders/v1;orders";
+
+service OrderService {
+    rpc OrderCreate(OrderCreateRequest) returns (OrderCreateResponse) {}
+
+    rpc OrderInfo(OrderInfoRequest) returns (OrderInfoResponse) {}
+
+    rpc OrderPay(OrderPayRequest) returns (OrderPayResponse) {}
+
+    rpc OrderCancel(OrderCancelRequest) returns (OrderCancelResponse) {}
+}
+
+message OrderCreateRequest {
+    int64 user_id = 1;
+    repeated ItemInfo items = 2;
+}
+
+message ItemInfo {
+    int64 sku_id = 1;
+    uint32 count = 2;
+}
+
+message OrderCreateResponse {
+    int64 order_id = 1;
+}
+
+message OrderInfoRequest {
+    int64 order_id = 1;
+}
+
+message OrderInfoResponse {
+    int64 user_id = 1;
+    string status = 2;
+    repeated ItemInfo items = 3;
+}
+
+message OrderPayRequest {
+    int64 order_id = 1;
+}
+
+message OrderPayResponse {
+}
+
+message OrderCancelRequest {
+    int64 order_id = 1;
+}
+
+message OrderCancelResponse {
+}

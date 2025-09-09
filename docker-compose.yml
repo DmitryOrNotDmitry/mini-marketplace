@@ -5,6 +5,15 @@ services:
       - "8080:8080"
     depends_on:
       - products
+      - loms
+
+  loms:
+    build:
+      context: .
+      dockerfile: loms/Dockerfile
+    ports:
+      - "8083:8083"
+      - "8084:8084"
 
   products:
     image: gitlab-registry.ozon.dev/go/classroom-20/students/homework-draft/products:latest

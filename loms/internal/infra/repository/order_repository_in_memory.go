@@ -27,7 +27,7 @@ func NewInMemoryOrderRepository(generatorID IDGenerator, cap int) *OrderReposito
 }
 
 // Insert добавляет новый заказ в хранилище и возвращает его идентификатор.
-func (or *OrderRepositoryInMemory) Insert(ctx context.Context, order *domain.Order) (int64, error) {
+func (or *OrderRepositoryInMemory) Insert(_ context.Context, order *domain.Order) (int64, error) {
 	or.mx.Lock()
 	defer or.mx.Unlock()
 
@@ -38,7 +38,7 @@ func (or *OrderRepositoryInMemory) Insert(ctx context.Context, order *domain.Ord
 }
 
 // GetByID возвращает заказ по идентификатору, если он существует.
-func (or *OrderRepositoryInMemory) GetByID(ctx context.Context, orderID int64) (*domain.Order, error) {
+func (or *OrderRepositoryInMemory) GetByID(_ context.Context, orderID int64) (*domain.Order, error) {
 	or.mx.Lock()
 	defer or.mx.Unlock()
 
@@ -51,7 +51,7 @@ func (or *OrderRepositoryInMemory) GetByID(ctx context.Context, orderID int64) (
 }
 
 // UpdateStatus обновляет статус заказа по идентификатору.
-func (or *OrderRepositoryInMemory) UpdateStatus(ctx context.Context, orderID int64, newStatus domain.Status) error {
+func (or *OrderRepositoryInMemory) UpdateStatus(_ context.Context, orderID int64, newStatus domain.Status) error {
 	or.mx.Lock()
 	defer or.mx.Unlock()
 

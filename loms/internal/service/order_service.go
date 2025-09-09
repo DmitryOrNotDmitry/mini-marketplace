@@ -96,7 +96,7 @@ func (os *OrderService) CancelByID(ctx context.Context, orderID int64) error {
 	}
 
 	if order.Status == domain.Payed || order.Status == domain.Failed {
-		return domain.ErrPayWithInvalidOrderStatus
+		return domain.ErrCancelWithInvalidOrderStatus
 	}
 
 	errCancel := os.stockService.CancelReserveFor(ctx, order)

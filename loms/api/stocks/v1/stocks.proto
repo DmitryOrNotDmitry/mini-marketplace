@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "route256/loms/pkg/api/stocks/v1;stocks";
+
+service StockService {
+    rpc StockInfo(StockInfoRequest) returns (StockInfoResponse) {}
+}
+
+message StockInfoRequest {
+    int64 sku_id = 1;
+}
+
+message StockInfoResponse {
+    uint32 count = 1;
+}
