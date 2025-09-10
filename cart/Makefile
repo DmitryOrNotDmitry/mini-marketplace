@@ -22,10 +22,10 @@ minimock-gen-common:
 	minimock -i route256/cart/internal/handler.CartService -o ./mocks/ -s "_mock.go"
 
 test:
-	go test ./... -count=1
+	go test ./internal/... -count=1
 
 test-cover:
-	go test ./... -cover
+	go test ./internal/... -count=1 -cover
 
 test-api:
 	rm -rf ./tests/allure-results

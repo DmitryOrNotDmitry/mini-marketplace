@@ -14,10 +14,10 @@ run-migrations:
 	echo "run migrations"
 
 test:
-	go test ./... -count=1
+	go test ./internal/... -count=1
 
 test-cover:
-	go test ./... -count=1 -cover
+	go test ./internal/... -count=1 -cover
 	
 minimock-gen:
 	mkdir -p mocks
@@ -31,6 +31,8 @@ minimock-gen-common:
 	minimock -i route256/loms/internal/service.StockRepository -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/service.OrderRepository -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/service.StockServiceI -o ./mocks/ -s "_mock.go"
+	minimock -i route256/loms/internal/handler.StockService -o ./mocks/ -s "_mock.go"
+	minimock -i route256/loms/internal/handler.OrderService -o ./mocks/ -s "_mock.go"
 
 
 bin-deps:
