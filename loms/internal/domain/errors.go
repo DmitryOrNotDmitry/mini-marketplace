@@ -4,6 +4,7 @@ import "errors"
 
 var ErrCanNotReserveItem = errors.New("недостаточно товара для резервирования")
 var ErrItemStockNotExist = errors.New("в стоке нет такого товара")
+var ErrItemStockNotValid = errors.New("невозможно создать запас с невалидными данными")
 
 var ErrOrderNotExist = errors.New("заказа с таким ID не существует")
 var ErrEmptyOrderItems = errors.New("список товаров не должен быть пустым")

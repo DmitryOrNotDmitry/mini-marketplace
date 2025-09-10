@@ -9,7 +9,7 @@ option go_package = "route256/loms/pkg/api/stocks/v1;stocks";
 service StockService {
     rpc StockInfo(StockInfoRequest) returns (StockInfoResponse) {
         option(google.api.http) = {
-            get: "/stock/{sku_id}"
+            get: "/stock/info"
         };
     }
 }

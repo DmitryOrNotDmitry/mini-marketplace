@@ -27,6 +27,10 @@ func NewStockService(stockRepository StockRepository) *StockService {
 
 // Create добавляет или обновляет запись о запасе.
 func (ss *StockService) Create(ctx context.Context, stock *domain.Stock) error {
+	if stock.Reserved > stock.TotalCount {
+		return domain.ErrItemStockNotValid
+	}
+
 	err := ss.stockRepository.Upsert(ctx, stock)
 	if err != nil {
 		return fmt.Errorf("stockRepository.Upsert: %w", err)

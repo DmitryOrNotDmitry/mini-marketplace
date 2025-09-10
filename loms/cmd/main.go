@@ -6,7 +6,10 @@ import (
 )
 
 func main() {
-	lomsApp, err := app.NewApp(os.Getenv("CONFIG_FILE"))
+	lomsApp, err := app.NewApp(
+		os.Getenv("CONFIG_FILE"),
+		os.Getenv("RESOURCES_FOLDER"),
+	)
 	if err != nil {
 		panic(err)
 	}

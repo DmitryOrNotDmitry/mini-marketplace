@@ -20,14 +20,14 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 service OrderService {
     rpc OrderCreate(OrderCreateRequest) returns (OrderCreateResponse) {
         option(google.api.http) = {
-            post: "/order"
+            post: "/order/create"
             body: "*"
         };
     }
 
     rpc OrderInfo(OrderInfoRequest) returns (OrderInfoResponse) {
         option(google.api.http) = {
-            get: "/order/{order_id}"
+            get: "/order/info"
         };
     }
 

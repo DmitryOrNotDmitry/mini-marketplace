@@ -28,7 +28,7 @@ type App struct {
 }
 
 // NewApp конструктор главного приложения.
-func NewApp(configPath string) (*App, error) {
+func NewApp(configPath string, resourcesPath string) (*App, error) {
 	c, err := config.LoadConfig(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("config.LoadConfig: %w", err)
@@ -57,6 +57,11 @@ func NewApp(configPath string) (*App, error) {
 	stocks.RegisterStockServiceServer(app.grpcServer, stocksHandler)
 	orders.RegisterOrderServiceServer(app.grpcServer, ordersHandler)
 
+	err = LoadStocks(fmt.Sprintf("%s/init_data/stock-data.json", resourcesPath), stockService)
+	if err != nil {
+		logger.Error(fmt.Sprintf("LoadStocks: %s", err))
+	}
+
 	return app, nil
 }
 
@@ -64,7 +69,7 @@ func NewApp(configPath string) (*App, error) {
 func (a *App) ListenAndServeGRPC() error {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", a.config.Server.GRPCPort))
 	if err != nil {
-		return nil
+		return fmt.Errorf("net.Listen: %w", err)
 	}
 
 	logger.Info(fmt.Sprintf("Loms service listening gRPC at port %s", a.config.Server.GRPCPort))
@@ -79,7 +84,7 @@ func (a *App) ListenAndServeGRPCGateway() error {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("grpc.NewClient: %w", err)
 	}
 
 	gwMux := runtime.NewServeMux()
@@ -87,12 +92,12 @@ func (a *App) ListenAndServeGRPCGateway() error {
 
 	err = orders.RegisterOrderServiceHandler(ctx, gwMux, conn)
 	if err != nil {
-		return err
+		return fmt.Errorf("orders.RegisterOrderServiceHandler: %w", err)
 	}
 
 	err = stocks.RegisterStockServiceHandler(ctx, gwMux, conn)
 	if err != nil {
-		return err
+		return fmt.Errorf("stocks.RegisterStockServiceHandler: %w", err)
 	}
 
 	handler := middleware.CORSAllPass(gwMux)

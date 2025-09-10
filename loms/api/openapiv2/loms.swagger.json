@@ -23,7 +23,39 @@
     "application/json"
   ],
   "paths": {
-    "/order": {
+    "/order/cancel": {
+      "post": {
+        "operationId": "OrderService_OrderCancel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/OrderCancelResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OrderCancelRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    },
+    "/order/create": {
       "post": {
         "operationId": "OrderService_OrderCreate",
         "responses": {
@@ -55,14 +87,14 @@
         ]
       }
     },
-    "/order/cancel": {
-      "post": {
-        "operationId": "OrderService_OrderCancel",
+    "/order/info": {
+      "get": {
+        "operationId": "OrderService_OrderInfo",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/OrderCancelResponse"
+              "$ref": "#/definitions/OrderInfoResponse"
             }
           },
           "default": {
@@ -74,12 +106,11 @@
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/OrderCancelRequest"
-            }
+            "name": "orderId",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -119,38 +150,7 @@
         ]
       }
     },
-    "/order/{orderId}": {
-      "get": {
-        "operationId": "OrderService_OrderInfo",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/OrderInfoResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "OrderService"
-        ]
-      }
-    },
-    "/stock/{skuId}": {
+    "/stock/info": {
       "get": {
         "operationId": "StockService_StockInfo",
         "responses": {
@@ -170,8 +170,8 @@
         "parameters": [
           {
             "name": "skuId",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string",
             "format": "int64"
           }
