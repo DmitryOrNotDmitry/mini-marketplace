@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.24.2
 
 require (
+	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/gojuno/minimock/v3 v3.4.7
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.75.0

@@ -32,14 +32,18 @@ minimock-gen-common:
 	minimock -i route256/loms/internal/service.OrderRepository -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/service.StockServiceI -o ./mocks/ -s "_mock.go"
 
+
 bin-deps:
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1 && \
-	GOBIN=$(LOCAL_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
+	GOBIN=$(LOCAL_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0 && \
+	GOBIN=$(LOCAL_BIN) go install github.com/envoyproxy/protoc-gen-validate@v1.0.4
 
 bin-deps-win:
 	set "GOBIN=$(LOCAL_BIN)" && \
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1 && \
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0 && \
+	go install github.com/envoyproxy/protoc-gen-validate@v1.0.4
+
 
 vendor-rm:
 	rm -rf vendor-proto
@@ -47,28 +51,45 @@ vendor-rm:
 vendor-rm-win:
 	if exist vendor-proto rmdir /s /q vendor-proto
 
-vendor-proto/google/protobuf:
+
+vendor-proto/google/protobuf-common:
 	git clone -b main --single-branch -n --depth=1 --filter=tree:0 \
 		https://github.com/protocolbuffers/protobuf vendor-proto/protobuf &&\
 	cd vendor-proto/protobuf &&\
 	git sparse-checkout set --no-cone src/google/protobuf &&\
 	git checkout
+
+vendor-proto/google/protobuf: vendor-proto/google/protobuf-common
 	mkdir -p vendor-proto/google
 	mv vendor-proto/protobuf/src/google/protobuf vendor-proto/google
 	rm -rf vendor-proto/protobuf
 
-vendor-proto/google/protobuf-win:
-	git clone -b main --single-branch -n --depth=1 --filter=tree:0 \
-		https://github.com/protocolbuffers/protobuf vendor-proto/protobuf &&\
-	cd vendor-proto/protobuf &&\
-	git sparse-checkout set --no-cone src/google/protobuf &&\
-	git checkout
+vendor-proto/google/protobuf-win: vendor-proto/google/protobuf-common
 	if not exist vendor-proto\google mkdir vendor-proto\google
 	if exist vendor-proto\protobuf\src\google\protobuf move vendor-proto\protobuf\src\google\protobuf vendor-proto\google
 	if exist vendor-proto\protobuf rmdir /s /q vendor-proto\protobuf
 
-vendor-proto: vendor-rm vendor-proto/google/protobuf
-vendor-proto-win: vendor-rm-win vendor-proto/google/protobuf-win
+
+vendor-proto/validate-common:
+	git clone -b main --single-branch --depth=2 --filter=tree:0 \
+	https://github.com/bufbuild/protoc-gen-validate vendor-proto/tmp && \
+	cd vendor-proto/tmp && \
+	git sparse-checkout set --no-cone validate &&\
+	git checkout
+
+vendor-proto/validate: vendor-proto/validate-common
+	mkdir -p vendor-proto/validate
+	mv vendor-proto/tmp/validate vendor-proto
+	rm -rf vendor-proto/tmp
+
+vendor-proto/validate-win: vendor-proto/validate-common
+	if exist vendor-proto\tmp\validate move vendor-proto\tmp\validate vendor-proto
+	if exist vendor-proto\tmp rmdir /s /q vendor-proto\tmp
+
+
+vendor-proto: vendor-rm vendor-proto/google/protobuf vendor-proto/validate
+vendor-proto-win: vendor-rm-win vendor-proto/google/protobuf-win vendor-proto/validate-win
+
 
 protoc-generate:
 	mkdir -p pkg/api/orders/v1
@@ -82,6 +103,8 @@ protoc-generate:
 	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
 	--go-grpc_out pkg/api \
 	--go-grpc_opt paths=source_relative \
+	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
+    --validate_out="lang=go,paths=source_relative:pkg/api" \
 	api/orders/v1/orders.proto \
 	api/stocks/v1/stocks.proto && \
 	go mod tidy
@@ -98,6 +121,8 @@ protoc-generate-win:
 	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc.exe \
 	--go-grpc_out pkg/api \
 	--go-grpc_opt paths=source_relative \
+	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate.exe \
+    --validate_out="lang=go,paths=source_relative:pkg/api" \
 	api/orders/v1/orders.proto \
 	api/stocks/v1/stocks.proto && \
 	go mod tidy

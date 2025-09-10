@@ -38,6 +38,7 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 
 	err := os.stockService.ReserveFor(ctx, order)
 	if err != nil {
+		err = fmt.Errorf("stockService.ReserveFor: %w", err)
 		order.Status = domain.Failed
 	} else {
 		order.Status = domain.AwaitingPayment

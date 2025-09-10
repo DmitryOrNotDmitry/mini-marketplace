@@ -6,6 +6,7 @@ import (
 	"route256/cart/pkg/logger"
 	"route256/loms/internal/handler"
 	"route256/loms/internal/infra/config"
+	"route256/loms/internal/infra/grpc/interceptor"
 	"route256/loms/internal/infra/repository"
 	"route256/loms/internal/service"
 	"route256/loms/pkg/api/orders/v1"
@@ -28,7 +29,12 @@ func NewApp(configPath string) (*App, error) {
 	}
 
 	app := &App{config: c}
-	app.grpcServer = grpc.NewServer()
+	app.grpcServer = grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptor.Logging,
+			interceptor.Validate,
+		),
+	)
 
 	reflection.Register(app.grpcServer)
 

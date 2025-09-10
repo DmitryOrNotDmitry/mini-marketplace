@@ -44,12 +44,15 @@ func (os *OrderServerGRPC) OrderCreate(ctx context.Context, req *orders.OrderCre
 
 	orderID, err := os.orderService.Create(ctx, order)
 	if err != nil {
-		if errors.Is(err, domain.ErrItemStockNotExist) ||
-			errors.Is(err, domain.ErrCanNotReserveItem) {
-			return nil, status.Errorf(codes.FailedPrecondition, err.Error())
+		if errors.Is(err, domain.ErrCanNotReserveItem) {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
 		}
 
-		return nil, status.Errorf(codes.Internal, "internal server error")
+		if errors.Is(err, domain.ErrItemStockNotExist) {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
+
+		return nil, status.Error(codes.Internal, "internal server error")
 	}
 
 	res := &orders.OrderCreateResponse{OrderId: orderID}
@@ -62,10 +65,10 @@ func (os *OrderServerGRPC) OrderInfo(ctx context.Context, req *orders.OrderInfoR
 	order, err := os.orderService.GetInfoByID(ctx, req.OrderId)
 	if err != nil {
 		if errors.Is(err, domain.ErrOrderNotExist) {
-			return nil, status.Errorf(codes.NotFound, err.Error())
+			return nil, status.Error(codes.NotFound, err.Error())
 		}
 
-		return nil, status.Errorf(codes.Internal, "internal server error")
+		return nil, status.Error(codes.Internal, "internal server error")
 	}
 
 	res := &orders.OrderInfoResponse{
@@ -88,14 +91,14 @@ func (os *OrderServerGRPC) OrderPay(ctx context.Context, req *orders.OrderPayReq
 	err := os.orderService.PayByID(ctx, req.OrderId)
 	if err != nil {
 		if errors.Is(err, domain.ErrOrderNotExist) {
-			return nil, status.Errorf(codes.NotFound, err.Error())
+			return nil, status.Error(codes.NotFound, err.Error())
 		}
 
 		if errors.Is(err, domain.ErrPayWithInvalidOrderStatus) {
-			return nil, status.Errorf(codes.FailedPrecondition, err.Error())
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
 		}
 
-		return nil, status.Errorf(codes.Internal, "internal server error")
+		return nil, status.Error(codes.Internal, "internal server error")
 	}
 
 	return &orders.OrderPayResponse{}, nil
@@ -106,14 +109,14 @@ func (os *OrderServerGRPC) OrderCancel(ctx context.Context, req *orders.OrderCan
 	err := os.orderService.CancelByID(ctx, req.OrderId)
 	if err != nil {
 		if errors.Is(err, domain.ErrOrderNotExist) {
-			return nil, status.Errorf(codes.NotFound, err.Error())
+			return nil, status.Error(codes.NotFound, err.Error())
 		}
 
 		if errors.Is(err, domain.ErrCancelWithInvalidOrderStatus) {
-			return nil, status.Errorf(codes.FailedPrecondition, err.Error())
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
 		}
 
-		return nil, status.Errorf(codes.Internal, "internal server error")
+		return nil, status.Error(codes.Internal, "internal server error")
 	}
 
 	return &orders.OrderCancelResponse{}, nil

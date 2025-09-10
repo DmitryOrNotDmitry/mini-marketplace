@@ -31,10 +31,10 @@ func (ss *StockServerGRPC) StockInfo(ctx context.Context, req *stocks.StockInfoR
 	count, err := ss.stockService.GetAvailableCount(ctx, req.SkuId)
 	if err != nil {
 		if errors.Is(err, domain.ErrItemStockNotExist) {
-			return nil, status.Errorf(codes.NotFound, err.Error())
+			return nil, status.Error(codes.NotFound, err.Error())
 		}
 
-		return nil, status.Errorf(codes.Internal, "internal server error")
+		return nil, status.Error(codes.Internal, "internal server error")
 	}
 
 	return &stocks.StockInfoResponse{Count: count}, nil

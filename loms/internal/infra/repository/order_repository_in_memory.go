@@ -31,7 +31,7 @@ func (or *OrderRepositoryInMemory) Insert(_ context.Context, order *domain.Order
 	or.mx.Lock()
 	defer or.mx.Unlock()
 
-	order.UserID = or.generatorID.NextID()
+	order.OrderID = or.generatorID.NextID()
 	or.storage[order.OrderID] = order
 
 	return order.OrderID, nil

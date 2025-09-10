@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "validate/validate.proto";
+
 option go_package = "route256/loms/pkg/api/stocks/v1;stocks";
 
 service StockService {
@@ -7,7 +9,10 @@ service StockService {
 }
 
 message StockInfoRequest {
-    int64 sku_id = 1;
+    int64 sku_id = 1 [
+    (validate.rules).int64 = {
+        gt: 0
+    }];
 }
 
 message StockInfoResponse {
