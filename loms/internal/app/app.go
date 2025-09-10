@@ -1,18 +1,23 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"route256/cart/pkg/logger"
 	"route256/loms/internal/handler"
 	"route256/loms/internal/infra/config"
 	"route256/loms/internal/infra/grpc/interceptor"
+	"route256/loms/internal/infra/http/middleware"
 	"route256/loms/internal/infra/repository"
 	"route256/loms/internal/service"
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -54,8 +59,8 @@ func NewApp(configPath string) (*App, error) {
 	return app, nil
 }
 
-// ListenAndServe запускает gRPC-сервер приложения.
-func (a *App) ListenAndServe() error {
+// ListenAndServeGRPC запускает gRPC-сервер приложения.
+func (a *App) ListenAndServeGRPC() error {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", a.config.Server.GRPCPort))
 	if err != nil {
 		return nil
@@ -64,4 +69,39 @@ func (a *App) ListenAndServe() error {
 	logger.Info(fmt.Sprintf("Loms service listening gRPC at port %s", a.config.Server.GRPCPort))
 
 	return a.grpcServer.Serve(listener)
+}
+
+// ListenAndServeGRPCGateway запускает gRPC-gateway для gRPC-сервера приложений.
+func (a *App) ListenAndServeGRPCGateway() error {
+	conn, err := grpc.NewClient(
+		fmt.Sprintf(":%s", a.config.Server.GRPCPort),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return err
+	}
+
+	gwMux := runtime.NewServeMux()
+	ctx := context.Background()
+
+	err = orders.RegisterOrderServiceHandler(ctx, gwMux, conn)
+	if err != nil {
+		return err
+	}
+
+	err = stocks.RegisterStockServiceHandler(ctx, gwMux, conn)
+	if err != nil {
+		return err
+	}
+
+	handler := middleware.CORSAllPass(gwMux)
+
+	gwServer := &http.Server{
+		Addr:    fmt.Sprintf(":%s", a.config.Server.HTTPPort),
+		Handler: handler,
+	}
+
+	logger.Info(fmt.Sprintf("Loms service listening gRPC-Gateway (REST) at port %s", a.config.Server.HTTPPort))
+
+	return gwServer.ListenAndServe()
 }

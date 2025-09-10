@@ -11,7 +11,14 @@ func main() {
 		panic(err)
 	}
 
-	err = lomsApp.ListenAndServe()
+	go func() {
+		err = lomsApp.ListenAndServeGRPCGateway()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	err = lomsApp.ListenAndServeGRPC()
 	if err != nil {
 		panic(err)
 	}
