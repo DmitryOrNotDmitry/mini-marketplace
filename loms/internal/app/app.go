@@ -14,6 +14,7 @@ import (
 	"route256/loms/internal/service"
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -97,8 +98,11 @@ func (a *App) ListenAndServeGRPCGateway() error {
 	handler := middleware.CORSAllPass(gwMux)
 
 	gwServer := &http.Server{
-		Addr:    fmt.Sprintf(":%s", a.config.Server.HTTPPort),
-		Handler: handler,
+		Addr:              fmt.Sprintf(":%s", a.config.Server.HTTPPort),
+		Handler:           handler,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	logger.Info(fmt.Sprintf("Loms service listening gRPC-Gateway (REST) at port %s", a.config.Server.HTTPPort))
