@@ -23,21 +23,39 @@ type ProductService interface {
 	GetProductBySku(ctx context.Context, sku int64) (*domain.Product, error)
 }
 
+type LomsService interface {
+	// GetStockInfo возвращает информацию о запасах товара по SKU.
+	GetStockInfo(ctx context.Context, skuID int64) (uint32, error)
+}
+
 type CartService struct {
 	cartRepository CartRepository
 	productService ProductService
+	lomsService    LomsService
 }
 
 // NewCartService конструктор для CartService.
-func NewCartService(repository CartRepository, productService ProductService) *CartService {
-	return &CartService{cartRepository: repository, productService: productService}
+func NewCartService(repository CartRepository, productService ProductService, lomsService LomsService) *CartService {
+	return &CartService{
+		cartRepository: repository,
+		productService: productService,
+		lomsService:    lomsService,
+	}
 }
 
-// AddCartItem добавляет товар в корзину пользователя.
+// AddCartItem добавляет товар в корзину пользователя, если хватает запасов.
 func (s *CartService) AddCartItem(ctx context.Context, userID int64, newItem *domain.CartItem) (*domain.CartItem, error) {
 	product, err := s.productService.GetProductBySku(ctx, newItem.Sku)
 	if err != nil {
 		return nil, fmt.Errorf("productService.GetProductBySku: %w", err)
+	}
+
+	productStock, err := s.lomsService.GetStockInfo(ctx, newItem.Sku)
+	if err != nil {
+		return nil, fmt.Errorf("lomsService.GetStockInfo: %w", err)
+	}
+	if productStock < newItem.Count {
+		return nil, domain.ErrOutOfStock
 	}
 
 	newItem.Price = uint32(product.Price)

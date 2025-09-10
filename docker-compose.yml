@@ -1,6 +1,8 @@
 services:
   cart:
-    build: ./cart
+    build:
+      context: .
+      dockerfile: cart/Dockerfile
     ports:
       - "8080:8080"
     depends_on:

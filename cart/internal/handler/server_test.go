@@ -16,14 +16,16 @@ import (
 )
 
 type testComponentS struct {
-	cartServMock *mock.CartServiceMock
-	server       *Server
+	cartServMock       *mock.CartServiceMock
+	orderCheckServMock *mock.OrderCheckouterMock
+	server             *Server
 }
 
 func newTestComponentS(t *testing.T) testComponentS {
 	mc := minimock.NewController(t)
 	cartServMock := mock.NewCartServiceMock(mc)
-	server := NewServer(cartServMock)
+	orderCheckServMock := mock.NewOrderCheckouterMock(mc)
+	server := NewServer(cartServMock, orderCheckServMock)
 
 	return testComponentS{
 		cartServMock: cartServMock,

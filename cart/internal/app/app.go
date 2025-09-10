@@ -28,7 +28,10 @@ func NewApp(configPath string) (*App, error) {
 	}
 
 	app := &App{config: c}
-	app.server.Handler = app.bootstrapHandlers()
+	app.server.Handler, err = app.bootstrapHandlers()
+	if err != nil {
+		return nil, fmt.Errorf("app.bootstrapHandlers: %w", err)
+	}
 
 	return app, nil
 }
@@ -39,7 +42,7 @@ func (app *App) ListenAndServe() error {
 
 	l, err := net.Listen("tcp", address)
 	if err != nil {
-		return err
+		return fmt.Errorf("net.Listen: %w", err)
 	}
 
 	logger.Info(fmt.Sprintf("Cart service listening at http://%s", address))
@@ -47,7 +50,7 @@ func (app *App) ListenAndServe() error {
 	return app.server.Serve(l)
 }
 
-func (app *App) bootstrapHandlers() http.Handler {
+func (app *App) bootstrapHandlers() (http.Handler, error) {
 
 	transport := http.DefaultTransport
 	transport = roundtripper.NewRetryRoundTripper(transport, []int{420, 429}, 3)
@@ -64,17 +67,23 @@ func (app *App) bootstrapHandlers() http.Handler {
 
 	const cartsStorageCap = 100
 	cartRepository := repository.NewInMemoryCartRepository(cartsStorageCap)
-	cartService := service.NewCartService(cartRepository, productService)
+	lomsService, err := service.NewLomsServiceGRPC(app.config.LomsService.Host, app.config.LomsService.Port)
+	if err != nil {
+		return nil, fmt.Errorf("service.NewLomsServiceGRPC: %w", err)
+	}
 
-	s := handler.NewServer(cartService)
+	cartService := service.NewCartService(cartRepository, productService, lomsService)
+
+	s := handler.NewServer(cartService, lomsService)
 
 	mx := http.NewServeMux()
 	mx.HandleFunc("POST /user/{user_id}/cart/{sku_id}", s.AddCartItemHandler)
 	mx.HandleFunc("DELETE /user/{user_id}/cart/{sku_id}", s.DeleteCartItemHandler)
 	mx.HandleFunc("DELETE /user/{user_id}/cart", s.ClearCartHandler)
 	mx.HandleFunc("GET /user/{user_id}/cart", s.GetCartHandler)
+	mx.HandleFunc("POST /checkout/{user_id}", s.CheckoutCartHandler)
 
 	h := middleware.NewLoggerMiddleware(mx)
 
-	return h
+	return h, nil
 }

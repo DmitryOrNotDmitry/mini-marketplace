@@ -15,6 +15,7 @@ import (
 type testComponentCS struct {
 	cartRepoMock    *mock.CartRepositoryMock
 	productServMock *mock.ProductServiceMock
+	lomsServMock    *mock.LomsServiceMock
 	cartService     *CartService
 }
 
@@ -22,12 +23,14 @@ func newTestComponentCS(t *testing.T) *testComponentCS {
 	mc := minimock.NewController(t)
 	cartRepoMock := mock.NewCartRepositoryMock(mc)
 	prouctServMock := mock.NewProductServiceMock(mc)
-	cartService := NewCartService(cartRepoMock, prouctServMock)
+	lomsServMock := mock.NewLomsServiceMock(mc)
+	cartService := NewCartService(cartRepoMock, prouctServMock, lomsServMock)
 
 	return &testComponentCS{
 		cartRepoMock:    cartRepoMock,
 		productServMock: prouctServMock,
 		cartService:     cartService,
+		lomsServMock:    lomsServMock,
 	}
 }
 
@@ -45,6 +48,7 @@ func TestCartService(t *testing.T) {
 		userID := int64(1)
 
 		tc.productServMock.GetProductBySkuMock.When(ctx, item.Sku).Then(returnedProduct, nil)
+		tc.lomsServMock.GetStockInfoMock.When(ctx, item.Sku).Then(100, nil)
 		tc.cartRepoMock.UpsertCartItemMock.When(ctx, userID, item).Then(item, nil)
 
 		addedItem, err := tc.cartService.AddCartItem(ctx, userID, item)

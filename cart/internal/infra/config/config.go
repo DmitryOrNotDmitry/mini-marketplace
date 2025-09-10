@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Server         CartServiceConfig    `yaml:"service"`
 	ProductService ProductServiceConfig `yaml:"product_service"`
+	LomsService    LomsServiceConfig    `yaml:"loms_service"`
 }
 
 type CartServiceConfig struct {
@@ -22,6 +23,11 @@ type ProductServiceConfig struct {
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
 	Token    string `yaml:"token"`
+}
+
+type LomsServiceConfig struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
 }
 
 // LoadConfig загружает конфиг из файла .yaml
