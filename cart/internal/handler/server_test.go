@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -28,8 +29,9 @@ func newTestComponentS(t *testing.T) testComponentS {
 	server := NewServer(cartServMock, orderCheckServMock)
 
 	return testComponentS{
-		cartServMock: cartServMock,
-		server:       server,
+		cartServMock:       cartServMock,
+		orderCheckServMock: orderCheckServMock,
+		server:             server,
 	}
 }
 
@@ -171,6 +173,76 @@ func TestService(t *testing.T) {
 		res := tc.deleteCart(t, userID)
 		require.Equal(t, http.StatusNoContent, res.StatusCode)
 	})
+
+	t.Run("checkout cart success", func(t *testing.T) {
+		t.Parallel()
+
+		tc := newTestComponentS(t)
+
+		userID := int64(1)
+		expectedOrderID := int64(1)
+		cart := &domain.Cart{Items: []*domain.CartItem{
+			&domain.CartItem{Sku: 1, Count: 10},
+		}}
+
+		tc.cartServMock.GetCartMock.When(minimock.AnyContext, userID).Then(cart, nil)
+		tc.orderCheckServMock.OrderCreateMock.Return(expectedOrderID, nil)
+		tc.cartServMock.ClearCartMock.When(minimock.AnyContext, userID).Then(nil)
+
+		orderID, res := tc.checkoutOrder(t, userID)
+		require.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, expectedOrderID, orderID)
+	})
+
+	t.Run("checkout cart failed: empty cart", func(t *testing.T) {
+		t.Parallel()
+
+		tc := newTestComponentS(t)
+
+		userID := int64(1)
+		cart := &domain.Cart{Items: []*domain.CartItem{}}
+
+		tc.cartServMock.GetCartMock.When(minimock.AnyContext, userID).Then(cart, nil)
+
+		_, res := tc.checkoutOrder(t, userID)
+		require.Equal(t, http.StatusNotFound, res.StatusCode)
+	})
+
+	t.Run("checkout cart failed: order checkouter error", func(t *testing.T) {
+		t.Parallel()
+
+		tc := newTestComponentS(t)
+
+		userID := int64(1)
+		cart := &domain.Cart{Items: []*domain.CartItem{
+			&domain.CartItem{Sku: 1, Count: 10},
+		}}
+
+		tc.cartServMock.GetCartMock.When(minimock.AnyContext, userID).Then(cart, nil)
+		tc.orderCheckServMock.OrderCreateMock.Return(0, errors.New("error"))
+
+		_, res := tc.checkoutOrder(t, userID)
+		require.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	})
+}
+
+func (tc testComponentS) checkoutOrder(t *testing.T, userID int64) (int64, *http.Response) {
+	t.Helper()
+
+	reader := bytes.NewReader([]byte{})
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/checkout/%d", userID), reader)
+	req.SetPathValue("user_id", fmt.Sprint(userID))
+	w := httptest.NewRecorder()
+
+	tc.server.CheckoutCartHandler(w, req)
+
+	res := w.Result()
+	defer res.Body.Close()
+
+	orderIDRes := &CheckoutCartesponse{}
+	json.NewDecoder(res.Body).Decode(orderIDRes)
+
+	return orderIDRes.OrderID, res
 }
 
 func (tc testComponentS) addCartItem(t *testing.T, userID, skuID int64, item AddCartItemRequest) *http.Response {

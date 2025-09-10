@@ -13,6 +13,11 @@ import (
 	"route256/cart/internal/infra/repository"
 	"route256/cart/internal/service"
 	"route256/cart/pkg/logger"
+	"route256/loms/pkg/api/orders/v1"
+	"route256/loms/pkg/api/stocks/v1"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type App struct {
@@ -65,12 +70,19 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 		fmt.Sprintf("%s://%s:%s", app.config.ProductService.Protocol, app.config.ProductService.Host, app.config.ProductService.Port),
 	)
 
+	conn, err := grpc.NewClient(
+		fmt.Sprintf("%s:%s", app.config.LomsService.Host, app.config.LomsService.Port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("grpc.NewClient: %w", err)
+	}
+	stockClient := stocks.NewStockServiceClient(conn)
+	orderClient := orders.NewOrderServiceClient(conn)
+	lomsService := service.NewLomsServiceGRPC(stockClient, orderClient)
+
 	const cartsStorageCap = 100
 	cartRepository := repository.NewInMemoryCartRepository(cartsStorageCap)
-	lomsService, err := service.NewLomsServiceGRPC(app.config.LomsService.Host, app.config.LomsService.Port)
-	if err != nil {
-		return nil, fmt.Errorf("service.NewLomsServiceGRPC: %w", err)
-	}
 
 	cartService := service.NewCartService(cartRepository, productService, lomsService)
 

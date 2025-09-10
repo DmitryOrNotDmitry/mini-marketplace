@@ -2,13 +2,9 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"route256/cart/internal/domain"
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type LomsServiceGRPC struct {
@@ -16,22 +12,11 @@ type LomsServiceGRPC struct {
 	orderClient orders.OrderServiceClient
 }
 
-func NewLomsServiceGRPC(host string, port string) (*LomsServiceGRPC, error) {
-	conn, err := grpc.NewClient(
-		fmt.Sprintf("%s:%s", host, port),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("grpc.NewClient: %w", err)
-	}
-
-	stockClient := stocks.NewStockServiceClient(conn)
-	orderClient := orders.NewOrderServiceClient(conn)
-
+func NewLomsServiceGRPC(stockClient stocks.StockServiceClient, orderClient orders.OrderServiceClient) *LomsServiceGRPC {
 	return &LomsServiceGRPC{
 		stockClient: stockClient,
 		orderClient: orderClient,
-	}, nil
+	}
 }
 
 func (ls *LomsServiceGRPC) GetStockInfo(ctx context.Context, skuID int64) (uint32, error) {
