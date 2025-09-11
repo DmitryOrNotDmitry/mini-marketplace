@@ -76,7 +76,7 @@ func TestOrderService(t *testing.T) {
 		orderID := int64(1)
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
-		tc.orderRepoMock.GetByIDMock.When(ctx, orderID).Then(orderOut, nil)
+		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 
 		order, err := tc.orderService.GetInfoByID(ctx, orderID)
 		require.NoError(t, err)
@@ -93,9 +93,9 @@ func TestOrderService(t *testing.T) {
 		orderID := int64(1)
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
-		tc.orderRepoMock.GetByIDMock.When(ctx, orderID).Then(orderOut, nil)
+		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 		tc.stockServMock.ConfirmReserveForMock.Return(nil)
-		tc.orderRepoMock.UpdateStatusMock.When(ctx, orderID, domain.Payed).Then(nil)
+		tc.orderRepoMock.UpdateStatusMock.When(ctx, orderID, domain.Paid).Then(nil)
 
 		err := tc.orderService.PayByID(ctx, orderID)
 		require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestOrderService(t *testing.T) {
 		ctx := context.Background()
 		orderID := int64(1)
 
-		tc.orderRepoMock.GetByIDMock.When(ctx, orderID).Then(nil, domain.ErrOrderNotExist)
+		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(nil, domain.ErrOrderNotExist)
 
 		err := tc.orderService.PayByID(ctx, orderID)
 		require.Error(t, err)
@@ -125,14 +125,14 @@ func TestOrderService(t *testing.T) {
 		for orderID, status := range []domain.Status{domain.Failed, domain.Cancelled, domain.New} {
 			orderOut := &domain.Order{OrderID: int64(orderID), UserID: 1, Items: []*domain.OrderItem{}, Status: status}
 
-			tc.orderRepoMock.GetByIDMock.When(ctx, int64(orderID)).Then(orderOut, nil)
+			tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, int64(orderID)).Then(orderOut, nil)
 
 			err := tc.orderService.PayByID(ctx, int64(orderID))
 			require.Error(t, err)
 		}
 	})
 
-	t.Run("pay already payed order", func(t *testing.T) {
+	t.Run("pay already paid order", func(t *testing.T) {
 		t.Parallel()
 
 		tc := newTestComponentOS(t)
@@ -140,9 +140,9 @@ func TestOrderService(t *testing.T) {
 		ctx := context.Background()
 		orderID := int64(1)
 
-		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.Payed}
+		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.Paid}
 
-		tc.orderRepoMock.GetByIDMock.When(ctx, orderID).Then(orderOut, nil)
+		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 
 		err := tc.orderService.PayByID(ctx, orderID)
 		require.NoError(t, err)
@@ -157,7 +157,7 @@ func TestOrderService(t *testing.T) {
 		orderID := int64(1)
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
-		tc.orderRepoMock.GetByIDMock.When(ctx, orderID).Then(orderOut, nil)
+		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 		tc.stockServMock.CancelReserveForMock.Return(nil)
 		tc.orderRepoMock.UpdateStatusMock.When(ctx, orderID, domain.Cancelled).Then(nil)
 
@@ -172,10 +172,10 @@ func TestOrderService(t *testing.T) {
 
 		ctx := context.Background()
 
-		for orderID, status := range []domain.Status{domain.Failed, domain.Payed} {
+		for orderID, status := range []domain.Status{domain.Failed, domain.Paid} {
 			orderOut := &domain.Order{OrderID: int64(orderID), UserID: 1, Items: []*domain.OrderItem{}, Status: status}
 
-			tc.orderRepoMock.GetByIDMock.When(ctx, int64(orderID)).Then(orderOut, nil)
+			tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, int64(orderID)).Then(orderOut, nil)
 
 			err := tc.orderService.CancelByID(ctx, int64(orderID))
 			require.Error(t, err)
@@ -192,7 +192,7 @@ func TestOrderService(t *testing.T) {
 
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.Cancelled}
 
-		tc.orderRepoMock.GetByIDMock.When(ctx, orderID).Then(orderOut, nil)
+		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 
 		err := tc.orderService.CancelByID(ctx, orderID)
 		require.NoError(t, err)

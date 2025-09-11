@@ -9,7 +9,7 @@ import (
 
 type OrderRepository interface {
 	Insert(ctx context.Context, order *domain.Order) (int64, error)
-	GetByID(ctx context.Context, orderID int64) (*domain.Order, error)
+	GetByIDOrderItemsBySKU(ctx context.Context, orderID int64) (*domain.Order, error)
 	UpdateStatus(ctx context.Context, orderID int64, newStatus domain.Status) error
 }
 
@@ -54,9 +54,9 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 
 // GetInfoByID возвращает информацию о заказе по его идентификатору.
 func (os *OrderService) GetInfoByID(ctx context.Context, orderID int64) (*domain.Order, error) {
-	order, err := os.orderRepository.GetByID(ctx, orderID)
+	order, err := os.orderRepository.GetByIDOrderItemsBySKU(ctx, orderID)
 	if err != nil {
-		return nil, fmt.Errorf("orderRepository.GetByID: %w", err)
+		return nil, fmt.Errorf("orderRepository.GetByIDOrderItemsBySKU: %w", err)
 	}
 
 	return order, nil
@@ -69,7 +69,7 @@ func (os *OrderService) PayByID(ctx context.Context, orderID int64) error {
 		return fmt.Errorf("os.GetInfoByID: %w", err)
 	}
 
-	if order.Status == domain.Payed {
+	if order.Status == domain.Paid {
 		return nil
 	}
 
@@ -82,7 +82,7 @@ func (os *OrderService) PayByID(ctx context.Context, orderID int64) error {
 		logger.Error(fmt.Sprintf("stockService.ConfirmReserveFor: %s", errConfirm.Error()))
 	}
 
-	return os.orderRepository.UpdateStatus(ctx, orderID, domain.Payed)
+	return os.orderRepository.UpdateStatus(ctx, orderID, domain.Paid)
 }
 
 // CancelByID отменяет заказ по идентификатору.
@@ -96,7 +96,7 @@ func (os *OrderService) CancelByID(ctx context.Context, orderID int64) error {
 		return nil
 	}
 
-	if order.Status == domain.Payed || order.Status == domain.Failed {
+	if order.Status == domain.Paid || order.Status == domain.Failed {
 		return domain.ErrCancelWithInvalidOrderStatus
 	}
 

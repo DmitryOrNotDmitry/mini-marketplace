@@ -13,6 +13,6 @@ const (
 	New             Status = "new"
 	AwaitingPayment Status = "awaiting payment"
 	Failed          Status = "failed"
-	Payed           Status = "payed"
+	Paid            Status = "paid"
 	Cancelled       Status = "cancelled"
 )

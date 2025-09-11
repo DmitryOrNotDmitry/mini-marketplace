@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"route256/loms/internal/domain"
+	"sort"
 	"sync"
 )
 
@@ -37,8 +38,8 @@ func (or *OrderRepositoryInMemory) Insert(_ context.Context, order *domain.Order
 	return order.OrderID, nil
 }
 
-// GetByID возвращает заказ по идентификатору, если он существует.
-func (or *OrderRepositoryInMemory) GetByID(_ context.Context, orderID int64) (*domain.Order, error) {
+// GetByIDOrderItemsBySKU возвращает заказ по идентификатору, если он существует.
+func (or *OrderRepositoryInMemory) GetByIDOrderItemsBySKU(_ context.Context, orderID int64) (*domain.Order, error) {
 	or.mx.Lock()
 	defer or.mx.Unlock()
 
@@ -46,6 +47,10 @@ func (or *OrderRepositoryInMemory) GetByID(_ context.Context, orderID int64) (*d
 	if !ok {
 		return nil, domain.ErrOrderNotExist
 	}
+
+	sort.Slice(order.Items, func(i, j int) bool {
+		return order.Items[i].SkuID < order.Items[j].SkuID
+	})
 
 	return order, nil
 }

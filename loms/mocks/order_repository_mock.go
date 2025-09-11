@@ -19,12 +19,12 @@ type OrderRepositoryMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
-	funcGetByID          func(ctx context.Context, orderID int64) (op1 *domain.Order, err error)
-	funcGetByIDOrigin    string
-	inspectFuncGetByID   func(ctx context.Context, orderID int64)
-	afterGetByIDCounter  uint64
-	beforeGetByIDCounter uint64
-	GetByIDMock          mOrderRepositoryMockGetByID
+	funcGetByIDOrderItemsBySKU          func(ctx context.Context, orderID int64) (op1 *domain.Order, err error)
+	funcGetByIDOrderItemsBySKUOrigin    string
+	inspectFuncGetByIDOrderItemsBySKU   func(ctx context.Context, orderID int64)
+	afterGetByIDOrderItemsBySKUCounter  uint64
+	beforeGetByIDOrderItemsBySKUCounter uint64
+	GetByIDOrderItemsBySKUMock          mOrderRepositoryMockGetByIDOrderItemsBySKU
 
 	funcInsert          func(ctx context.Context, order *domain.Order) (i1 int64, err error)
 	funcInsertOrigin    string
@@ -49,8 +49,8 @@ func NewOrderRepositoryMock(t minimock.Tester) *OrderRepositoryMock {
 		controller.RegisterMocker(m)
 	}
 
-	m.GetByIDMock = mOrderRepositoryMockGetByID{mock: m}
-	m.GetByIDMock.callArgs = []*OrderRepositoryMockGetByIDParams{}
+	m.GetByIDOrderItemsBySKUMock = mOrderRepositoryMockGetByIDOrderItemsBySKU{mock: m}
+	m.GetByIDOrderItemsBySKUMock.callArgs = []*OrderRepositoryMockGetByIDOrderItemsBySKUParams{}
 
 	m.InsertMock = mOrderRepositoryMockInsert{mock: m}
 	m.InsertMock.callArgs = []*OrderRepositoryMockInsertParams{}
@@ -63,50 +63,50 @@ func NewOrderRepositoryMock(t minimock.Tester) *OrderRepositoryMock {
 	return m
 }
 
-type mOrderRepositoryMockGetByID struct {
+type mOrderRepositoryMockGetByIDOrderItemsBySKU struct {
 	optional           bool
 	mock               *OrderRepositoryMock
-	defaultExpectation *OrderRepositoryMockGetByIDExpectation
-	expectations       []*OrderRepositoryMockGetByIDExpectation
+	defaultExpectation *OrderRepositoryMockGetByIDOrderItemsBySKUExpectation
+	expectations       []*OrderRepositoryMockGetByIDOrderItemsBySKUExpectation
 
-	callArgs []*OrderRepositoryMockGetByIDParams
+	callArgs []*OrderRepositoryMockGetByIDOrderItemsBySKUParams
 	mutex    sync.RWMutex
 
 	expectedInvocations       uint64
 	expectedInvocationsOrigin string
 }
 
-// OrderRepositoryMockGetByIDExpectation specifies expectation struct of the OrderRepository.GetByID
-type OrderRepositoryMockGetByIDExpectation struct {
+// OrderRepositoryMockGetByIDOrderItemsBySKUExpectation specifies expectation struct of the OrderRepository.GetByIDOrderItemsBySKU
+type OrderRepositoryMockGetByIDOrderItemsBySKUExpectation struct {
 	mock               *OrderRepositoryMock
-	params             *OrderRepositoryMockGetByIDParams
-	paramPtrs          *OrderRepositoryMockGetByIDParamPtrs
-	expectationOrigins OrderRepositoryMockGetByIDExpectationOrigins
-	results            *OrderRepositoryMockGetByIDResults
+	params             *OrderRepositoryMockGetByIDOrderItemsBySKUParams
+	paramPtrs          *OrderRepositoryMockGetByIDOrderItemsBySKUParamPtrs
+	expectationOrigins OrderRepositoryMockGetByIDOrderItemsBySKUExpectationOrigins
+	results            *OrderRepositoryMockGetByIDOrderItemsBySKUResults
 	returnOrigin       string
 	Counter            uint64
 }
 
-// OrderRepositoryMockGetByIDParams contains parameters of the OrderRepository.GetByID
-type OrderRepositoryMockGetByIDParams struct {
+// OrderRepositoryMockGetByIDOrderItemsBySKUParams contains parameters of the OrderRepository.GetByIDOrderItemsBySKU
+type OrderRepositoryMockGetByIDOrderItemsBySKUParams struct {
 	ctx     context.Context
 	orderID int64
 }
 
-// OrderRepositoryMockGetByIDParamPtrs contains pointers to parameters of the OrderRepository.GetByID
-type OrderRepositoryMockGetByIDParamPtrs struct {
+// OrderRepositoryMockGetByIDOrderItemsBySKUParamPtrs contains pointers to parameters of the OrderRepository.GetByIDOrderItemsBySKU
+type OrderRepositoryMockGetByIDOrderItemsBySKUParamPtrs struct {
 	ctx     *context.Context
 	orderID *int64
 }
 
-// OrderRepositoryMockGetByIDResults contains results of the OrderRepository.GetByID
-type OrderRepositoryMockGetByIDResults struct {
+// OrderRepositoryMockGetByIDOrderItemsBySKUResults contains results of the OrderRepository.GetByIDOrderItemsBySKU
+type OrderRepositoryMockGetByIDOrderItemsBySKUResults struct {
 	op1 *domain.Order
 	err error
 }
 
-// OrderRepositoryMockGetByIDOrigins contains origins of expectations of the OrderRepository.GetByID
-type OrderRepositoryMockGetByIDExpectationOrigins struct {
+// OrderRepositoryMockGetByIDOrderItemsBySKUOrigins contains origins of expectations of the OrderRepository.GetByIDOrderItemsBySKU
+type OrderRepositoryMockGetByIDOrderItemsBySKUExpectationOrigins struct {
 	origin        string
 	originCtx     string
 	originOrderID string
@@ -117,292 +117,292 @@ type OrderRepositoryMockGetByIDExpectationOrigins struct {
 // Optional() makes method check to work in '0 or more' mode.
 // It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
 // catch the problems when the expected method call is totally skipped during test run.
-func (mmGetByID *mOrderRepositoryMockGetByID) Optional() *mOrderRepositoryMockGetByID {
-	mmGetByID.optional = true
-	return mmGetByID
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) Optional() *mOrderRepositoryMockGetByIDOrderItemsBySKU {
+	mmGetByIDOrderItemsBySKU.optional = true
+	return mmGetByIDOrderItemsBySKU
 }
 
-// Expect sets up expected params for OrderRepository.GetByID
-func (mmGetByID *mOrderRepositoryMockGetByID) Expect(ctx context.Context, orderID int64) *mOrderRepositoryMockGetByID {
-	if mmGetByID.mock.funcGetByID != nil {
-		mmGetByID.mock.t.Fatalf("OrderRepositoryMock.GetByID mock is already set by Set")
+// Expect sets up expected params for OrderRepository.GetByIDOrderItemsBySKU
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) Expect(ctx context.Context, orderID int64) *mOrderRepositoryMockGetByIDOrderItemsBySKU {
+	if mmGetByIDOrderItemsBySKU.mock.funcGetByIDOrderItemsBySKU != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("OrderRepositoryMock.GetByIDOrderItemsBySKU mock is already set by Set")
 	}
 
-	if mmGetByID.defaultExpectation == nil {
-		mmGetByID.defaultExpectation = &OrderRepositoryMockGetByIDExpectation{}
+	if mmGetByIDOrderItemsBySKU.defaultExpectation == nil {
+		mmGetByIDOrderItemsBySKU.defaultExpectation = &OrderRepositoryMockGetByIDOrderItemsBySKUExpectation{}
 	}
 
-	if mmGetByID.defaultExpectation.paramPtrs != nil {
-		mmGetByID.mock.t.Fatalf("OrderRepositoryMock.GetByID mock is already set by ExpectParams functions")
+	if mmGetByIDOrderItemsBySKU.defaultExpectation.paramPtrs != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("OrderRepositoryMock.GetByIDOrderItemsBySKU mock is already set by ExpectParams functions")
 	}
 
-	mmGetByID.defaultExpectation.params = &OrderRepositoryMockGetByIDParams{ctx, orderID}
-	mmGetByID.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
-	for _, e := range mmGetByID.expectations {
-		if minimock.Equal(e.params, mmGetByID.defaultExpectation.params) {
-			mmGetByID.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetByID.defaultExpectation.params)
+	mmGetByIDOrderItemsBySKU.defaultExpectation.params = &OrderRepositoryMockGetByIDOrderItemsBySKUParams{ctx, orderID}
+	mmGetByIDOrderItemsBySKU.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGetByIDOrderItemsBySKU.expectations {
+		if minimock.Equal(e.params, mmGetByIDOrderItemsBySKU.defaultExpectation.params) {
+			mmGetByIDOrderItemsBySKU.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetByIDOrderItemsBySKU.defaultExpectation.params)
 		}
 	}
 
-	return mmGetByID
+	return mmGetByIDOrderItemsBySKU
 }
 
-// ExpectCtxParam1 sets up expected param ctx for OrderRepository.GetByID
-func (mmGetByID *mOrderRepositoryMockGetByID) ExpectCtxParam1(ctx context.Context) *mOrderRepositoryMockGetByID {
-	if mmGetByID.mock.funcGetByID != nil {
-		mmGetByID.mock.t.Fatalf("OrderRepositoryMock.GetByID mock is already set by Set")
+// ExpectCtxParam1 sets up expected param ctx for OrderRepository.GetByIDOrderItemsBySKU
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) ExpectCtxParam1(ctx context.Context) *mOrderRepositoryMockGetByIDOrderItemsBySKU {
+	if mmGetByIDOrderItemsBySKU.mock.funcGetByIDOrderItemsBySKU != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("OrderRepositoryMock.GetByIDOrderItemsBySKU mock is already set by Set")
 	}
 
-	if mmGetByID.defaultExpectation == nil {
-		mmGetByID.defaultExpectation = &OrderRepositoryMockGetByIDExpectation{}
+	if mmGetByIDOrderItemsBySKU.defaultExpectation == nil {
+		mmGetByIDOrderItemsBySKU.defaultExpectation = &OrderRepositoryMockGetByIDOrderItemsBySKUExpectation{}
 	}
 
-	if mmGetByID.defaultExpectation.params != nil {
-		mmGetByID.mock.t.Fatalf("OrderRepositoryMock.GetByID mock is already set by Expect")
+	if mmGetByIDOrderItemsBySKU.defaultExpectation.params != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("OrderRepositoryMock.GetByIDOrderItemsBySKU mock is already set by Expect")
 	}
 
-	if mmGetByID.defaultExpectation.paramPtrs == nil {
-		mmGetByID.defaultExpectation.paramPtrs = &OrderRepositoryMockGetByIDParamPtrs{}
+	if mmGetByIDOrderItemsBySKU.defaultExpectation.paramPtrs == nil {
+		mmGetByIDOrderItemsBySKU.defaultExpectation.paramPtrs = &OrderRepositoryMockGetByIDOrderItemsBySKUParamPtrs{}
 	}
-	mmGetByID.defaultExpectation.paramPtrs.ctx = &ctx
-	mmGetByID.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+	mmGetByIDOrderItemsBySKU.defaultExpectation.paramPtrs.ctx = &ctx
+	mmGetByIDOrderItemsBySKU.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
 
-	return mmGetByID
+	return mmGetByIDOrderItemsBySKU
 }
 
-// ExpectOrderIDParam2 sets up expected param orderID for OrderRepository.GetByID
-func (mmGetByID *mOrderRepositoryMockGetByID) ExpectOrderIDParam2(orderID int64) *mOrderRepositoryMockGetByID {
-	if mmGetByID.mock.funcGetByID != nil {
-		mmGetByID.mock.t.Fatalf("OrderRepositoryMock.GetByID mock is already set by Set")
+// ExpectOrderIDParam2 sets up expected param orderID for OrderRepository.GetByIDOrderItemsBySKU
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) ExpectOrderIDParam2(orderID int64) *mOrderRepositoryMockGetByIDOrderItemsBySKU {
+	if mmGetByIDOrderItemsBySKU.mock.funcGetByIDOrderItemsBySKU != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("OrderRepositoryMock.GetByIDOrderItemsBySKU mock is already set by Set")
 	}
 
-	if mmGetByID.defaultExpectation == nil {
-		mmGetByID.defaultExpectation = &OrderRepositoryMockGetByIDExpectation{}
+	if mmGetByIDOrderItemsBySKU.defaultExpectation == nil {
+		mmGetByIDOrderItemsBySKU.defaultExpectation = &OrderRepositoryMockGetByIDOrderItemsBySKUExpectation{}
 	}
 
-	if mmGetByID.defaultExpectation.params != nil {
-		mmGetByID.mock.t.Fatalf("OrderRepositoryMock.GetByID mock is already set by Expect")
+	if mmGetByIDOrderItemsBySKU.defaultExpectation.params != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("OrderRepositoryMock.GetByIDOrderItemsBySKU mock is already set by Expect")
 	}
 
-	if mmGetByID.defaultExpectation.paramPtrs == nil {
-		mmGetByID.defaultExpectation.paramPtrs = &OrderRepositoryMockGetByIDParamPtrs{}
+	if mmGetByIDOrderItemsBySKU.defaultExpectation.paramPtrs == nil {
+		mmGetByIDOrderItemsBySKU.defaultExpectation.paramPtrs = &OrderRepositoryMockGetByIDOrderItemsBySKUParamPtrs{}
 	}
-	mmGetByID.defaultExpectation.paramPtrs.orderID = &orderID
-	mmGetByID.defaultExpectation.expectationOrigins.originOrderID = minimock.CallerInfo(1)
+	mmGetByIDOrderItemsBySKU.defaultExpectation.paramPtrs.orderID = &orderID
+	mmGetByIDOrderItemsBySKU.defaultExpectation.expectationOrigins.originOrderID = minimock.CallerInfo(1)
 
-	return mmGetByID
+	return mmGetByIDOrderItemsBySKU
 }
 
-// Inspect accepts an inspector function that has same arguments as the OrderRepository.GetByID
-func (mmGetByID *mOrderRepositoryMockGetByID) Inspect(f func(ctx context.Context, orderID int64)) *mOrderRepositoryMockGetByID {
-	if mmGetByID.mock.inspectFuncGetByID != nil {
-		mmGetByID.mock.t.Fatalf("Inspect function is already set for OrderRepositoryMock.GetByID")
+// Inspect accepts an inspector function that has same arguments as the OrderRepository.GetByIDOrderItemsBySKU
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) Inspect(f func(ctx context.Context, orderID int64)) *mOrderRepositoryMockGetByIDOrderItemsBySKU {
+	if mmGetByIDOrderItemsBySKU.mock.inspectFuncGetByIDOrderItemsBySKU != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("Inspect function is already set for OrderRepositoryMock.GetByIDOrderItemsBySKU")
 	}
 
-	mmGetByID.mock.inspectFuncGetByID = f
+	mmGetByIDOrderItemsBySKU.mock.inspectFuncGetByIDOrderItemsBySKU = f
 
-	return mmGetByID
+	return mmGetByIDOrderItemsBySKU
 }
 
-// Return sets up results that will be returned by OrderRepository.GetByID
-func (mmGetByID *mOrderRepositoryMockGetByID) Return(op1 *domain.Order, err error) *OrderRepositoryMock {
-	if mmGetByID.mock.funcGetByID != nil {
-		mmGetByID.mock.t.Fatalf("OrderRepositoryMock.GetByID mock is already set by Set")
+// Return sets up results that will be returned by OrderRepository.GetByIDOrderItemsBySKU
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) Return(op1 *domain.Order, err error) *OrderRepositoryMock {
+	if mmGetByIDOrderItemsBySKU.mock.funcGetByIDOrderItemsBySKU != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("OrderRepositoryMock.GetByIDOrderItemsBySKU mock is already set by Set")
 	}
 
-	if mmGetByID.defaultExpectation == nil {
-		mmGetByID.defaultExpectation = &OrderRepositoryMockGetByIDExpectation{mock: mmGetByID.mock}
+	if mmGetByIDOrderItemsBySKU.defaultExpectation == nil {
+		mmGetByIDOrderItemsBySKU.defaultExpectation = &OrderRepositoryMockGetByIDOrderItemsBySKUExpectation{mock: mmGetByIDOrderItemsBySKU.mock}
 	}
-	mmGetByID.defaultExpectation.results = &OrderRepositoryMockGetByIDResults{op1, err}
-	mmGetByID.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
-	return mmGetByID.mock
+	mmGetByIDOrderItemsBySKU.defaultExpectation.results = &OrderRepositoryMockGetByIDOrderItemsBySKUResults{op1, err}
+	mmGetByIDOrderItemsBySKU.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGetByIDOrderItemsBySKU.mock
 }
 
-// Set uses given function f to mock the OrderRepository.GetByID method
-func (mmGetByID *mOrderRepositoryMockGetByID) Set(f func(ctx context.Context, orderID int64) (op1 *domain.Order, err error)) *OrderRepositoryMock {
-	if mmGetByID.defaultExpectation != nil {
-		mmGetByID.mock.t.Fatalf("Default expectation is already set for the OrderRepository.GetByID method")
+// Set uses given function f to mock the OrderRepository.GetByIDOrderItemsBySKU method
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) Set(f func(ctx context.Context, orderID int64) (op1 *domain.Order, err error)) *OrderRepositoryMock {
+	if mmGetByIDOrderItemsBySKU.defaultExpectation != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("Default expectation is already set for the OrderRepository.GetByIDOrderItemsBySKU method")
 	}
 
-	if len(mmGetByID.expectations) > 0 {
-		mmGetByID.mock.t.Fatalf("Some expectations are already set for the OrderRepository.GetByID method")
+	if len(mmGetByIDOrderItemsBySKU.expectations) > 0 {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("Some expectations are already set for the OrderRepository.GetByIDOrderItemsBySKU method")
 	}
 
-	mmGetByID.mock.funcGetByID = f
-	mmGetByID.mock.funcGetByIDOrigin = minimock.CallerInfo(1)
-	return mmGetByID.mock
+	mmGetByIDOrderItemsBySKU.mock.funcGetByIDOrderItemsBySKU = f
+	mmGetByIDOrderItemsBySKU.mock.funcGetByIDOrderItemsBySKUOrigin = minimock.CallerInfo(1)
+	return mmGetByIDOrderItemsBySKU.mock
 }
 
-// When sets expectation for the OrderRepository.GetByID which will trigger the result defined by the following
+// When sets expectation for the OrderRepository.GetByIDOrderItemsBySKU which will trigger the result defined by the following
 // Then helper
-func (mmGetByID *mOrderRepositoryMockGetByID) When(ctx context.Context, orderID int64) *OrderRepositoryMockGetByIDExpectation {
-	if mmGetByID.mock.funcGetByID != nil {
-		mmGetByID.mock.t.Fatalf("OrderRepositoryMock.GetByID mock is already set by Set")
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) When(ctx context.Context, orderID int64) *OrderRepositoryMockGetByIDOrderItemsBySKUExpectation {
+	if mmGetByIDOrderItemsBySKU.mock.funcGetByIDOrderItemsBySKU != nil {
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("OrderRepositoryMock.GetByIDOrderItemsBySKU mock is already set by Set")
 	}
 
-	expectation := &OrderRepositoryMockGetByIDExpectation{
-		mock:               mmGetByID.mock,
-		params:             &OrderRepositoryMockGetByIDParams{ctx, orderID},
-		expectationOrigins: OrderRepositoryMockGetByIDExpectationOrigins{origin: minimock.CallerInfo(1)},
+	expectation := &OrderRepositoryMockGetByIDOrderItemsBySKUExpectation{
+		mock:               mmGetByIDOrderItemsBySKU.mock,
+		params:             &OrderRepositoryMockGetByIDOrderItemsBySKUParams{ctx, orderID},
+		expectationOrigins: OrderRepositoryMockGetByIDOrderItemsBySKUExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
-	mmGetByID.expectations = append(mmGetByID.expectations, expectation)
+	mmGetByIDOrderItemsBySKU.expectations = append(mmGetByIDOrderItemsBySKU.expectations, expectation)
 	return expectation
 }
 
-// Then sets up OrderRepository.GetByID return parameters for the expectation previously defined by the When method
-func (e *OrderRepositoryMockGetByIDExpectation) Then(op1 *domain.Order, err error) *OrderRepositoryMock {
-	e.results = &OrderRepositoryMockGetByIDResults{op1, err}
+// Then sets up OrderRepository.GetByIDOrderItemsBySKU return parameters for the expectation previously defined by the When method
+func (e *OrderRepositoryMockGetByIDOrderItemsBySKUExpectation) Then(op1 *domain.Order, err error) *OrderRepositoryMock {
+	e.results = &OrderRepositoryMockGetByIDOrderItemsBySKUResults{op1, err}
 	return e.mock
 }
 
-// Times sets number of times OrderRepository.GetByID should be invoked
-func (mmGetByID *mOrderRepositoryMockGetByID) Times(n uint64) *mOrderRepositoryMockGetByID {
+// Times sets number of times OrderRepository.GetByIDOrderItemsBySKU should be invoked
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) Times(n uint64) *mOrderRepositoryMockGetByIDOrderItemsBySKU {
 	if n == 0 {
-		mmGetByID.mock.t.Fatalf("Times of OrderRepositoryMock.GetByID mock can not be zero")
+		mmGetByIDOrderItemsBySKU.mock.t.Fatalf("Times of OrderRepositoryMock.GetByIDOrderItemsBySKU mock can not be zero")
 	}
-	mm_atomic.StoreUint64(&mmGetByID.expectedInvocations, n)
-	mmGetByID.expectedInvocationsOrigin = minimock.CallerInfo(1)
-	return mmGetByID
+	mm_atomic.StoreUint64(&mmGetByIDOrderItemsBySKU.expectedInvocations, n)
+	mmGetByIDOrderItemsBySKU.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGetByIDOrderItemsBySKU
 }
 
-func (mmGetByID *mOrderRepositoryMockGetByID) invocationsDone() bool {
-	if len(mmGetByID.expectations) == 0 && mmGetByID.defaultExpectation == nil && mmGetByID.mock.funcGetByID == nil {
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) invocationsDone() bool {
+	if len(mmGetByIDOrderItemsBySKU.expectations) == 0 && mmGetByIDOrderItemsBySKU.defaultExpectation == nil && mmGetByIDOrderItemsBySKU.mock.funcGetByIDOrderItemsBySKU == nil {
 		return true
 	}
 
-	totalInvocations := mm_atomic.LoadUint64(&mmGetByID.mock.afterGetByIDCounter)
-	expectedInvocations := mm_atomic.LoadUint64(&mmGetByID.expectedInvocations)
+	totalInvocations := mm_atomic.LoadUint64(&mmGetByIDOrderItemsBySKU.mock.afterGetByIDOrderItemsBySKUCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGetByIDOrderItemsBySKU.expectedInvocations)
 
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// GetByID implements mm_service.OrderRepository
-func (mmGetByID *OrderRepositoryMock) GetByID(ctx context.Context, orderID int64) (op1 *domain.Order, err error) {
-	mm_atomic.AddUint64(&mmGetByID.beforeGetByIDCounter, 1)
-	defer mm_atomic.AddUint64(&mmGetByID.afterGetByIDCounter, 1)
+// GetByIDOrderItemsBySKU implements mm_service.OrderRepository
+func (mmGetByIDOrderItemsBySKU *OrderRepositoryMock) GetByIDOrderItemsBySKU(ctx context.Context, orderID int64) (op1 *domain.Order, err error) {
+	mm_atomic.AddUint64(&mmGetByIDOrderItemsBySKU.beforeGetByIDOrderItemsBySKUCounter, 1)
+	defer mm_atomic.AddUint64(&mmGetByIDOrderItemsBySKU.afterGetByIDOrderItemsBySKUCounter, 1)
 
-	mmGetByID.t.Helper()
+	mmGetByIDOrderItemsBySKU.t.Helper()
 
-	if mmGetByID.inspectFuncGetByID != nil {
-		mmGetByID.inspectFuncGetByID(ctx, orderID)
+	if mmGetByIDOrderItemsBySKU.inspectFuncGetByIDOrderItemsBySKU != nil {
+		mmGetByIDOrderItemsBySKU.inspectFuncGetByIDOrderItemsBySKU(ctx, orderID)
 	}
 
-	mm_params := OrderRepositoryMockGetByIDParams{ctx, orderID}
+	mm_params := OrderRepositoryMockGetByIDOrderItemsBySKUParams{ctx, orderID}
 
 	// Record call args
-	mmGetByID.GetByIDMock.mutex.Lock()
-	mmGetByID.GetByIDMock.callArgs = append(mmGetByID.GetByIDMock.callArgs, &mm_params)
-	mmGetByID.GetByIDMock.mutex.Unlock()
+	mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.mutex.Lock()
+	mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.callArgs = append(mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.callArgs, &mm_params)
+	mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.mutex.Unlock()
 
-	for _, e := range mmGetByID.GetByIDMock.expectations {
+	for _, e := range mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
 			return e.results.op1, e.results.err
 		}
 	}
 
-	if mmGetByID.GetByIDMock.defaultExpectation != nil {
-		mm_atomic.AddUint64(&mmGetByID.GetByIDMock.defaultExpectation.Counter, 1)
-		mm_want := mmGetByID.GetByIDMock.defaultExpectation.params
-		mm_want_ptrs := mmGetByID.GetByIDMock.defaultExpectation.paramPtrs
+	if mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.defaultExpectation.Counter, 1)
+		mm_want := mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.defaultExpectation.params
+		mm_want_ptrs := mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.defaultExpectation.paramPtrs
 
-		mm_got := OrderRepositoryMockGetByIDParams{ctx, orderID}
+		mm_got := OrderRepositoryMockGetByIDOrderItemsBySKUParams{ctx, orderID}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
-				mmGetByID.t.Errorf("OrderRepositoryMock.GetByID got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmGetByID.GetByIDMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+				mmGetByIDOrderItemsBySKU.t.Errorf("OrderRepositoryMock.GetByIDOrderItemsBySKU got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
 			}
 
 			if mm_want_ptrs.orderID != nil && !minimock.Equal(*mm_want_ptrs.orderID, mm_got.orderID) {
-				mmGetByID.t.Errorf("OrderRepositoryMock.GetByID got unexpected parameter orderID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmGetByID.GetByIDMock.defaultExpectation.expectationOrigins.originOrderID, *mm_want_ptrs.orderID, mm_got.orderID, minimock.Diff(*mm_want_ptrs.orderID, mm_got.orderID))
+				mmGetByIDOrderItemsBySKU.t.Errorf("OrderRepositoryMock.GetByIDOrderItemsBySKU got unexpected parameter orderID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.defaultExpectation.expectationOrigins.originOrderID, *mm_want_ptrs.orderID, mm_got.orderID, minimock.Diff(*mm_want_ptrs.orderID, mm_got.orderID))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
-			mmGetByID.t.Errorf("OrderRepositoryMock.GetByID got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-				mmGetByID.GetByIDMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+			mmGetByIDOrderItemsBySKU.t.Errorf("OrderRepositoryMock.GetByIDOrderItemsBySKU got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
 
-		mm_results := mmGetByID.GetByIDMock.defaultExpectation.results
+		mm_results := mmGetByIDOrderItemsBySKU.GetByIDOrderItemsBySKUMock.defaultExpectation.results
 		if mm_results == nil {
-			mmGetByID.t.Fatal("No results are set for the OrderRepositoryMock.GetByID")
+			mmGetByIDOrderItemsBySKU.t.Fatal("No results are set for the OrderRepositoryMock.GetByIDOrderItemsBySKU")
 		}
 		return (*mm_results).op1, (*mm_results).err
 	}
-	if mmGetByID.funcGetByID != nil {
-		return mmGetByID.funcGetByID(ctx, orderID)
+	if mmGetByIDOrderItemsBySKU.funcGetByIDOrderItemsBySKU != nil {
+		return mmGetByIDOrderItemsBySKU.funcGetByIDOrderItemsBySKU(ctx, orderID)
 	}
-	mmGetByID.t.Fatalf("Unexpected call to OrderRepositoryMock.GetByID. %v %v", ctx, orderID)
+	mmGetByIDOrderItemsBySKU.t.Fatalf("Unexpected call to OrderRepositoryMock.GetByIDOrderItemsBySKU. %v %v", ctx, orderID)
 	return
 }
 
-// GetByIDAfterCounter returns a count of finished OrderRepositoryMock.GetByID invocations
-func (mmGetByID *OrderRepositoryMock) GetByIDAfterCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmGetByID.afterGetByIDCounter)
+// GetByIDOrderItemsBySKUAfterCounter returns a count of finished OrderRepositoryMock.GetByIDOrderItemsBySKU invocations
+func (mmGetByIDOrderItemsBySKU *OrderRepositoryMock) GetByIDOrderItemsBySKUAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetByIDOrderItemsBySKU.afterGetByIDOrderItemsBySKUCounter)
 }
 
-// GetByIDBeforeCounter returns a count of OrderRepositoryMock.GetByID invocations
-func (mmGetByID *OrderRepositoryMock) GetByIDBeforeCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmGetByID.beforeGetByIDCounter)
+// GetByIDOrderItemsBySKUBeforeCounter returns a count of OrderRepositoryMock.GetByIDOrderItemsBySKU invocations
+func (mmGetByIDOrderItemsBySKU *OrderRepositoryMock) GetByIDOrderItemsBySKUBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetByIDOrderItemsBySKU.beforeGetByIDOrderItemsBySKUCounter)
 }
 
-// Calls returns a list of arguments used in each call to OrderRepositoryMock.GetByID.
+// Calls returns a list of arguments used in each call to OrderRepositoryMock.GetByIDOrderItemsBySKU.
 // The list is in the same order as the calls were made (i.e. recent calls have a higher index)
-func (mmGetByID *mOrderRepositoryMockGetByID) Calls() []*OrderRepositoryMockGetByIDParams {
-	mmGetByID.mutex.RLock()
+func (mmGetByIDOrderItemsBySKU *mOrderRepositoryMockGetByIDOrderItemsBySKU) Calls() []*OrderRepositoryMockGetByIDOrderItemsBySKUParams {
+	mmGetByIDOrderItemsBySKU.mutex.RLock()
 
-	argCopy := make([]*OrderRepositoryMockGetByIDParams, len(mmGetByID.callArgs))
-	copy(argCopy, mmGetByID.callArgs)
+	argCopy := make([]*OrderRepositoryMockGetByIDOrderItemsBySKUParams, len(mmGetByIDOrderItemsBySKU.callArgs))
+	copy(argCopy, mmGetByIDOrderItemsBySKU.callArgs)
 
-	mmGetByID.mutex.RUnlock()
+	mmGetByIDOrderItemsBySKU.mutex.RUnlock()
 
 	return argCopy
 }
 
-// MinimockGetByIDDone returns true if the count of the GetByID invocations corresponds
+// MinimockGetByIDOrderItemsBySKUDone returns true if the count of the GetByIDOrderItemsBySKU invocations corresponds
 // the number of defined expectations
-func (m *OrderRepositoryMock) MinimockGetByIDDone() bool {
-	if m.GetByIDMock.optional {
+func (m *OrderRepositoryMock) MinimockGetByIDOrderItemsBySKUDone() bool {
+	if m.GetByIDOrderItemsBySKUMock.optional {
 		// Optional methods provide '0 or more' call count restriction.
 		return true
 	}
 
-	for _, e := range m.GetByIDMock.expectations {
+	for _, e := range m.GetByIDOrderItemsBySKUMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
 			return false
 		}
 	}
 
-	return m.GetByIDMock.invocationsDone()
+	return m.GetByIDOrderItemsBySKUMock.invocationsDone()
 }
 
-// MinimockGetByIDInspect logs each unmet expectation
-func (m *OrderRepositoryMock) MinimockGetByIDInspect() {
-	for _, e := range m.GetByIDMock.expectations {
+// MinimockGetByIDOrderItemsBySKUInspect logs each unmet expectation
+func (m *OrderRepositoryMock) MinimockGetByIDOrderItemsBySKUInspect() {
+	for _, e := range m.GetByIDOrderItemsBySKUMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
-			m.t.Errorf("Expected call to OrderRepositoryMock.GetByID at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+			m.t.Errorf("Expected call to OrderRepositoryMock.GetByIDOrderItemsBySKU at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
 		}
 	}
 
-	afterGetByIDCounter := mm_atomic.LoadUint64(&m.afterGetByIDCounter)
+	afterGetByIDOrderItemsBySKUCounter := mm_atomic.LoadUint64(&m.afterGetByIDOrderItemsBySKUCounter)
 	// if default expectation was set then invocations count should be greater than zero
-	if m.GetByIDMock.defaultExpectation != nil && afterGetByIDCounter < 1 {
-		if m.GetByIDMock.defaultExpectation.params == nil {
-			m.t.Errorf("Expected call to OrderRepositoryMock.GetByID at\n%s", m.GetByIDMock.defaultExpectation.returnOrigin)
+	if m.GetByIDOrderItemsBySKUMock.defaultExpectation != nil && afterGetByIDOrderItemsBySKUCounter < 1 {
+		if m.GetByIDOrderItemsBySKUMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to OrderRepositoryMock.GetByIDOrderItemsBySKU at\n%s", m.GetByIDOrderItemsBySKUMock.defaultExpectation.returnOrigin)
 		} else {
-			m.t.Errorf("Expected call to OrderRepositoryMock.GetByID at\n%s with params: %#v", m.GetByIDMock.defaultExpectation.expectationOrigins.origin, *m.GetByIDMock.defaultExpectation.params)
+			m.t.Errorf("Expected call to OrderRepositoryMock.GetByIDOrderItemsBySKU at\n%s with params: %#v", m.GetByIDOrderItemsBySKUMock.defaultExpectation.expectationOrigins.origin, *m.GetByIDOrderItemsBySKUMock.defaultExpectation.params)
 		}
 	}
 	// if func was set then invocations count should be greater than zero
-	if m.funcGetByID != nil && afterGetByIDCounter < 1 {
-		m.t.Errorf("Expected call to OrderRepositoryMock.GetByID at\n%s", m.funcGetByIDOrigin)
+	if m.funcGetByIDOrderItemsBySKU != nil && afterGetByIDOrderItemsBySKUCounter < 1 {
+		m.t.Errorf("Expected call to OrderRepositoryMock.GetByIDOrderItemsBySKU at\n%s", m.funcGetByIDOrderItemsBySKUOrigin)
 	}
 
-	if !m.GetByIDMock.invocationsDone() && afterGetByIDCounter > 0 {
-		m.t.Errorf("Expected %d calls to OrderRepositoryMock.GetByID at\n%s but found %d calls",
-			mm_atomic.LoadUint64(&m.GetByIDMock.expectedInvocations), m.GetByIDMock.expectedInvocationsOrigin, afterGetByIDCounter)
+	if !m.GetByIDOrderItemsBySKUMock.invocationsDone() && afterGetByIDOrderItemsBySKUCounter > 0 {
+		m.t.Errorf("Expected %d calls to OrderRepositoryMock.GetByIDOrderItemsBySKU at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GetByIDOrderItemsBySKUMock.expectedInvocations), m.GetByIDOrderItemsBySKUMock.expectedInvocationsOrigin, afterGetByIDOrderItemsBySKUCounter)
 	}
 }
 
@@ -1126,7 +1126,7 @@ func (m *OrderRepositoryMock) MinimockUpdateStatusInspect() {
 func (m *OrderRepositoryMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
 		if !m.minimockDone() {
-			m.MinimockGetByIDInspect()
+			m.MinimockGetByIDOrderItemsBySKUInspect()
 
 			m.MinimockInsertInspect()
 
@@ -1154,7 +1154,7 @@ func (m *OrderRepositoryMock) MinimockWait(timeout mm_time.Duration) {
 func (m *OrderRepositoryMock) minimockDone() bool {
 	done := true
 	return done &&
-		m.MinimockGetByIDDone() &&
+		m.MinimockGetByIDOrderItemsBySKUDone() &&
 		m.MinimockInsertDone() &&
 		m.MinimockUpdateStatusDone()
 }
