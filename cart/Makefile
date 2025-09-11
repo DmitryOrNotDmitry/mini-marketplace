@@ -31,17 +31,6 @@ test:
 test-cover:
 	go test ./internal/... -count=1 -cover
 
-test-api:
-	rm -rf ./tests/allure-results
-	go test ./tests/... -tags=api
-
-test-api-win:
-	if exist tests\allure-results rmdir /s /q tests\allure-results
-	go test ./tests/... -tags=api
-
-allure: 
-	allure serve ./tests/allure-results
-
 lint:
 	gocyclo -over 10 -ignore "_test|mocks|tests" .
 	gocognit -over 12 -ignore "_test|mocks|tests" .

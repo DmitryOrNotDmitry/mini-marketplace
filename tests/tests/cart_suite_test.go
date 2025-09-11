@@ -12,25 +12,25 @@ import (
 	"github.com/ozontech/allure-go/pkg/framework/suite"
 )
 
-type Server struct {
+type CartSuite struct {
 	suite.Suite
 
 	cartClient *clients.CartClient
 }
 
-func TestServer(t *testing.T) {
+func TestCartSuite(t *testing.T) {
 	t.Parallel()
 
-	suite.RunSuite(t, new(Server))
+	suite.RunSuite(t, new(CartSuite))
 }
 
-func (s *Server) BeforeAll(t provider.T) {
+func (cs *CartSuite) BeforeAll(t provider.T) {
 	url := "http://localhost:8080"
-	s.cartClient = clients.NewClient(url)
+	cs.cartClient = clients.NewCartClient(url)
 	t.Logf("url is %v", url)
 }
 
-func (s *Server) BeforeEach(t provider.T) {
+func (cs *CartSuite) BeforeEach(t provider.T) {
 	t.Feature("Cart Service")
 	t.Tags("cart", "backend", "go")
 	t.Owner("Dima Cuznetsov")
@@ -39,7 +39,7 @@ func (s *Server) BeforeEach(t provider.T) {
 	)
 }
 
-func (s *Server) TestDeleteCartItem(t provider.T) {
+func (cs *CartSuite) TestDeleteCartItem(t provider.T) {
 	t.Title("Добавляем товар и удаляем его из корзины")
 
 	count := uint32(1)
@@ -49,23 +49,23 @@ func (s *Server) TestDeleteCartItem(t provider.T) {
 
 	t.WithTestSetup(func(t provider.T) {
 		t.WithNewStep("Добавляем товар", func(t provider.StepCtx) {
-			resStatus := s.cartClient.AddCartItem(ctx, t, userID, skuID, count)
+			resStatus := cs.cartClient.AddCartItem(ctx, t, userID, skuID, count)
 			t.Require().Equal(http.StatusOK, resStatus, "не совпадает статус код")
 		})
 	})
 
 	t.WithNewStep("Удаляем товар", func(t provider.StepCtx) {
-		resStatus := s.cartClient.DeleteCartItem(ctx, t, userID, skuID)
+		resStatus := cs.cartClient.DeleteCartItem(ctx, t, userID, skuID)
 		t.Require().Equal(http.StatusNoContent, resStatus, "не совпадает статус код")
 	})
 
 	t.WithNewStep("Получаем пустую корзину", func(t provider.StepCtx) {
-		_, resStatus := s.cartClient.GetCart(ctx, t, userID)
+		_, resStatus := cs.cartClient.GetCart(ctx, t, userID)
 		t.Require().Equal(http.StatusNotFound, resStatus, "не совпадает статус код")
 	})
 }
 
-func (s *Server) TestGetCart(t provider.T) {
+func (cs *CartSuite) TestGetCart(t provider.T) {
 	t.Title("Получаем корзину с двумя товарами")
 
 	count1 := uint32(1)
@@ -77,19 +77,19 @@ func (s *Server) TestGetCart(t provider.T) {
 
 	t.WithTestSetup(func(t provider.T) {
 		t.WithNewStep("Добавляем 3 товара", func(t provider.StepCtx) {
-			resStatus := s.cartClient.AddCartItem(ctx, t, userID, skuID1, count1)
+			resStatus := cs.cartClient.AddCartItem(ctx, t, userID, skuID1, count1)
 			t.Require().Equal(http.StatusOK, resStatus, "не совпадает статус код")
 
-			resStatus = s.cartClient.AddCartItem(ctx, t, userID, skuID1, count1)
+			resStatus = cs.cartClient.AddCartItem(ctx, t, userID, skuID1, count1)
 			t.Require().Equal(http.StatusOK, resStatus, "не совпадает статус код")
 
-			resStatus = s.cartClient.AddCartItem(ctx, t, userID, skuID2, count2)
+			resStatus = cs.cartClient.AddCartItem(ctx, t, userID, skuID2, count2)
 			t.Require().Equal(http.StatusOK, resStatus, "не совпадает статус код")
 		})
 	})
 
 	t.WithNewStep("Получаем корзину", func(t provider.StepCtx) {
-		cart, resStatus := s.cartClient.GetCart(ctx, t, userID)
+		cart, resStatus := cs.cartClient.GetCart(ctx, t, userID)
 		t.Require().Equal(http.StatusOK, resStatus, "не совпадает статус код")
 
 		t.Require().Len(cart.Items, 2)
@@ -100,7 +100,7 @@ func (s *Server) TestGetCart(t provider.T) {
 	})
 
 	t.WithNewStep("Очищаем корзину", func(t provider.StepCtx) {
-		resStatus := s.cartClient.ClearCart(ctx, t, userID)
+		resStatus := cs.cartClient.ClearCart(ctx, t, userID)
 		t.Require().Equal(http.StatusNoContent, resStatus, "не совпадает статус код")
 	})
 }

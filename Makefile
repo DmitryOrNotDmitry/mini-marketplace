@@ -18,12 +18,12 @@ test-cover:
 
 
 test-api:
-	rm -rf tests/tests/cart/allure-results
-	ALLURE_OUTPUT_FOLDER=allure-results ALLURE_OUTPUT_PATH=/tests go test ./tests/...
+	rm -rf tests/tests/allure-results
+	go test ./tests/...
 
 test-api-win:
-	if exist .\tests\tests\cart\allure-results rmdir /s /q .\tests\tests\cart\allure-results
+	if exist .\tests\tests\allure-results rmdir /s /q .\tests\tests\allure-results
 	go test ./tests/...
 
 allure:
-	allure serve ./tests/tests/cart/allure-results
+	allure serve ./tests/tests/allure-results

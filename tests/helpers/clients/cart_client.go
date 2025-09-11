@@ -17,7 +17,7 @@ type CartClient struct {
 	cl      *http.Client
 }
 
-func NewClient(baseUrl string) *CartClient {
+func NewCartClient(baseUrl string) *CartClient {
 	return &CartClient{
 		baseUrl: baseUrl,
 		cl:      http.DefaultClient,
