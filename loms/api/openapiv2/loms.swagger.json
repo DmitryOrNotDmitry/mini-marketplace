@@ -169,7 +169,7 @@
         },
         "parameters": [
           {
-            "name": "skuId",
+            "name": "sku",
             "in": "query",
             "required": false,
             "type": "string",
@@ -186,7 +186,7 @@
     "ItemInfo": {
       "type": "object",
       "properties": {
-        "skuId": {
+        "sku": {
           "type": "string",
           "format": "int64"
         },

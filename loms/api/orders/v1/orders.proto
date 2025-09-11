@@ -60,9 +60,11 @@ message OrderCreateRequest {
 
 message ItemInfo {
     int64 sku_id = 1 [
-    (validate.rules).int64 = {
-        gt: 0
-    }];
+        (validate.rules).int64 = {
+            gt: 0
+        },
+        json_name = "sku"
+    ];
 
     uint32 count = 2 [
     (validate.rules).uint32 = {
