@@ -19,11 +19,11 @@ test-cover:
 
 test-api:
 	rm -rf tests/tests/allure-results
-	go test ./tests/...
+	go test ./tests/... -tags=api
 
 test-api-win:
 	if exist .\tests\tests\allure-results rmdir /s /q .\tests\tests\allure-results
-	go test ./tests/...
+	go test ./tests/... -tags=api
 
 allure:
 	allure serve ./tests/tests/allure-results

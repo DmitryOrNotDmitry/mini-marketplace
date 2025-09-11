@@ -1,3 +1,5 @@
+//go:build api
+
 package tests
 
 import (
