@@ -56,7 +56,7 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 func (os *OrderService) GetInfoByID(ctx context.Context, orderID int64) (*domain.Order, error) {
 	order, err := os.orderRepository.GetByID(ctx, orderID)
 	if err != nil {
-		return nil, fmt.Errorf("orderRepository.Insert: %w", err)
+		return nil, fmt.Errorf("orderRepository.GetByID: %w", err)
 	}
 
 	return order, nil

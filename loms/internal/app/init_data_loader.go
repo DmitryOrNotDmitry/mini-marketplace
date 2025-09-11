@@ -1,29 +1,28 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
-	"os"
+	"time"
+
 	"route256/cart/pkg/logger"
 	"route256/loms/internal/domain"
-	"time"
 )
 
 type StockCreator interface {
 	Create(ctx context.Context, stock *domain.Stock) error
 }
 
-// LoadStocks загружает данные из файла в БД
-func LoadStocks(filename string, stockCreator StockCreator) error {
-	f, err := os.Open(filename) // nolint:gosec
-	if err != nil {
-		return fmt.Errorf("os.Open: %w", err)
-	}
-	defer f.Close()
+//go:embed init_data/stock-data.json
+var stocksData []byte
 
+// LoadStocks загружает данные из файла в БД
+func LoadStocks(stockCreator StockCreator) error {
 	stocks := []*domain.Stock{}
-	err = json.NewDecoder(f).Decode(&stocks)
+	err := json.NewDecoder(bytes.NewReader(stocksData)).Decode(&stocks)
 	if err != nil {
 		return fmt.Errorf("json.Decode: %w", err)
 	}
@@ -37,7 +36,7 @@ func LoadStocks(filename string, stockCreator StockCreator) error {
 		}
 	}
 
-	logger.Info(fmt.Sprintf("Данные из файлы %s загружены успешно", filename))
+	logger.Info(fmt.Sprintf("Данные из файлы %s загружены успешно", "init_data/stock-data.json"))
 
 	return nil
 }

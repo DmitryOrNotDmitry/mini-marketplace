@@ -28,7 +28,7 @@ type App struct {
 }
 
 // NewApp конструктор главного приложения.
-func NewApp(configPath string, resourcesPath string) (*App, error) {
+func NewApp(configPath string) (*App, error) {
 	c, err := config.LoadConfig(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("config.LoadConfig: %w", err)
@@ -57,7 +57,7 @@ func NewApp(configPath string, resourcesPath string) (*App, error) {
 	stocks.RegisterStockServiceServer(app.grpcServer, stocksHandler)
 	orders.RegisterOrderServiceServer(app.grpcServer, ordersHandler)
 
-	err = LoadStocks(fmt.Sprintf("%s/init_data/stock-data.json", resourcesPath), stockService)
+	err = LoadStocks(stockService)
 	if err != nil {
 		logger.Error(fmt.Sprintf("LoadStocks: %s", err))
 	}
