@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"route256/cart/pkg/logger"
 	"route256/loms/internal/domain"
 )
 
@@ -59,27 +60,32 @@ func (ss *StockService) GetAvailableCount(ctx context.Context, skuID int64) (uin
 // ReserveFor резервирует товары под заказ.
 func (ss *StockService) ReserveFor(ctx context.Context, order *domain.Order) error {
 	var err error
-	var errIdx int
+	reservedItems := make([]*domain.OrderItem, 0, len(order.Items))
 
-	for i, item := range order.Items {
+	for _, item := range order.Items {
 		err = ss.stockRepository.AddReserve(ctx, item.SkuID, item.Count)
 		if err != nil {
-			errIdx = i
 			break
 		}
+
+		reservedItems = append(reservedItems, item)
 	}
 
 	if err != nil {
-		for i := 0; i < errIdx; i++ {
-			iErr := ss.stockRepository.RemoveReserve(ctx, order.Items[i].SkuID, order.Items[i].Count)
-			if iErr != nil {
-				err = fmt.Errorf("stockRepository.RemoveReserve: %w", iErr)
-			}
-		}
+		ss.rollbackReserve(ctx, reservedItems)
 		return err
 	}
 
 	return nil
+}
+
+func (ss *StockService) rollbackReserve(ctx context.Context, reservedItems []*domain.OrderItem) {
+	for _, item := range reservedItems {
+		err := ss.stockRepository.RemoveReserve(ctx, item.SkuID, item.Count)
+		if err != nil {
+			logger.Error(fmt.Sprintf("stockRepository.RemoveReserve: %s", err.Error()))
+		}
+	}
 }
 
 // CancelReserveFor отменяет резервирование товаров по заказу.
@@ -101,7 +107,7 @@ func (ss *StockService) ConfirmReserveFor(ctx context.Context, order *domain.Ord
 	for _, item := range order.Items {
 		iErr := ss.stockRepository.ReduceReserveAndTotal(ctx, item.SkuID, item.Count)
 		if iErr != nil {
-			err = fmt.Errorf("stockRepository.RemoveReserve: %w", err)
+			err = fmt.Errorf("stockRepository.ReduceReserveAndTotal: %w", err)
 		}
 	}
 
