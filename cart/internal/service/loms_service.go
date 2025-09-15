@@ -7,11 +7,13 @@ import (
 	"route256/loms/pkg/api/stocks/v1"
 )
 
+// LomsServiceGRPC реализует доступ к сервису loms по gRPC.
 type LomsServiceGRPC struct {
 	stockClient stocks.StockServiceClient
 	orderClient orders.OrderServiceClient
 }
 
+// NewLomsServiceGRPC создает новый сервис управления заказами и запасами.
 func NewLomsServiceGRPC(stockClient stocks.StockServiceClient, orderClient orders.OrderServiceClient) *LomsServiceGRPC {
 	return &LomsServiceGRPC{
 		stockClient: stockClient,
@@ -19,6 +21,7 @@ func NewLomsServiceGRPC(stockClient stocks.StockServiceClient, orderClient order
 	}
 }
 
+// GetStockInfo возвращает информацию по запасам товара доступного для резервирования.
 func (ls *LomsServiceGRPC) GetStockInfo(ctx context.Context, skuID int64) (uint32, error) {
 	resp, err := ls.stockClient.StockInfo(ctx, &stocks.StockInfoRequest{
 		SkuId: skuID,
@@ -30,6 +33,7 @@ func (ls *LomsServiceGRPC) GetStockInfo(ctx context.Context, skuID int64) (uint3
 	return resp.Count, nil
 }
 
+// OrderCreate создает заказ по корзине.
 func (ls *LomsServiceGRPC) OrderCreate(ctx context.Context, userID int64, cart *domain.Cart) (int64, error) {
 	req := &orders.OrderCreateRequest{
 		UserId: userID,

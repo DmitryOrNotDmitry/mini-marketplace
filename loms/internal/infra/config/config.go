@@ -7,10 +7,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config главный конфиг сервиса.
 type Config struct {
 	Server LomsServiceConfig `yaml:"service"`
 }
 
+// LomsServiceConfig конфиг для сервиса loms.
 type LomsServiceConfig struct {
 	Host                  string            `yaml:"host"`
 	GRPCPort              string            `yaml:"grpc_port"`
@@ -19,6 +21,7 @@ type LomsServiceConfig struct {
 	LoadStocksDataTimeout int64             `yaml:"load_stocks_data_timeout"`
 }
 
+// GRPCGateWayConfig конфиг для gRPC-gateway.
 type GRPCGateWayConfig struct {
 	ReadHeaderTimeout int64 `yaml:"read_header_timeout"`
 	WriteTimeout      int64 `yaml:"write_timeout"`

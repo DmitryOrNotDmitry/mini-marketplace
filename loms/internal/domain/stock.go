@@ -1,5 +1,6 @@
 package domain
 
+// Stock хранит данные о запасах и резервировании товара.
 type Stock struct {
 	SkuID      int64  `json:"sku"`
 	TotalCount uint32 `json:"total_count"`

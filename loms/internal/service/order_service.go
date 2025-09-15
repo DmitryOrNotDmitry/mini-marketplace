@@ -7,18 +7,27 @@ import (
 	"route256/loms/internal/domain"
 )
 
+// OrderRepository описывает методы работы с заказами в хранилище.
 type OrderRepository interface {
+	// Insert добавляет новый заказ и возвращает его ID.
 	Insert(ctx context.Context, order *domain.Order) (int64, error)
+	// GetByIDOrderItemsBySKU возвращает заказ с деталями по его ID и сортирует товары по SKU.
 	GetByIDOrderItemsBySKU(ctx context.Context, orderID int64) (*domain.Order, error)
+	// UpdateStatus обновляет статус заказа.
 	UpdateStatus(ctx context.Context, orderID int64, newStatus domain.Status) error
 }
 
+// StockServiceI описывает методы работы с резервированием товаров.
 type StockServiceI interface {
+	// ReserveFor резервирует товары под заказ.
 	ReserveFor(ctx context.Context, order *domain.Order) error
+	// CancelReserveFor отменяет резервирование товаров по заказу.
 	CancelReserveFor(ctx context.Context, order *domain.Order) error
+	// ConfirmReserveFor подтверждает резервирование и уменьшает общий запас.
 	ConfirmReserveFor(ctx context.Context, order *domain.Order) error
 }
 
+// OrderService реализует бизнес-логику управления заказами.
 type OrderService struct {
 	orderRepository OrderRepository
 	stockService    StockServiceI

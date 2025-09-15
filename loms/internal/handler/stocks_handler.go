@@ -10,13 +10,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// OrderService описывает операции доступа к сервису запасов.
 type StockService interface {
+	// GetAvailableCount возвращает количество товара, которое возможно зарезервировать.
 	GetAvailableCount(ctx context.Context, skuID int64) (uint32, error)
 }
 
+// StockServerGRPC обрабатывает gRPC-запросы для операций с запасами.
 type StockServerGRPC struct {
-	stockService StockService
 	stocks.UnimplementedStockServiceServer
+	stockService StockService
 }
 
 // NewStockServerGRPC создает новый экземпляр gRPC-сервера StockServerGRPC.

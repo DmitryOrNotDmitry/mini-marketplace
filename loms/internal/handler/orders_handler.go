@@ -10,16 +10,22 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// OrderService описывает операции доступа к сервису заказов.
 type OrderService interface {
+	// Create создает заказ.
 	Create(ctx context.Context, order *domain.Order) (int64, error)
+	// GetInfoByID возвращает заказ по ID.
 	GetInfoByID(ctx context.Context, orderID int64) (*domain.Order, error)
+	// PayByID меняет статус заказа на оплаченный.
 	PayByID(ctx context.Context, orderID int64) error
+	// CancelByID меняет статус заказа на отмененный.
 	CancelByID(ctx context.Context, orderID int64) error
 }
 
+// OrderServerGRPC обрабатывает gRPC-запросы для операций с заказами.
 type OrderServerGRPC struct {
-	orderService OrderService
 	orders.UnimplementedOrderServiceServer
+	orderService OrderService
 }
 
 // NewOrderServerGRPC создает новый экземпляр OrderServerGRPC.

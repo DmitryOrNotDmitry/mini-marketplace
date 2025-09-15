@@ -2,6 +2,7 @@ package middleware
 
 import "net/http"
 
+// CORSAllPass добавляет CORS правила, которые разрешают доступ ко всем ресурсам с любых доменов.
 func CORSAllPass(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")

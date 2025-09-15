@@ -22,6 +22,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// App создает компоненты для сервиса loms
 type App struct {
 	config     *config.Config
 	grpcServer *grpc.Server

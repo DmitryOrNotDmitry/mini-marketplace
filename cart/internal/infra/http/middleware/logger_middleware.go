@@ -8,6 +8,7 @@ import (
 	"route256/cart/pkg/logger"
 )
 
+// LoggerMiddleware - middleware для логирования HTTP-запросов.
 type LoggerMiddleware struct {
 	h http.Handler
 }

@@ -6,14 +6,21 @@ import (
 	"route256/loms/internal/domain"
 )
 
+// StockRepository описывает методы работы с запасами товаров в хранилище.
 type StockRepository interface {
+	// Upsert добавляет или обновляет запись о запасе.
 	Upsert(ctx context.Context, stock *domain.Stock) error
+	// AddReserve резервирует товар по SKU.
 	AddReserve(ctx context.Context, skuID int64, delta uint32) error
+	// RemoveReserve убирает резерв с товара по SKU.
 	RemoveReserve(ctx context.Context, skuID int64, delta uint32) error
+	// ReduceReserveAndTotal уменьшает резерв и общий запас товара по SKU.
 	ReduceReserveAndTotal(ctx context.Context, skuID int64, delta uint32) error
+	// GetBySkuID возвращает информацию о запасе по SKU.
 	GetBySkuID(ctx context.Context, skuID int64) (*domain.Stock, error)
 }
 
+// StockService реализует бизнес-логику управления запасами товаров.
 type StockService struct {
 	stockRepository StockRepository
 }

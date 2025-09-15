@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Validate валидирует gRPC-запросы.
 func Validate(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 	if v, ok := req.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {

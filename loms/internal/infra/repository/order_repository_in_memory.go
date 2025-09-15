@@ -7,12 +7,16 @@ import (
 	"sync"
 )
 
+// OrderStorage хранит заказы по ID.
 type OrderStorage = map[int64]*domain.Order
 
+// IDGenerator описывает операцию генерации ID.
 type IDGenerator interface {
+	// NextID возвращает уникальный ID.
 	NextID() int64
 }
 
+// OrderRepositoryInMemory хранит заказы в in-memory хранилище.
 type OrderRepositoryInMemory struct {
 	generatorID IDGenerator
 	storage     OrderStorage

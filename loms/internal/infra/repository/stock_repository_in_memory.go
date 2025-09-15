@@ -6,8 +6,10 @@ import (
 	"sync"
 )
 
+// Storage хранит запасы по ID.
 type Storage = map[int64]*domain.Stock
 
+// StockRepositoryInMemory хранит запасы и резервирование в in-memory хранилище.
 type StockRepositoryInMemory struct {
 	storage Storage
 	mx      sync.RWMutex

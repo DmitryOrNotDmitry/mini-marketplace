@@ -12,6 +12,7 @@ import (
 	"route256/loms/internal/domain"
 )
 
+// StockCreator описывает операции для создания стоков.
 type StockCreator interface {
 	Create(ctx context.Context, stock *domain.Stock) error
 }
@@ -19,7 +20,7 @@ type StockCreator interface {
 //go:embed init_data/stock-data.json
 var stocksData []byte
 
-// LoadStocks загружает данные из файла в БД
+// LoadStocks загружает данные из файла в БД.
 func LoadStocks(stockCreator StockCreator, timeout time.Duration) error {
 	stocks := []*domain.Stock{}
 	err := json.NewDecoder(bytes.NewReader(stocksData)).Decode(&stocks)

@@ -6,6 +6,7 @@ import (
 	"route256/cart/internal/domain"
 )
 
+// CartRepository описывает методы работы с корзинами в хранилище.
 type CartRepository interface {
 	// GetCartByUserIDOrderBySku возвращает корзину пользователя с отсортированными по SKU товарами.
 	GetCartByUserIDOrderBySku(ctx context.Context, userID int64) (*domain.Cart, error)
@@ -18,16 +19,19 @@ type CartRepository interface {
 	DeleteCartItem(ctx context.Context, userID, skuID int64) error
 }
 
+// ProductService описывает методы работы с товарами.
 type ProductService interface {
 	// GetProductBySku возвращает информацию о товаре по SKU.
 	GetProductBySku(ctx context.Context, sku int64) (*domain.Product, error)
 }
 
+// LomsService описывает методы работы с запасами.
 type LomsService interface {
 	// GetStockInfo возвращает информацию о запасах товара по SKU.
 	GetStockInfo(ctx context.Context, skuID int64) (uint32, error)
 }
 
+// CartService содержит бизнес-логику для работы с корзиной.
 type CartService struct {
 	cartRepository CartRepository
 	productService ProductService

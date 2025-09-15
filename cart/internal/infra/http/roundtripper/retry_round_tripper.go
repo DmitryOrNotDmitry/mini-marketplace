@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// RetryRoundTripper - http.RoundTripper (middleware) с поддержкой повторных попыток.
 type RetryRoundTripper struct {
 	rt                http.RoundTripper
 	triggeredStatuses map[int]struct{}

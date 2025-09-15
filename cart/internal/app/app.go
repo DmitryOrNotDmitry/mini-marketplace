@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+// App создает компоненты для сервиса cart
 type App struct {
 	config *config.Config
 	server http.Server
