@@ -57,7 +57,7 @@ func NewApp(configPath string) (*App, error) {
 	stocks.RegisterStockServiceServer(app.grpcServer, stocksHandler)
 	orders.RegisterOrderServiceServer(app.grpcServer, ordersHandler)
 
-	err = LoadStocks(stockService)
+	err = LoadStocks(stockService, time.Duration(app.config.Server.LoadStocksDataTimeout)*time.Second)
 	if err != nil {
 		logger.Error(fmt.Sprintf("LoadStocks: %s", err))
 	}
@@ -105,9 +105,9 @@ func (a *App) ListenAndServeGRPCGateway() error {
 	gwServer := &http.Server{
 		Addr:              fmt.Sprintf(":%s", a.config.Server.HTTPPort),
 		Handler:           handler,
-		ReadHeaderTimeout: 10 * time.Second,
-		WriteTimeout:      15 * time.Second,
-		IdleTimeout:       60 * time.Second,
+		ReadHeaderTimeout: time.Second * time.Duration(a.config.Server.GRPCGateWay.ReadHeaderTimeout),
+		WriteTimeout:      time.Second * time.Duration(a.config.Server.GRPCGateWay.WriteTimeout),
+		IdleTimeout:       time.Second * time.Duration(a.config.Server.GRPCGateWay.IdleTimeout),
 	}
 
 	logger.Info(fmt.Sprintf("Loms service listening gRPC-Gateway (REST) at port %s", a.config.Server.HTTPPort))

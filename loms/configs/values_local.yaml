@@ -2,6 +2,11 @@ service:
   host: localhost
   grpc_port: 8083
   http_port: 8084
+  grpc_gateway:
+    read_header_timeout: 10
+    write_timeout: 15
+    idle_timeout: 60
+  load_stocks_data_timeout: 10
 
 jaeger:
   host: localhost

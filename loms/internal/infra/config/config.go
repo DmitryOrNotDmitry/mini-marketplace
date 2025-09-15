@@ -12,9 +12,17 @@ type Config struct {
 }
 
 type LomsServiceConfig struct {
-	Host     string `yaml:"host"`
-	GRPCPort string `yaml:"grpc_port"`
-	HTTPPort string `yaml:"http_port"`
+	Host                  string            `yaml:"host"`
+	GRPCPort              string            `yaml:"grpc_port"`
+	HTTPPort              string            `yaml:"http_port"`
+	GRPCGateWay           GRPCGateWayConfig `yaml:"grpc_gateway"`
+	LoadStocksDataTimeout int64             `yaml:"load_stocks_data_timeout"`
+}
+
+type GRPCGateWayConfig struct {
+	ReadHeaderTimeout int64 `yaml:"read_header_timeout"`
+	WriteTimeout      int64 `yaml:"write_timeout"`
+	IdleTimeout       int64 `yaml:"idle_timeout"`
 }
 
 // LoadConfig загружает конфиг из файла .yaml

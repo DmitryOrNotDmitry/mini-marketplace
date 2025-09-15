@@ -20,14 +20,14 @@ type StockCreator interface {
 var stocksData []byte
 
 // LoadStocks загружает данные из файла в БД
-func LoadStocks(stockCreator StockCreator) error {
+func LoadStocks(stockCreator StockCreator, timeout time.Duration) error {
 	stocks := []*domain.Stock{}
 	err := json.NewDecoder(bytes.NewReader(stocksData)).Decode(&stocks)
 	if err != nil {
 		return fmt.Errorf("json.Decode: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	for _, stock := range stocks {
 		errStock := stockCreator.Create(ctx, stock)
