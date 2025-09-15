@@ -32,48 +32,48 @@ var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
 var (
-	filter_StockService_StockInfo_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_StockServiceV1_StockInfoV1_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_StockService_StockInfo_0(ctx context.Context, marshaler runtime.Marshaler, client StockServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_StockServiceV1_StockInfoV1_0(ctx context.Context, marshaler runtime.Marshaler, client StockServiceV1Client, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq StockInfoRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_StockService_StockInfo_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_StockServiceV1_StockInfoV1_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.StockInfo(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.StockInfoV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_StockService_StockInfo_0(ctx context.Context, marshaler runtime.Marshaler, server StockServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_StockServiceV1_StockInfoV1_0(ctx context.Context, marshaler runtime.Marshaler, server StockServiceV1Server, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq StockInfoRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_StockService_StockInfo_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_StockServiceV1_StockInfoV1_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.StockInfo(ctx, &protoReq)
+	msg, err := server.StockInfoV1(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-// RegisterStockServiceHandlerServer registers the http handlers for service StockService to "mux".
-// UnaryRPC     :call StockServiceServer directly.
+// RegisterStockServiceV1HandlerServer registers the http handlers for service StockServiceV1 to "mux".
+// UnaryRPC     :call StockServiceV1Server directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterStockServiceHandlerFromEndpoint instead.
-func RegisterStockServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server StockServiceServer) error {
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterStockServiceV1HandlerFromEndpoint instead.
+func RegisterStockServiceV1HandlerServer(ctx context.Context, mux *runtime.ServeMux, server StockServiceV1Server) error {
 
-	mux.Handle("GET", pattern_StockService_StockInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_StockServiceV1_StockInfoV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -81,12 +81,12 @@ func RegisterStockServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.StockService/StockInfo", runtime.WithHTTPPathPattern("/stock/info"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.StockServiceV1/StockInfoV1", runtime.WithHTTPPathPattern("/stock/info"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_StockService_StockInfo_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_StockServiceV1_StockInfoV1_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -94,16 +94,16 @@ func RegisterStockServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 			return
 		}
 
-		forward_StockService_StockInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_StockServiceV1_StockInfoV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-// RegisterStockServiceHandlerFromEndpoint is same as RegisterStockServiceHandler but
+// RegisterStockServiceV1HandlerFromEndpoint is same as RegisterStockServiceV1Handler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterStockServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterStockServiceV1HandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.DialContext(ctx, endpoint, opts...)
 	if err != nil {
 		return err
@@ -123,41 +123,41 @@ func RegisterStockServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.S
 		}()
 	}()
 
-	return RegisterStockServiceHandler(ctx, mux, conn)
+	return RegisterStockServiceV1Handler(ctx, mux, conn)
 }
 
-// RegisterStockServiceHandler registers the http handlers for service StockService to "mux".
+// RegisterStockServiceV1Handler registers the http handlers for service StockServiceV1 to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterStockServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterStockServiceHandlerClient(ctx, mux, NewStockServiceClient(conn))
+func RegisterStockServiceV1Handler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterStockServiceV1HandlerClient(ctx, mux, NewStockServiceV1Client(conn))
 }
 
-// RegisterStockServiceHandlerClient registers the http handlers for service StockService
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "StockServiceClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "StockServiceClient"
+// RegisterStockServiceV1HandlerClient registers the http handlers for service StockServiceV1
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "StockServiceV1Client".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "StockServiceV1Client"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "StockServiceClient" to call the correct interceptors.
-func RegisterStockServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client StockServiceClient) error {
+// "StockServiceV1Client" to call the correct interceptors.
+func RegisterStockServiceV1HandlerClient(ctx context.Context, mux *runtime.ServeMux, client StockServiceV1Client) error {
 
-	mux.Handle("GET", pattern_StockService_StockInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_StockServiceV1_StockInfoV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.StockService/StockInfo", runtime.WithHTTPPathPattern("/stock/info"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.StockServiceV1/StockInfoV1", runtime.WithHTTPPathPattern("/stock/info"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_StockService_StockInfo_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_StockServiceV1_StockInfoV1_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_StockService_StockInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_StockServiceV1_StockInfoV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -165,9 +165,9 @@ func RegisterStockServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 }
 
 var (
-	pattern_StockService_StockInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"stock", "info"}, ""))
+	pattern_StockServiceV1_StockInfoV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"stock", "info"}, ""))
 )
 
 var (
-	forward_StockService_StockInfo_0 = runtime.ForwardResponseMessage
+	forward_StockServiceV1_StockInfoV1_0 = runtime.ForwardResponseMessage
 )

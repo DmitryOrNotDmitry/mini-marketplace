@@ -39,7 +39,7 @@ func TestStockServerGRPC_StockInfo(t *testing.T) {
 		tc.stockServMock.GetAvailableCountMock.When(context.Background(), int64(1001)).
 			Then(uint32(50), nil)
 
-		res, err := tc.stockHandler.StockInfo(context.Background(), req)
+		res, err := tc.stockHandler.StockInfoV1(context.Background(), req)
 		require.NoError(t, err)
 		require.NotNil(t, res)
 		assert.Equal(t, uint32(50), res.Count)
@@ -52,7 +52,7 @@ func TestStockServerGRPC_StockInfo(t *testing.T) {
 		req := &stocks.StockInfoRequest{SkuId: 9999}
 		tc.stockServMock.GetAvailableCountMock.Return(uint32(0), domain.ErrItemStockNotExist)
 
-		res, err := tc.stockHandler.StockInfo(context.Background(), req)
+		res, err := tc.stockHandler.StockInfoV1(context.Background(), req)
 		require.Error(t, err)
 		assert.Nil(t, res)
 	})

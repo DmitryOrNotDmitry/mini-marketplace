@@ -55,8 +55,8 @@ func NewApp(configPath string) (*App, error) {
 	stocksHandler := handler.NewStockServerGRPC(stockService)
 	ordersHandler := handler.NewOrderServerGRPC(orderService)
 
-	stocks.RegisterStockServiceServer(app.grpcServer, stocksHandler)
-	orders.RegisterOrderServiceServer(app.grpcServer, ordersHandler)
+	stocks.RegisterStockServiceV1Server(app.grpcServer, stocksHandler)
+	orders.RegisterOrderServiceV1Server(app.grpcServer, ordersHandler)
 
 	err = LoadStocks(stockService, time.Duration(app.config.Server.LoadStocksDataTimeout)*time.Second)
 	if err != nil {
@@ -91,12 +91,12 @@ func (a *App) ListenAndServeGRPCGateway() error {
 	gwMux := runtime.NewServeMux()
 	ctx := context.Background()
 
-	err = orders.RegisterOrderServiceHandler(ctx, gwMux, conn)
+	err = orders.RegisterOrderServiceV1Handler(ctx, gwMux, conn)
 	if err != nil {
 		return fmt.Errorf("orders.RegisterOrderServiceHandler: %w", err)
 	}
 
-	err = stocks.RegisterStockServiceHandler(ctx, gwMux, conn)
+	err = stocks.RegisterStockServiceV1Handler(ctx, gwMux, conn)
 	if err != nil {
 		return fmt.Errorf("stocks.RegisterStockServiceHandler: %w", err)
 	}

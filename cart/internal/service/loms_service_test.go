@@ -16,15 +16,15 @@ import (
 )
 
 type testComponentLS struct {
-	stockClientMock *mock.StockServiceClientMock
-	orderClientMock *mock.OrderServiceClientMock
+	stockClientMock *mock.StockServiceV1ClientMock
+	orderClientMock *mock.OrderServiceV1ClientMock
 	lomsService     *LomsServiceGRPC
 }
 
 func newTestComponentLS(t *testing.T) *testComponentLS {
 	mc := minimock.NewController(t)
-	stockClientMock := mock.NewStockServiceClientMock(mc)
-	orderClientMock := mock.NewOrderServiceClientMock(mc)
+	stockClientMock := mock.NewStockServiceV1ClientMock(mc)
+	orderClientMock := mock.NewOrderServiceV1ClientMock(mc)
 	lomsService := NewLomsServiceGRPC(stockClientMock, orderClientMock)
 
 	return &testComponentLS{
@@ -45,7 +45,7 @@ func TestLomsService(t *testing.T) {
 		ctx := context.Background()
 		skuID := int64(1)
 
-		tc.stockClientMock.StockInfoMock.When(minimock.AnyContext, &stocks.StockInfoRequest{SkuId: skuID}).
+		tc.stockClientMock.StockInfoV1Mock.When(minimock.AnyContext, &stocks.StockInfoRequest{SkuId: skuID}).
 			Then(&stocks.StockInfoResponse{Count: 100}, nil)
 
 		count, err := tc.lomsService.GetStockInfo(ctx, skuID)
@@ -61,7 +61,7 @@ func TestLomsService(t *testing.T) {
 
 		ctx := context.Background()
 
-		tc.stockClientMock.StockInfoMock.
+		tc.stockClientMock.StockInfoV1Mock.
 			Return(nil, errors.New("error"))
 
 		_, err := tc.lomsService.GetStockInfo(ctx, 1)
@@ -79,7 +79,7 @@ func TestLomsService(t *testing.T) {
 			&domain.CartItem{Sku: 1, Count: 10},
 		}}
 
-		tc.orderClientMock.OrderCreateMock.
+		tc.orderClientMock.OrderCreateV1Mock.
 			Return(&orders.OrderCreateResponse{OrderId: 1}, nil)
 
 		orderID, err := tc.lomsService.OrderCreate(ctx, userID, cart)
@@ -99,7 +99,7 @@ func TestLomsService(t *testing.T) {
 			&domain.CartItem{Sku: 1, Count: 10},
 		}}
 
-		tc.orderClientMock.OrderCreateMock.
+		tc.orderClientMock.OrderCreateV1Mock.
 			Return(nil, errors.New("error"))
 
 		_, err := tc.lomsService.OrderCreate(ctx, userID, cart)

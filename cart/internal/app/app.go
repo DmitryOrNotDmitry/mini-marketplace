@@ -78,8 +78,8 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 	if err != nil {
 		return nil, fmt.Errorf("grpc.NewClient: %w", err)
 	}
-	stockClient := stocks.NewStockServiceClient(conn)
-	orderClient := orders.NewOrderServiceClient(conn)
+	stockClient := stocks.NewStockServiceV1Client(conn)
+	orderClient := orders.NewOrderServiceV1Client(conn)
 	lomsService := service.NewLomsServiceGRPC(stockClient, orderClient)
 
 	const cartsStorageCap = 100

@@ -24,7 +24,7 @@ type OrderService interface {
 
 // OrderServerGRPC обрабатывает gRPC-запросы для операций с заказами.
 type OrderServerGRPC struct {
-	orders.UnimplementedOrderServiceServer
+	orders.UnimplementedOrderServiceV1Server
 	orderService OrderService
 }
 
@@ -36,7 +36,7 @@ func NewOrderServerGRPC(orderService OrderService) *OrderServerGRPC {
 }
 
 // OrderCreate создает новый заказ.
-func (os *OrderServerGRPC) OrderCreate(ctx context.Context, req *orders.OrderCreateRequest) (*orders.OrderCreateResponse, error) {
+func (os *OrderServerGRPC) OrderCreateV1(ctx context.Context, req *orders.OrderCreateRequest) (*orders.OrderCreateResponse, error) {
 	order := &domain.Order{
 		UserID: req.UserId,
 		Items:  make([]*domain.OrderItem, 0, len(req.Items)),
@@ -67,7 +67,7 @@ func (os *OrderServerGRPC) OrderCreate(ctx context.Context, req *orders.OrderCre
 }
 
 // OrderInfo возвращает информацию о заказе по его идентификатору.
-func (os *OrderServerGRPC) OrderInfo(ctx context.Context, req *orders.OrderInfoRequest) (*orders.OrderInfoResponse, error) {
+func (os *OrderServerGRPC) OrderInfoV1(ctx context.Context, req *orders.OrderInfoRequest) (*orders.OrderInfoResponse, error) {
 	order, err := os.orderService.GetInfoByID(ctx, req.OrderId)
 	if err != nil {
 		if errors.Is(err, domain.ErrOrderNotExist) {
@@ -93,7 +93,7 @@ func (os *OrderServerGRPC) OrderInfo(ctx context.Context, req *orders.OrderInfoR
 }
 
 // OrderPay помечает заказ как оплаченный по его идентификатору.
-func (os *OrderServerGRPC) OrderPay(ctx context.Context, req *orders.OrderPayRequest) (*orders.OrderPayResponse, error) {
+func (os *OrderServerGRPC) OrderPayV1(ctx context.Context, req *orders.OrderPayRequest) (*orders.OrderPayResponse, error) {
 	err := os.orderService.PayByID(ctx, req.OrderId)
 	if err != nil {
 		if errors.Is(err, domain.ErrOrderNotExist) {
@@ -111,7 +111,7 @@ func (os *OrderServerGRPC) OrderPay(ctx context.Context, req *orders.OrderPayReq
 }
 
 // OrderCancel отменяет заказ по его идентификатору.
-func (os *OrderServerGRPC) OrderCancel(ctx context.Context, req *orders.OrderCancelRequest) (*orders.OrderCancelResponse, error) {
+func (os *OrderServerGRPC) OrderCancelV1(ctx context.Context, req *orders.OrderCancelRequest) (*orders.OrderCancelResponse, error) {
 	err := os.orderService.CancelByID(ctx, req.OrderId)
 	if err != nil {
 		if errors.Is(err, domain.ErrOrderNotExist) {

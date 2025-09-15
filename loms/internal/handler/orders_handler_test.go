@@ -56,7 +56,7 @@ func TestOrderServerGRPC_OrderCreate(t *testing.T) {
 		tc.orderServMock.CreateMock.When(context.Background(), expectedOrder).
 			Then(orderID, nil)
 
-		res, err := tc.orderHandler.OrderCreate(context.Background(), req)
+		res, err := tc.orderHandler.OrderCreateV1(context.Background(), req)
 		require.NoError(t, err)
 		assert.Equal(t, orderID, res.OrderId)
 	})
@@ -74,7 +74,7 @@ func TestOrderServerGRPC_OrderCreate(t *testing.T) {
 
 		tc.orderServMock.CreateMock.Return(0, domain.ErrCanNotReserveItem)
 
-		res, err := tc.orderHandler.OrderCreate(context.Background(), req)
+		res, err := tc.orderHandler.OrderCreateV1(context.Background(), req)
 		require.Error(t, err)
 		assert.Nil(t, res)
 	})
@@ -99,7 +99,7 @@ func TestOrderServerGRPC_OrderInfo(t *testing.T) {
 		tc.orderServMock.GetInfoByIDMock.When(context.Background(), int64(123)).
 			Then(expectedOrder, nil)
 
-		res, err := tc.orderHandler.OrderInfo(context.Background(), req)
+		res, err := tc.orderHandler.OrderInfoV1(context.Background(), req)
 		require.NoError(t, err)
 		require.NotNil(t, res)
 		assert.Equal(t, int64(50), res.UserId)
@@ -115,7 +115,7 @@ func TestOrderServerGRPC_OrderInfo(t *testing.T) {
 		req := &orders.OrderInfoRequest{OrderId: 404}
 		tc.orderServMock.GetInfoByIDMock.Return(nil, domain.ErrOrderNotExist)
 
-		res, err := tc.orderHandler.OrderInfo(context.Background(), req)
+		res, err := tc.orderHandler.OrderInfoV1(context.Background(), req)
 		require.Error(t, err)
 		assert.Nil(t, res)
 	})
@@ -133,7 +133,7 @@ func TestOrderServerGRPC_OrderPay(t *testing.T) {
 		tc.orderServMock.PayByIDMock.Expect(context.Background(), int64(101)).
 			Return(nil)
 
-		res, err := tc.orderHandler.OrderPay(context.Background(), req)
+		res, err := tc.orderHandler.OrderPayV1(context.Background(), req)
 		require.NoError(t, err)
 		assert.NotNil(t, res)
 	})
@@ -146,7 +146,7 @@ func TestOrderServerGRPC_OrderPay(t *testing.T) {
 
 		tc.orderServMock.PayByIDMock.Return(domain.ErrOrderNotExist)
 
-		res, err := tc.orderHandler.OrderPay(context.Background(), req)
+		res, err := tc.orderHandler.OrderPayV1(context.Background(), req)
 		require.Error(t, err)
 		assert.Nil(t, res)
 	})
@@ -159,7 +159,7 @@ func TestOrderServerGRPC_OrderPay(t *testing.T) {
 
 		tc.orderServMock.PayByIDMock.Return(domain.ErrPayWithInvalidOrderStatus)
 
-		res, err := tc.orderHandler.OrderPay(context.Background(), req)
+		res, err := tc.orderHandler.OrderPayV1(context.Background(), req)
 		require.Error(t, err)
 		assert.Nil(t, res)
 	})
@@ -177,7 +177,7 @@ func TestOrderServerGRPC_OrderCancel(t *testing.T) {
 		tc.orderServMock.CancelByIDMock.When(context.Background(), int64(501)).
 			Then(nil)
 
-		res, err := tc.orderHandler.OrderCancel(context.Background(), req)
+		res, err := tc.orderHandler.OrderCancelV1(context.Background(), req)
 		require.NoError(t, err)
 		assert.NotNil(t, res)
 	})
@@ -190,7 +190,7 @@ func TestOrderServerGRPC_OrderCancel(t *testing.T) {
 
 		tc.orderServMock.CancelByIDMock.Return(domain.ErrOrderNotExist)
 
-		res, err := tc.orderHandler.OrderCancel(context.Background(), req)
+		res, err := tc.orderHandler.OrderCancelV1(context.Background(), req)
 		require.Error(t, err)
 		assert.Nil(t, res)
 	})
@@ -203,7 +203,7 @@ func TestOrderServerGRPC_OrderCancel(t *testing.T) {
 
 		tc.orderServMock.CancelByIDMock.Return(domain.ErrCancelWithInvalidOrderStatus)
 
-		res, err := tc.orderHandler.OrderCancel(context.Background(), req)
+		res, err := tc.orderHandler.OrderCancelV1(context.Background(), req)
 		require.Error(t, err)
 		assert.Nil(t, res)
 	})

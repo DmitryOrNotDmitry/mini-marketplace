@@ -9,12 +9,12 @@ import (
 
 // LomsServiceGRPC реализует доступ к сервису loms по gRPC.
 type LomsServiceGRPC struct {
-	stockClient stocks.StockServiceClient
-	orderClient orders.OrderServiceClient
+	stockClient stocks.StockServiceV1Client
+	orderClient orders.OrderServiceV1Client
 }
 
 // NewLomsServiceGRPC создает новый сервис управления заказами и запасами.
-func NewLomsServiceGRPC(stockClient stocks.StockServiceClient, orderClient orders.OrderServiceClient) *LomsServiceGRPC {
+func NewLomsServiceGRPC(stockClient stocks.StockServiceV1Client, orderClient orders.OrderServiceV1Client) *LomsServiceGRPC {
 	return &LomsServiceGRPC{
 		stockClient: stockClient,
 		orderClient: orderClient,
@@ -23,7 +23,7 @@ func NewLomsServiceGRPC(stockClient stocks.StockServiceClient, orderClient order
 
 // GetStockInfo возвращает информацию по запасам товара доступного для резервирования.
 func (ls *LomsServiceGRPC) GetStockInfo(ctx context.Context, skuID int64) (uint32, error) {
-	resp, err := ls.stockClient.StockInfo(ctx, &stocks.StockInfoRequest{
+	resp, err := ls.stockClient.StockInfoV1(ctx, &stocks.StockInfoRequest{
 		SkuId: skuID,
 	})
 	if err != nil {
@@ -46,7 +46,7 @@ func (ls *LomsServiceGRPC) OrderCreate(ctx context.Context, userID int64, cart *
 		})
 	}
 
-	resp, err := ls.orderClient.OrderCreate(ctx, req)
+	resp, err := ls.orderClient.OrderCreateV1(ctx, req)
 	if err != nil {
 		return 0, err
 	}

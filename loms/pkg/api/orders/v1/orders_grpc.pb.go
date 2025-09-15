@@ -18,194 +18,194 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// OrderServiceClient is the client API for OrderService service.
+// OrderServiceV1Client is the client API for OrderServiceV1 service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type OrderServiceClient interface {
-	OrderCreate(ctx context.Context, in *OrderCreateRequest, opts ...grpc.CallOption) (*OrderCreateResponse, error)
-	OrderInfo(ctx context.Context, in *OrderInfoRequest, opts ...grpc.CallOption) (*OrderInfoResponse, error)
-	OrderPay(ctx context.Context, in *OrderPayRequest, opts ...grpc.CallOption) (*OrderPayResponse, error)
-	OrderCancel(ctx context.Context, in *OrderCancelRequest, opts ...grpc.CallOption) (*OrderCancelResponse, error)
+type OrderServiceV1Client interface {
+	OrderCreateV1(ctx context.Context, in *OrderCreateRequest, opts ...grpc.CallOption) (*OrderCreateResponse, error)
+	OrderInfoV1(ctx context.Context, in *OrderInfoRequest, opts ...grpc.CallOption) (*OrderInfoResponse, error)
+	OrderPayV1(ctx context.Context, in *OrderPayRequest, opts ...grpc.CallOption) (*OrderPayResponse, error)
+	OrderCancelV1(ctx context.Context, in *OrderCancelRequest, opts ...grpc.CallOption) (*OrderCancelResponse, error)
 }
 
-type orderServiceClient struct {
+type orderServiceV1Client struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewOrderServiceClient(cc grpc.ClientConnInterface) OrderServiceClient {
-	return &orderServiceClient{cc}
+func NewOrderServiceV1Client(cc grpc.ClientConnInterface) OrderServiceV1Client {
+	return &orderServiceV1Client{cc}
 }
 
-func (c *orderServiceClient) OrderCreate(ctx context.Context, in *OrderCreateRequest, opts ...grpc.CallOption) (*OrderCreateResponse, error) {
+func (c *orderServiceV1Client) OrderCreateV1(ctx context.Context, in *OrderCreateRequest, opts ...grpc.CallOption) (*OrderCreateResponse, error) {
 	out := new(OrderCreateResponse)
-	err := c.cc.Invoke(ctx, "/OrderService/OrderCreate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/OrderServiceV1/OrderCreateV1", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *orderServiceClient) OrderInfo(ctx context.Context, in *OrderInfoRequest, opts ...grpc.CallOption) (*OrderInfoResponse, error) {
+func (c *orderServiceV1Client) OrderInfoV1(ctx context.Context, in *OrderInfoRequest, opts ...grpc.CallOption) (*OrderInfoResponse, error) {
 	out := new(OrderInfoResponse)
-	err := c.cc.Invoke(ctx, "/OrderService/OrderInfo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/OrderServiceV1/OrderInfoV1", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *orderServiceClient) OrderPay(ctx context.Context, in *OrderPayRequest, opts ...grpc.CallOption) (*OrderPayResponse, error) {
+func (c *orderServiceV1Client) OrderPayV1(ctx context.Context, in *OrderPayRequest, opts ...grpc.CallOption) (*OrderPayResponse, error) {
 	out := new(OrderPayResponse)
-	err := c.cc.Invoke(ctx, "/OrderService/OrderPay", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/OrderServiceV1/OrderPayV1", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *orderServiceClient) OrderCancel(ctx context.Context, in *OrderCancelRequest, opts ...grpc.CallOption) (*OrderCancelResponse, error) {
+func (c *orderServiceV1Client) OrderCancelV1(ctx context.Context, in *OrderCancelRequest, opts ...grpc.CallOption) (*OrderCancelResponse, error) {
 	out := new(OrderCancelResponse)
-	err := c.cc.Invoke(ctx, "/OrderService/OrderCancel", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/OrderServiceV1/OrderCancelV1", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// OrderServiceServer is the server API for OrderService service.
-// All implementations must embed UnimplementedOrderServiceServer
+// OrderServiceV1Server is the server API for OrderServiceV1 service.
+// All implementations must embed UnimplementedOrderServiceV1Server
 // for forward compatibility
-type OrderServiceServer interface {
-	OrderCreate(context.Context, *OrderCreateRequest) (*OrderCreateResponse, error)
-	OrderInfo(context.Context, *OrderInfoRequest) (*OrderInfoResponse, error)
-	OrderPay(context.Context, *OrderPayRequest) (*OrderPayResponse, error)
-	OrderCancel(context.Context, *OrderCancelRequest) (*OrderCancelResponse, error)
-	mustEmbedUnimplementedOrderServiceServer()
+type OrderServiceV1Server interface {
+	OrderCreateV1(context.Context, *OrderCreateRequest) (*OrderCreateResponse, error)
+	OrderInfoV1(context.Context, *OrderInfoRequest) (*OrderInfoResponse, error)
+	OrderPayV1(context.Context, *OrderPayRequest) (*OrderPayResponse, error)
+	OrderCancelV1(context.Context, *OrderCancelRequest) (*OrderCancelResponse, error)
+	mustEmbedUnimplementedOrderServiceV1Server()
 }
 
-// UnimplementedOrderServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedOrderServiceServer struct {
+// UnimplementedOrderServiceV1Server must be embedded to have forward compatible implementations.
+type UnimplementedOrderServiceV1Server struct {
 }
 
-func (UnimplementedOrderServiceServer) OrderCreate(context.Context, *OrderCreateRequest) (*OrderCreateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OrderCreate not implemented")
+func (UnimplementedOrderServiceV1Server) OrderCreateV1(context.Context, *OrderCreateRequest) (*OrderCreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderCreateV1 not implemented")
 }
-func (UnimplementedOrderServiceServer) OrderInfo(context.Context, *OrderInfoRequest) (*OrderInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OrderInfo not implemented")
+func (UnimplementedOrderServiceV1Server) OrderInfoV1(context.Context, *OrderInfoRequest) (*OrderInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderInfoV1 not implemented")
 }
-func (UnimplementedOrderServiceServer) OrderPay(context.Context, *OrderPayRequest) (*OrderPayResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OrderPay not implemented")
+func (UnimplementedOrderServiceV1Server) OrderPayV1(context.Context, *OrderPayRequest) (*OrderPayResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderPayV1 not implemented")
 }
-func (UnimplementedOrderServiceServer) OrderCancel(context.Context, *OrderCancelRequest) (*OrderCancelResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OrderCancel not implemented")
+func (UnimplementedOrderServiceV1Server) OrderCancelV1(context.Context, *OrderCancelRequest) (*OrderCancelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderCancelV1 not implemented")
 }
-func (UnimplementedOrderServiceServer) mustEmbedUnimplementedOrderServiceServer() {}
+func (UnimplementedOrderServiceV1Server) mustEmbedUnimplementedOrderServiceV1Server() {}
 
-// UnsafeOrderServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to OrderServiceServer will
+// UnsafeOrderServiceV1Server may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to OrderServiceV1Server will
 // result in compilation errors.
-type UnsafeOrderServiceServer interface {
-	mustEmbedUnimplementedOrderServiceServer()
+type UnsafeOrderServiceV1Server interface {
+	mustEmbedUnimplementedOrderServiceV1Server()
 }
 
-func RegisterOrderServiceServer(s grpc.ServiceRegistrar, srv OrderServiceServer) {
-	s.RegisterService(&OrderService_ServiceDesc, srv)
+func RegisterOrderServiceV1Server(s grpc.ServiceRegistrar, srv OrderServiceV1Server) {
+	s.RegisterService(&OrderServiceV1_ServiceDesc, srv)
 }
 
-func _OrderService_OrderCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrderServiceV1_OrderCreateV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OrderCreateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrderServiceServer).OrderCreate(ctx, in)
+		return srv.(OrderServiceV1Server).OrderCreateV1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/OrderService/OrderCreate",
+		FullMethod: "/OrderServiceV1/OrderCreateV1",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServiceServer).OrderCreate(ctx, req.(*OrderCreateRequest))
+		return srv.(OrderServiceV1Server).OrderCreateV1(ctx, req.(*OrderCreateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OrderService_OrderInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrderServiceV1_OrderInfoV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OrderInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrderServiceServer).OrderInfo(ctx, in)
+		return srv.(OrderServiceV1Server).OrderInfoV1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/OrderService/OrderInfo",
+		FullMethod: "/OrderServiceV1/OrderInfoV1",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServiceServer).OrderInfo(ctx, req.(*OrderInfoRequest))
+		return srv.(OrderServiceV1Server).OrderInfoV1(ctx, req.(*OrderInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OrderService_OrderPay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrderServiceV1_OrderPayV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OrderPayRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrderServiceServer).OrderPay(ctx, in)
+		return srv.(OrderServiceV1Server).OrderPayV1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/OrderService/OrderPay",
+		FullMethod: "/OrderServiceV1/OrderPayV1",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServiceServer).OrderPay(ctx, req.(*OrderPayRequest))
+		return srv.(OrderServiceV1Server).OrderPayV1(ctx, req.(*OrderPayRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OrderService_OrderCancel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrderServiceV1_OrderCancelV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OrderCancelRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrderServiceServer).OrderCancel(ctx, in)
+		return srv.(OrderServiceV1Server).OrderCancelV1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/OrderService/OrderCancel",
+		FullMethod: "/OrderServiceV1/OrderCancelV1",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServiceServer).OrderCancel(ctx, req.(*OrderCancelRequest))
+		return srv.(OrderServiceV1Server).OrderCancelV1(ctx, req.(*OrderCancelRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
+// OrderServiceV1_ServiceDesc is the grpc.ServiceDesc for OrderServiceV1 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var OrderService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "OrderService",
-	HandlerType: (*OrderServiceServer)(nil),
+var OrderServiceV1_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "OrderServiceV1",
+	HandlerType: (*OrderServiceV1Server)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "OrderCreate",
-			Handler:    _OrderService_OrderCreate_Handler,
+			MethodName: "OrderCreateV1",
+			Handler:    _OrderServiceV1_OrderCreateV1_Handler,
 		},
 		{
-			MethodName: "OrderInfo",
-			Handler:    _OrderService_OrderInfo_Handler,
+			MethodName: "OrderInfoV1",
+			Handler:    _OrderServiceV1_OrderInfoV1_Handler,
 		},
 		{
-			MethodName: "OrderPay",
-			Handler:    _OrderService_OrderPay_Handler,
+			MethodName: "OrderPayV1",
+			Handler:    _OrderServiceV1_OrderPayV1_Handler,
 		},
 		{
-			MethodName: "OrderCancel",
-			Handler:    _OrderService_OrderCancel_Handler,
+			MethodName: "OrderCancelV1",
+			Handler:    _OrderServiceV1_OrderCancelV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

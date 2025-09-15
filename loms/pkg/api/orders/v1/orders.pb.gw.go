@@ -31,7 +31,7 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
-func request_OrderService_OrderCreate_0(ctx context.Context, marshaler runtime.Marshaler, client OrderServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_OrderServiceV1_OrderCreateV1_0(ctx context.Context, marshaler runtime.Marshaler, client OrderServiceV1Client, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq OrderCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -39,12 +39,12 @@ func request_OrderService_OrderCreate_0(ctx context.Context, marshaler runtime.M
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.OrderCreate(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.OrderCreateV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_OrderService_OrderCreate_0(ctx context.Context, marshaler runtime.Marshaler, server OrderServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_OrderServiceV1_OrderCreateV1_0(ctx context.Context, marshaler runtime.Marshaler, server OrderServiceV1Server, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq OrderCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -52,48 +52,48 @@ func local_request_OrderService_OrderCreate_0(ctx context.Context, marshaler run
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.OrderCreate(ctx, &protoReq)
+	msg, err := server.OrderCreateV1(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
 var (
-	filter_OrderService_OrderInfo_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_OrderServiceV1_OrderInfoV1_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_OrderService_OrderInfo_0(ctx context.Context, marshaler runtime.Marshaler, client OrderServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_OrderServiceV1_OrderInfoV1_0(ctx context.Context, marshaler runtime.Marshaler, client OrderServiceV1Client, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq OrderInfoRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OrderService_OrderInfo_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OrderServiceV1_OrderInfoV1_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.OrderInfo(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.OrderInfoV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_OrderService_OrderInfo_0(ctx context.Context, marshaler runtime.Marshaler, server OrderServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_OrderServiceV1_OrderInfoV1_0(ctx context.Context, marshaler runtime.Marshaler, server OrderServiceV1Server, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq OrderInfoRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OrderService_OrderInfo_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OrderServiceV1_OrderInfoV1_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.OrderInfo(ctx, &protoReq)
+	msg, err := server.OrderInfoV1(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_OrderService_OrderPay_0(ctx context.Context, marshaler runtime.Marshaler, client OrderServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_OrderServiceV1_OrderPayV1_0(ctx context.Context, marshaler runtime.Marshaler, client OrderServiceV1Client, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq OrderPayRequest
 	var metadata runtime.ServerMetadata
 
@@ -101,12 +101,12 @@ func request_OrderService_OrderPay_0(ctx context.Context, marshaler runtime.Mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.OrderPay(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.OrderPayV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_OrderService_OrderPay_0(ctx context.Context, marshaler runtime.Marshaler, server OrderServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_OrderServiceV1_OrderPayV1_0(ctx context.Context, marshaler runtime.Marshaler, server OrderServiceV1Server, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq OrderPayRequest
 	var metadata runtime.ServerMetadata
 
@@ -114,12 +114,12 @@ func local_request_OrderService_OrderPay_0(ctx context.Context, marshaler runtim
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.OrderPay(ctx, &protoReq)
+	msg, err := server.OrderPayV1(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_OrderService_OrderCancel_0(ctx context.Context, marshaler runtime.Marshaler, client OrderServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_OrderServiceV1_OrderCancelV1_0(ctx context.Context, marshaler runtime.Marshaler, client OrderServiceV1Client, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq OrderCancelRequest
 	var metadata runtime.ServerMetadata
 
@@ -127,12 +127,12 @@ func request_OrderService_OrderCancel_0(ctx context.Context, marshaler runtime.M
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.OrderCancel(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.OrderCancelV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_OrderService_OrderCancel_0(ctx context.Context, marshaler runtime.Marshaler, server OrderServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_OrderServiceV1_OrderCancelV1_0(ctx context.Context, marshaler runtime.Marshaler, server OrderServiceV1Server, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq OrderCancelRequest
 	var metadata runtime.ServerMetadata
 
@@ -140,18 +140,18 @@ func local_request_OrderService_OrderCancel_0(ctx context.Context, marshaler run
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.OrderCancel(ctx, &protoReq)
+	msg, err := server.OrderCancelV1(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-// RegisterOrderServiceHandlerServer registers the http handlers for service OrderService to "mux".
-// UnaryRPC     :call OrderServiceServer directly.
+// RegisterOrderServiceV1HandlerServer registers the http handlers for service OrderServiceV1 to "mux".
+// UnaryRPC     :call OrderServiceV1Server directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterOrderServiceHandlerFromEndpoint instead.
-func RegisterOrderServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server OrderServiceServer) error {
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterOrderServiceV1HandlerFromEndpoint instead.
+func RegisterOrderServiceV1HandlerServer(ctx context.Context, mux *runtime.ServeMux, server OrderServiceV1Server) error {
 
-	mux.Handle("POST", pattern_OrderService_OrderCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_OrderServiceV1_OrderCreateV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -159,12 +159,12 @@ func RegisterOrderServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.OrderService/OrderCreate", runtime.WithHTTPPathPattern("/order/create"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.OrderServiceV1/OrderCreateV1", runtime.WithHTTPPathPattern("/order/create"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_OrderService_OrderCreate_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_OrderServiceV1_OrderCreateV1_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -172,11 +172,11 @@ func RegisterOrderServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 			return
 		}
 
-		forward_OrderService_OrderCreate_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OrderServiceV1_OrderCreateV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_OrderService_OrderInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_OrderServiceV1_OrderInfoV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -184,12 +184,12 @@ func RegisterOrderServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.OrderService/OrderInfo", runtime.WithHTTPPathPattern("/order/info"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.OrderServiceV1/OrderInfoV1", runtime.WithHTTPPathPattern("/order/info"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_OrderService_OrderInfo_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_OrderServiceV1_OrderInfoV1_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -197,11 +197,11 @@ func RegisterOrderServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 			return
 		}
 
-		forward_OrderService_OrderInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OrderServiceV1_OrderInfoV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_OrderService_OrderPay_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_OrderServiceV1_OrderPayV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -209,12 +209,12 @@ func RegisterOrderServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.OrderService/OrderPay", runtime.WithHTTPPathPattern("/order/pay"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.OrderServiceV1/OrderPayV1", runtime.WithHTTPPathPattern("/order/pay"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_OrderService_OrderPay_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_OrderServiceV1_OrderPayV1_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -222,11 +222,11 @@ func RegisterOrderServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 			return
 		}
 
-		forward_OrderService_OrderPay_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OrderServiceV1_OrderPayV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_OrderService_OrderCancel_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_OrderServiceV1_OrderCancelV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -234,12 +234,12 @@ func RegisterOrderServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.OrderService/OrderCancel", runtime.WithHTTPPathPattern("/order/cancel"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.OrderServiceV1/OrderCancelV1", runtime.WithHTTPPathPattern("/order/cancel"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_OrderService_OrderCancel_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_OrderServiceV1_OrderCancelV1_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -247,16 +247,16 @@ func RegisterOrderServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 			return
 		}
 
-		forward_OrderService_OrderCancel_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OrderServiceV1_OrderCancelV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-// RegisterOrderServiceHandlerFromEndpoint is same as RegisterOrderServiceHandler but
+// RegisterOrderServiceV1HandlerFromEndpoint is same as RegisterOrderServiceV1Handler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterOrderServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterOrderServiceV1HandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.DialContext(ctx, endpoint, opts...)
 	if err != nil {
 		return err
@@ -276,107 +276,107 @@ func RegisterOrderServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.S
 		}()
 	}()
 
-	return RegisterOrderServiceHandler(ctx, mux, conn)
+	return RegisterOrderServiceV1Handler(ctx, mux, conn)
 }
 
-// RegisterOrderServiceHandler registers the http handlers for service OrderService to "mux".
+// RegisterOrderServiceV1Handler registers the http handlers for service OrderServiceV1 to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterOrderServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterOrderServiceHandlerClient(ctx, mux, NewOrderServiceClient(conn))
+func RegisterOrderServiceV1Handler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterOrderServiceV1HandlerClient(ctx, mux, NewOrderServiceV1Client(conn))
 }
 
-// RegisterOrderServiceHandlerClient registers the http handlers for service OrderService
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "OrderServiceClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "OrderServiceClient"
+// RegisterOrderServiceV1HandlerClient registers the http handlers for service OrderServiceV1
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "OrderServiceV1Client".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "OrderServiceV1Client"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "OrderServiceClient" to call the correct interceptors.
-func RegisterOrderServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client OrderServiceClient) error {
+// "OrderServiceV1Client" to call the correct interceptors.
+func RegisterOrderServiceV1HandlerClient(ctx context.Context, mux *runtime.ServeMux, client OrderServiceV1Client) error {
 
-	mux.Handle("POST", pattern_OrderService_OrderCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_OrderServiceV1_OrderCreateV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.OrderService/OrderCreate", runtime.WithHTTPPathPattern("/order/create"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.OrderServiceV1/OrderCreateV1", runtime.WithHTTPPathPattern("/order/create"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_OrderService_OrderCreate_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_OrderServiceV1_OrderCreateV1_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_OrderService_OrderCreate_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OrderServiceV1_OrderCreateV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_OrderService_OrderInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_OrderServiceV1_OrderInfoV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.OrderService/OrderInfo", runtime.WithHTTPPathPattern("/order/info"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.OrderServiceV1/OrderInfoV1", runtime.WithHTTPPathPattern("/order/info"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_OrderService_OrderInfo_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_OrderServiceV1_OrderInfoV1_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_OrderService_OrderInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OrderServiceV1_OrderInfoV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_OrderService_OrderPay_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_OrderServiceV1_OrderPayV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.OrderService/OrderPay", runtime.WithHTTPPathPattern("/order/pay"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.OrderServiceV1/OrderPayV1", runtime.WithHTTPPathPattern("/order/pay"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_OrderService_OrderPay_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_OrderServiceV1_OrderPayV1_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_OrderService_OrderPay_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OrderServiceV1_OrderPayV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_OrderService_OrderCancel_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_OrderServiceV1_OrderCancelV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.OrderService/OrderCancel", runtime.WithHTTPPathPattern("/order/cancel"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.OrderServiceV1/OrderCancelV1", runtime.WithHTTPPathPattern("/order/cancel"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_OrderService_OrderCancel_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_OrderServiceV1_OrderCancelV1_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_OrderService_OrderCancel_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OrderServiceV1_OrderCancelV1_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -384,21 +384,21 @@ func RegisterOrderServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 }
 
 var (
-	pattern_OrderService_OrderCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"order", "create"}, ""))
+	pattern_OrderServiceV1_OrderCreateV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"order", "create"}, ""))
 
-	pattern_OrderService_OrderInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"order", "info"}, ""))
+	pattern_OrderServiceV1_OrderInfoV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"order", "info"}, ""))
 
-	pattern_OrderService_OrderPay_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"order", "pay"}, ""))
+	pattern_OrderServiceV1_OrderPayV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"order", "pay"}, ""))
 
-	pattern_OrderService_OrderCancel_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"order", "cancel"}, ""))
+	pattern_OrderServiceV1_OrderCancelV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"order", "cancel"}, ""))
 )
 
 var (
-	forward_OrderService_OrderCreate_0 = runtime.ForwardResponseMessage
+	forward_OrderServiceV1_OrderCreateV1_0 = runtime.ForwardResponseMessage
 
-	forward_OrderService_OrderInfo_0 = runtime.ForwardResponseMessage
+	forward_OrderServiceV1_OrderInfoV1_0 = runtime.ForwardResponseMessage
 
-	forward_OrderService_OrderPay_0 = runtime.ForwardResponseMessage
+	forward_OrderServiceV1_OrderPayV1_0 = runtime.ForwardResponseMessage
 
-	forward_OrderService_OrderCancel_0 = runtime.ForwardResponseMessage
+	forward_OrderServiceV1_OrderCancelV1_0 = runtime.ForwardResponseMessage
 )

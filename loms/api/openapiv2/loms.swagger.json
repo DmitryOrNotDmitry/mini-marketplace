@@ -6,10 +6,10 @@
   },
   "tags": [
     {
-      "name": "OrderService"
+      "name": "OrderServiceV1"
     },
     {
-      "name": "StockService"
+      "name": "StockServiceV1"
     }
   ],
   "host": "localhost:8084",
@@ -25,7 +25,7 @@
   "paths": {
     "/order/cancel": {
       "post": {
-        "operationId": "OrderService_OrderCancel",
+        "operationId": "OrderServiceV1_OrderCancelV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -51,13 +51,13 @@
           }
         ],
         "tags": [
-          "OrderService"
+          "OrderServiceV1"
         ]
       }
     },
     "/order/create": {
       "post": {
-        "operationId": "OrderService_OrderCreate",
+        "operationId": "OrderServiceV1_OrderCreateV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -83,13 +83,13 @@
           }
         ],
         "tags": [
-          "OrderService"
+          "OrderServiceV1"
         ]
       }
     },
     "/order/info": {
       "get": {
-        "operationId": "OrderService_OrderInfo",
+        "operationId": "OrderServiceV1_OrderInfoV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -114,13 +114,13 @@
           }
         ],
         "tags": [
-          "OrderService"
+          "OrderServiceV1"
         ]
       }
     },
     "/order/pay": {
       "post": {
-        "operationId": "OrderService_OrderPay",
+        "operationId": "OrderServiceV1_OrderPayV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -146,13 +146,13 @@
           }
         ],
         "tags": [
-          "OrderService"
+          "OrderServiceV1"
         ]
       }
     },
     "/stock/info": {
       "get": {
-        "operationId": "StockService_StockInfo",
+        "operationId": "StockServiceV1_StockInfoV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -177,7 +177,7 @@
           }
         ],
         "tags": [
-          "StockService"
+          "StockServiceV1"
         ]
       }
     }

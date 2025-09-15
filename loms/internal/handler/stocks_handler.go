@@ -18,7 +18,7 @@ type StockService interface {
 
 // StockServerGRPC обрабатывает gRPC-запросы для операций с запасами.
 type StockServerGRPC struct {
-	stocks.UnimplementedStockServiceServer
+	stocks.UnimplementedStockServiceV1Server
 	stockService StockService
 }
 
@@ -30,7 +30,7 @@ func NewStockServerGRPC(stockService StockService) *StockServerGRPC {
 }
 
 // StockInfo обрабатывает gRPC-запрос на получение информации о товаре по его SKU.
-func (ss *StockServerGRPC) StockInfo(ctx context.Context, req *stocks.StockInfoRequest) (*stocks.StockInfoResponse, error) {
+func (ss *StockServerGRPC) StockInfoV1(ctx context.Context, req *stocks.StockInfoRequest) (*stocks.StockInfoResponse, error) {
 	count, err := ss.stockService.GetAvailableCount(ctx, req.SkuId)
 	if err != nil {
 		if errors.Is(err, domain.ErrItemStockNotExist) {

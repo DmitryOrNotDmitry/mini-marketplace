@@ -17,28 +17,28 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   host: "localhost:8084";
 };
 
-service OrderService {
-    rpc OrderCreate(OrderCreateRequest) returns (OrderCreateResponse) {
+service OrderServiceV1 {
+    rpc OrderCreateV1(OrderCreateRequest) returns (OrderCreateResponse) {
         option(google.api.http) = {
             post: "/order/create"
             body: "*"
         };
     }
 
-    rpc OrderInfo(OrderInfoRequest) returns (OrderInfoResponse) {
+    rpc OrderInfoV1(OrderInfoRequest) returns (OrderInfoResponse) {
         option(google.api.http) = {
             get: "/order/info"
         };
     }
 
-    rpc OrderPay(OrderPayRequest) returns (OrderPayResponse) {
+    rpc OrderPayV1(OrderPayRequest) returns (OrderPayResponse) {
         option(google.api.http) = {
             post: "/order/pay"
             body: "*"
         };
     }
 
-    rpc OrderCancel(OrderCancelRequest) returns (OrderCancelResponse) {
+    rpc OrderCancelV1(OrderCancelRequest) returns (OrderCancelResponse) {
         option(google.api.http) = {
             post: "/order/cancel"
             body: "*"

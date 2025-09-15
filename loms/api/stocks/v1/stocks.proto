@@ -6,8 +6,8 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "route256/loms/pkg/api/stocks/v1;stocks";
 
-service StockService {
-    rpc StockInfo(StockInfoRequest) returns (StockInfoResponse) {
+service StockServiceV1 {
+    rpc StockInfoV1(StockInfoRequest) returns (StockInfoResponse) {
         option(google.api.http) = {
             get: "/stock/info"
         };
