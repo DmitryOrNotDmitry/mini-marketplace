@@ -2,6 +2,7 @@ service:
   host: 0.0.0.0
   port: 8080
   workers: 5
+  gracefull_shutdown_timeout: 10
 
 jaeger:
   host: localhost

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -22,7 +23,7 @@ import (
 
 // App создает компоненты для сервиса cart
 type App struct {
-	config *config.Config
+	Config *config.Config
 	server http.Server
 }
 
@@ -33,7 +34,7 @@ func NewApp(configPath string) (*App, error) {
 		return nil, fmt.Errorf("config.LoadConfig: %w", err)
 	}
 
-	app := &App{config: c}
+	app := &App{Config: c}
 	app.server.Handler, err = app.bootstrapHandlers()
 	if err != nil {
 		return nil, fmt.Errorf("app.bootstrapHandlers: %w", err)
@@ -44,7 +45,7 @@ func NewApp(configPath string) (*App, error) {
 
 // ListenAndServe запускает HTTP-сервер приложения.
 func (app *App) ListenAndServe() error {
-	address := fmt.Sprintf("%s:%s", app.config.Server.Host, app.config.Server.Port)
+	address := fmt.Sprintf("%s:%s", app.Config.Server.Host, app.Config.Server.Port)
 
 	l, err := net.Listen("tcp", address)
 	if err != nil {
@@ -67,12 +68,12 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 
 	productService := service.NewProductServiceHTTP(
 		httpClient,
-		app.config.ProductService.Token,
-		fmt.Sprintf("%s://%s:%s", app.config.ProductService.Protocol, app.config.ProductService.Host, app.config.ProductService.Port),
+		app.Config.ProductService.Token,
+		fmt.Sprintf("%s://%s:%s", app.Config.ProductService.Protocol, app.Config.ProductService.Host, app.Config.ProductService.Port),
 	)
 
 	conn, err := grpc.NewClient(
-		fmt.Sprintf("%s:%s", app.config.LomsService.Host, app.config.LomsService.Port),
+		fmt.Sprintf("%s:%s", app.Config.LomsService.Host, app.Config.LomsService.Port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -99,4 +100,9 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 	h := middleware.NewLoggerMiddleware(mx)
 
 	return h, nil
+}
+
+// Shutdown gracefully останавливает приложение.
+func (a *App) Shutdown(ctx context.Context) error {
+	return a.server.Shutdown(ctx)
 }

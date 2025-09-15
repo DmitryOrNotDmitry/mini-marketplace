@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -24,8 +25,9 @@ import (
 
 // App создает компоненты для сервиса loms
 type App struct {
-	config     *config.Config
-	grpcServer *grpc.Server
+	Config       *config.Config
+	grpcServer   *grpc.Server
+	grpcGWServer *http.Server
 }
 
 // NewApp конструктор главного приложения.
@@ -35,7 +37,7 @@ func NewApp(configPath string) (*App, error) {
 		return nil, fmt.Errorf("config.LoadConfig: %w", err)
 	}
 
-	app := &App{config: c}
+	app := &App{Config: c}
 	app.grpcServer = grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.Logging,
@@ -58,7 +60,7 @@ func NewApp(configPath string) (*App, error) {
 	stocks.RegisterStockServiceV1Server(app.grpcServer, stocksHandler)
 	orders.RegisterOrderServiceV1Server(app.grpcServer, ordersHandler)
 
-	err = LoadStocks(stockService, time.Duration(app.config.Server.LoadStocksDataTimeout)*time.Second)
+	err = LoadStocks(stockService, time.Duration(app.Config.Server.LoadStocksDataTimeout)*time.Second)
 	if err != nil {
 		logger.Error(fmt.Sprintf("LoadStocks: %s", err))
 	}
@@ -68,12 +70,12 @@ func NewApp(configPath string) (*App, error) {
 
 // ListenAndServeGRPC запускает gRPC-сервер приложения.
 func (a *App) ListenAndServeGRPC() error {
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", a.config.Server.GRPCPort))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", a.Config.Server.GRPCPort))
 	if err != nil {
 		return fmt.Errorf("net.Listen: %w", err)
 	}
 
-	logger.Info(fmt.Sprintf("Loms service listening gRPC at port %s", a.config.Server.GRPCPort))
+	logger.Info(fmt.Sprintf("Loms service listening gRPC at port %s", a.Config.Server.GRPCPort))
 
 	return a.grpcServer.Serve(listener)
 }
@@ -81,7 +83,7 @@ func (a *App) ListenAndServeGRPC() error {
 // ListenAndServeGRPCGateway запускает gRPC-gateway для gRPC-сервера приложений.
 func (a *App) ListenAndServeGRPCGateway() error {
 	conn, err := grpc.NewClient(
-		fmt.Sprintf(":%s", a.config.Server.GRPCPort),
+		fmt.Sprintf(":%s", a.Config.Server.GRPCPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -103,15 +105,41 @@ func (a *App) ListenAndServeGRPCGateway() error {
 
 	handler := middleware.CORSAllPass(gwMux)
 
-	gwServer := &http.Server{
-		Addr:              fmt.Sprintf(":%s", a.config.Server.HTTPPort),
+	a.grpcGWServer = &http.Server{
+		Addr:              fmt.Sprintf(":%s", a.Config.Server.HTTPPort),
 		Handler:           handler,
-		ReadHeaderTimeout: time.Second * time.Duration(a.config.Server.GRPCGateWay.ReadHeaderTimeout),
-		WriteTimeout:      time.Second * time.Duration(a.config.Server.GRPCGateWay.WriteTimeout),
-		IdleTimeout:       time.Second * time.Duration(a.config.Server.GRPCGateWay.IdleTimeout),
+		ReadHeaderTimeout: time.Second * time.Duration(a.Config.Server.GRPCGateWay.ReadHeaderTimeout),
+		WriteTimeout:      time.Second * time.Duration(a.Config.Server.GRPCGateWay.WriteTimeout),
+		IdleTimeout:       time.Second * time.Duration(a.Config.Server.GRPCGateWay.IdleTimeout),
 	}
 
-	logger.Info(fmt.Sprintf("Loms service listening gRPC-Gateway (REST) at port %s", a.config.Server.HTTPPort))
+	logger.Info(fmt.Sprintf("Loms service listening gRPC-Gateway (REST) at port %s", a.Config.Server.HTTPPort))
 
-	return gwServer.ListenAndServe()
+	return a.grpcGWServer.ListenAndServe()
+}
+
+// Shutdown gracefully останавливает приложение.
+func (a *App) Shutdown(ctx context.Context) error {
+	errGroup := new(errgroup.Group)
+	errGroup.Go(func() error {
+		return a.grpcGWServer.Shutdown(ctx)
+	})
+
+	errGroup.Go(func() error {
+		successGraceful := make(chan struct{})
+		go func() {
+			a.grpcServer.GracefulStop()
+			close(successGraceful)
+		}()
+
+		select {
+		case <-ctx.Done():
+			a.grpcServer.Stop()
+			return ctx.Err()
+		case <-successGraceful:
+			return nil
+		}
+	})
+
+	return errGroup.Wait()
 }
