@@ -103,6 +103,6 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 }
 
 // Shutdown gracefully останавливает приложение.
-func (a *App) Shutdown(ctx context.Context) error {
-	return a.server.Shutdown(ctx)
+func (app *App) Shutdown(ctx context.Context) error {
+	return app.server.Shutdown(ctx)
 }
