@@ -19,12 +19,14 @@ type CartService interface {
 
 // Server реализует HTTP-обработчики для работы с корзиной.
 type Server struct {
-	cartService CartService
+	cartService     CartService
+	orderCheckouter OrderCheckouter
 }
 
 // NewServer конструктор для Server.
-func NewServer(cartService CartService) *Server {
+func NewServer(cartService CartService, orderCheckouter OrderCheckouter) *Server {
 	return &Server{
-		cartService: cartService,
+		cartService:     cartService,
+		orderCheckouter: orderCheckouter,
 	}
 }

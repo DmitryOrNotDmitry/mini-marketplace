@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "route256/loms/pkg/api/stocks/v1;stocks";
+
+service StockServiceV1 {
+    rpc StockInfoV1(StockInfoRequest) returns (StockInfoResponse) {
+        option(google.api.http) = {
+            get: "/stock/info"
+        };
+    }
+}
+
+message StockInfoRequest {
+    int64 sku_id = 1 [
+        (validate.rules).int64 = {
+            gt: 0
+        },
+        json_name = "sku"
+    ];
+}
+
+message StockInfoResponse {
+    uint32 count = 1;
+}
