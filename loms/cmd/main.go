@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 	"route256/loms/internal/app"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -13,15 +15,16 @@ func main() {
 		panic(err)
 	}
 
-	go func() {
-		err = lomsApp.ListenAndServeGRPCGateway()
-		if err != nil {
-			panic(err)
-		}
-	}()
+	errGroup := new(errgroup.Group)
+	errGroup.Go(func() error {
+		return lomsApp.ListenAndServeGRPCGateway()
+	})
 
-	err = lomsApp.ListenAndServeGRPC()
-	if err != nil {
+	errGroup.Go(func() error {
+		return lomsApp.ListenAndServeGRPC()
+	})
+
+	if err := errGroup.Wait(); err != nil {
 		panic(err)
 	}
 }
