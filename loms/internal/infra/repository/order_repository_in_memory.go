@@ -44,19 +44,26 @@ func (or *OrderRepositoryInMemory) Insert(_ context.Context, order *domain.Order
 
 // GetByIDOrderItemsBySKU возвращает заказ по идентификатору, если он существует.
 func (or *OrderRepositoryInMemory) GetByIDOrderItemsBySKU(_ context.Context, orderID int64) (*domain.Order, error) {
-	or.mx.Lock()
-	defer or.mx.Unlock()
+	or.mx.RLock()
+	defer or.mx.RUnlock()
 
 	order, ok := or.storage[orderID]
 	if !ok {
 		return nil, domain.ErrOrderNotExist
 	}
 
-	sort.Slice(order.Items, func(i, j int) bool {
-		return order.Items[i].SkuID < order.Items[j].SkuID
+	orderCopy := *order
+	orderCopy.Items = make([]*domain.OrderItem, 0, len(order.Items))
+	for _, item := range order.Items {
+		itemCopy := *item
+		orderCopy.Items = append(orderCopy.Items, &itemCopy)
+	}
+
+	sort.Slice(orderCopy.Items, func(i, j int) bool {
+		return orderCopy.Items[i].SkuID < orderCopy.Items[j].SkuID
 	})
 
-	return order, nil
+	return &orderCopy, nil
 }
 
 // UpdateStatus обновляет статус заказа по идентификатору.
