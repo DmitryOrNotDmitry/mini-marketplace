@@ -112,4 +112,21 @@ func TestCartService(t *testing.T) {
 		err := tc.cartService.DeleteCartItem(ctx, userID, item.Sku)
 		require.NoError(t, err)
 	})
+
+	t.Run("add item to cart with out of stock", func(t *testing.T) {
+		t.Parallel()
+
+		tc := newTestComponentCS(t)
+
+		ctx := context.Background()
+		item := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
+		product := &domain.Product{Sku: 1, Name: "name 1", Price: 100}
+		userID := int64(1)
+
+		tc.productServMock.GetProductBySkuMock.When(ctx, item.Sku).Then(product, nil)
+		tc.lomsServMock.GetStockInfoMock.When(ctx, item.Sku).Then(1, nil)
+
+		_, err := tc.cartService.AddCartItem(ctx, userID, item)
+		require.Error(t, err)
+	})
 }
