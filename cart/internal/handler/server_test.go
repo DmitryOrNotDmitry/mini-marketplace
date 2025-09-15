@@ -239,7 +239,7 @@ func (tc testComponentS) checkoutOrder(t *testing.T, userID int64) (int64, *http
 	res := w.Result()
 	defer res.Body.Close()
 
-	orderIDRes := &CheckoutCartesponse{}
+	orderIDRes := &CheckoutCartResponse{}
 	err := json.NewDecoder(res.Body).Decode(orderIDRes)
 	require.NoError(t, err)
 

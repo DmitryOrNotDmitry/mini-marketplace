@@ -9,7 +9,7 @@ import (
 	"route256/cart/pkg/logger"
 )
 
-type CheckoutCartesponse struct {
+type CheckoutCartResponse struct {
 	OrderID int64 `json:"order_id"`
 }
 
@@ -51,7 +51,7 @@ func (s *Server) CheckoutCartHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error(fmt.Sprintf("cartService.ClearCart: %s", err))
 	}
 
-	response := &CheckoutCartesponse{
+	response := &CheckoutCartResponse{
 		OrderID: orderID,
 	}
 
