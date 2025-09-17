@@ -2,10 +2,28 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"math"
+	"route256/cart/pkg/logger"
 	"route256/loms/internal/domain"
 	repo_sqlc "route256/loms/internal/infra/repository/postgres/sqlc/generated"
+
+	"github.com/jackc/pgx/v5"
 )
+
+// Int64ToUint32 безопасно конвертирует int64 в uint32
+func Int64ToUint32(num int64) (uint32, error) {
+	if num < 0 {
+		return 0, fmt.Errorf("invalid num value (num < 0): %d", num)
+	}
+
+	if num > math.MaxUint32 {
+		return math.MaxUint32, fmt.Errorf("invalid num value (num > math.MaxUint32): %d", num)
+	}
+
+	return uint32(num), nil
+}
 
 // NewStockRepository создает новый StockRepository.
 func NewStockRepository(pool repo_sqlc.DBTX) *StockRepository {
@@ -76,12 +94,26 @@ func (sr *StockRepository) ReduceReserveAndTotal(ctx context.Context, skuID int6
 func (sr *StockRepository) GetBySkuID(ctx context.Context, skuID int64) (*domain.Stock, error) {
 	stockDB, err := sr.querier.GetStockBySKU(ctx, skuID)
 	if err != nil {
-		return nil, fmt.Errorf("querier.AddStock: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrItemStockNotExist
+		}
+
+		return nil, fmt.Errorf("querier.GetStockBySKU: %w", err)
+	}
+
+	totalCount, err := Int64ToUint32(stockDB.TotalCount)
+	if err != nil {
+		logger.Warning(fmt.Sprintf("Int64ToUint32 (TotalCount=%d): %s", stockDB.TotalCount, err.Error()))
+	}
+
+	reserved, err := Int64ToUint32(stockDB.Reserved)
+	if err != nil {
+		logger.Warning(fmt.Sprintf("Int64ToUint32 (Reserved=%d): %s", stockDB.Reserved, err.Error()))
 	}
 
 	return &domain.Stock{
 		SkuID:      stockDB.Sku,
-		TotalCount: uint32(stockDB.TotalCount),
-		Reserved:   uint32(stockDB.Reserved),
+		TotalCount: totalCount,
+		Reserved:   reserved,
 	}, nil
 }

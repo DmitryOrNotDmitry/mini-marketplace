@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // Import postgres driver
 	"github.com/pressly/goose/v3"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -64,11 +64,11 @@ func NewApp(configPath string) (*App, error) {
 		return nil, fmt.Errorf("NewPool: %w", err)
 	}
 
-	stockRepository := postgres.NewStockRepository(pool)
-	orderRepository := postgres.NewOrderRepository(pool)
+	txManager := postgres.NewPgTxManager(pool)
+	repositoryfactory := postgres.NewRepositoryFactory(pool)
 
-	stockService := service.NewStockService(stockRepository)
-	orderService := service.NewOrderService(orderRepository, stockService)
+	stockService := service.NewStockService(repositoryfactory, txManager)
+	orderService := service.NewOrderService(stockService, repositoryfactory)
 
 	stocksHandler := handler.NewStockServerGRPC(stockService)
 	ordersHandler := handler.NewOrderServerGRPC(orderService)

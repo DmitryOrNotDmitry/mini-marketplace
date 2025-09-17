@@ -2,9 +2,13 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"route256/cart/pkg/logger"
 	"route256/loms/internal/domain"
 	repo_sqlc "route256/loms/internal/infra/repository/postgres/sqlc/generated"
+
+	"github.com/jackc/pgx/v5"
 )
 
 // NewOrderRepository создает новый OrderRepository.
@@ -44,6 +48,10 @@ func (or *OrderRepository) Insert(ctx context.Context, order *domain.Order) (int
 func (or *OrderRepository) GetByIDOrderItemsBySKU(ctx context.Context, orderID int64) (*domain.Order, error) {
 	orderDB, err := or.querier.GetOrderByID(ctx, orderID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrOrderNotExist
+		}
+
 		return nil, fmt.Errorf("querier.GetOrderByID: %w", err)
 	}
 
@@ -59,9 +67,14 @@ func (or *OrderRepository) GetByIDOrderItemsBySKU(ctx context.Context, orderID i
 		Items:   make([]*domain.OrderItem, 0, len(orderItemsDB)),
 	}
 	for _, itemDB := range orderItemsDB {
+		count, err := Int64ToUint32(itemDB.Count)
+		if err != nil {
+			logger.Warning(fmt.Sprintf("Int64ToUint32 (Count=%d): %s", itemDB.Count, err.Error()))
+		}
+
 		order.Items = append(order.Items, &domain.OrderItem{
 			SkuID: itemDB.Sku,
-			Count: uint32(itemDB.Count),
+			Count: count,
 		})
 	}
 

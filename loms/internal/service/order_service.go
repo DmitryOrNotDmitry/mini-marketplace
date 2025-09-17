@@ -7,14 +7,10 @@ import (
 	"route256/loms/internal/domain"
 )
 
-// OrderRepository описывает методы работы с заказами в хранилище.
-type OrderRepository interface {
-	// Insert добавляет новый заказ и возвращает его ID.
-	Insert(ctx context.Context, order *domain.Order) (int64, error)
-	// GetByIDOrderItemsBySKU возвращает заказ с деталями по его ID и сортирует товары по SKU.
-	GetByIDOrderItemsBySKU(ctx context.Context, orderID int64) (*domain.Order, error)
-	// UpdateStatus обновляет статус заказа.
-	UpdateStatus(ctx context.Context, orderID int64, newStatus domain.Status) error
+// OrderRepoFactory создает экземпляры репозитория заказов.
+type OrderRepoFactory interface {
+	// CreateOrder создает новый репозиторий заказов.
+	CreateOrder(ctx context.Context) OrderRepository
 }
 
 // StockServiceI описывает методы работы с резервированием товаров.
@@ -29,15 +25,15 @@ type StockServiceI interface {
 
 // OrderService реализует бизнес-логику управления заказами.
 type OrderService struct {
-	orderRepository OrderRepository
-	stockService    StockServiceI
+	stockService      StockServiceI
+	repositoryFactory OrderRepoFactory
 }
 
 // NewOrderService создает новый сервис управления заказами.
-func NewOrderService(orderRepository OrderRepository, stockService StockServiceI) *OrderService {
+func NewOrderService(stockService StockServiceI, repositoryFactory OrderRepoFactory) *OrderService {
 	return &OrderService{
-		orderRepository: orderRepository,
-		stockService:    stockService,
+		stockService:      stockService,
+		repositoryFactory: repositoryFactory,
 	}
 }
 
@@ -53,7 +49,8 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 		order.Status = domain.AwaitingPayment
 	}
 
-	orderID, errInsert := os.orderRepository.Insert(ctx, order)
+	orderRepository := os.repositoryFactory.CreateOrder(ctx)
+	orderID, errInsert := orderRepository.Insert(ctx, order)
 	if errInsert != nil {
 		return -1, fmt.Errorf("orderRepository.Insert: %w", errInsert)
 	}
@@ -63,7 +60,8 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 
 // GetInfoByID возвращает информацию о заказе по его идентификатору.
 func (os *OrderService) GetInfoByID(ctx context.Context, orderID int64) (*domain.Order, error) {
-	order, err := os.orderRepository.GetByIDOrderItemsBySKU(ctx, orderID)
+	orderRepository := os.repositoryFactory.CreateOrder(ctx)
+	order, err := orderRepository.GetByIDOrderItemsBySKU(ctx, orderID)
 	if err != nil {
 		return nil, fmt.Errorf("orderRepository.GetByIDOrderItemsBySKU: %w", err)
 	}
@@ -86,12 +84,13 @@ func (os *OrderService) PayByID(ctx context.Context, orderID int64) error {
 		return domain.ErrPayWithInvalidOrderStatus
 	}
 
-	errConfirm := os.stockService.ConfirmReserveFor(ctx, order)
-	if errConfirm != nil {
-		logger.Error(fmt.Sprintf("stockService.ConfirmReserveFor: %s", errConfirm.Error()))
+	err = os.stockService.ConfirmReserveFor(ctx, order)
+	if err != nil {
+		return fmt.Errorf("stockService.ConfirmReserveFor: %w", err)
 	}
 
-	return os.orderRepository.UpdateStatus(ctx, orderID, domain.Paid)
+	orderRepository := os.repositoryFactory.CreateOrder(ctx)
+	return orderRepository.UpdateStatus(ctx, orderID, domain.Paid)
 }
 
 // CancelByID отменяет заказ по идентификатору.
@@ -114,5 +113,6 @@ func (os *OrderService) CancelByID(ctx context.Context, orderID int64) error {
 		logger.Error(fmt.Sprintf("stockService.CancelReserveFor: %s", errCancel.Error()))
 	}
 
-	return os.orderRepository.UpdateStatus(ctx, orderID, domain.Cancelled)
+	orderRepository := os.repositoryFactory.CreateOrder(ctx)
+	return orderRepository.UpdateStatus(ctx, orderID, domain.Cancelled)
 }
