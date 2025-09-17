@@ -16,6 +16,9 @@ services:
     ports:
       - "8083:8083"
       - "8084:8084"
+    depends_on:
+      postgres-master:
+        condition: service_healthy
 
   products:
     image: gitlab-registry.ozon.dev/go/classroom-20/students/homework-draft/products:latest
@@ -31,3 +34,20 @@ services:
       SWAGGER_JSON: /swagger/swagger.json
     volumes:
       - ./loms/api/openapiv2/loms.swagger.json:/swagger/swagger.json
+
+  postgres-master:
+    image: postgres:16
+    container_name: postgres-master
+    environment:
+      - POSTGRES_USER=loms-user
+      - POSTGRES_PASSWORD=loms-password
+      - POSTGRES_DB=loms_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loms-user -d loms_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+

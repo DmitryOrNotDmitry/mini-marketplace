@@ -8,13 +8,14 @@ service:
     idle_timeout: 60
   load_stocks_data_timeout: 10
   gracefull_shutdown_timeout: 10
+  migrations_path: /bin/migrations
 
 jaeger:
   host: localhost
   port: 6831
 
 db_master:
-  host: localhost
+  host: postgres-master
   port: 5432
   user: loms-user
   password: loms-password

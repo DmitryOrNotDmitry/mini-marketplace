@@ -2,7 +2,9 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"route256/cart/pkg/logger"
@@ -10,13 +12,15 @@ import (
 	"route256/loms/internal/infra/config"
 	"route256/loms/internal/infra/grpc/interceptor"
 	"route256/loms/internal/infra/http/middleware"
-	"route256/loms/internal/infra/repository"
+	"route256/loms/internal/infra/repository/postgres"
 	"route256/loms/internal/service"
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -47,9 +51,21 @@ func NewApp(configPath string) (*App, error) {
 
 	reflection.Register(app.grpcServer)
 
-	idGen := repository.NewIDGeneratorSync()
-	stockRepository := repository.NewInMemoryStockRepository(10)
-	orderRepository := repository.NewInMemoryOrderRepository(idGen, 10)
+	postgresDSN := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", app.Config.MasterDB.User, app.Config.MasterDB.Password,
+		app.Config.MasterDB.Host, app.Config.MasterDB.Port, app.Config.MasterDB.DBName)
+
+	err = applyMigrations(postgresDSN, app.Config.Server.MigrationsPath)
+	if err != nil {
+		logger.Warning(fmt.Sprintf("Skip migrations applying with error: %s", err.Error()))
+	}
+
+	pool, err := postgres.NewPool(context.TODO(), postgresDSN)
+	if err != nil {
+		return nil, fmt.Errorf("NewPool: %w", err)
+	}
+
+	stockRepository := postgres.NewStockRepository(pool)
+	orderRepository := postgres.NewOrderRepository(pool)
 
 	stockService := service.NewStockService(stockRepository)
 	orderService := service.NewOrderService(orderRepository, stockService)
@@ -66,6 +82,24 @@ func NewApp(configPath string) (*App, error) {
 	}
 
 	return app, nil
+}
+
+func applyMigrations(dsn, migrationsFolder string) error {
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		log.Fatalf("Failed to open DB: %v", err)
+	}
+	defer db.Close()
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		return fmt.Errorf("failed to set dialect: %w", err)
+	}
+
+	if err := goose.Up(db, migrationsFolder); err != nil {
+		return fmt.Errorf("failed to apply migrations: %w", err)
+	}
+
+	return nil
 }
 
 // ListenAndServeGRPC запускает gRPC-сервер приложения.

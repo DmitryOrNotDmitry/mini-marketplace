@@ -9,7 +9,8 @@ import (
 
 // Config главный конфиг сервиса.
 type Config struct {
-	Server LomsServiceConfig `yaml:"service"`
+	Server   LomsServiceConfig `yaml:"service"`
+	MasterDB MasterDBConfig    `yaml:"db_master"`
 }
 
 // LomsServiceConfig конфиг для сервиса loms.
@@ -20,6 +21,7 @@ type LomsServiceConfig struct {
 	GRPCGateWay              GRPCGateWayConfig `yaml:"grpc_gateway"`
 	LoadStocksDataTimeout    int64             `yaml:"load_stocks_data_timeout"`
 	GracefullShutdownTimeout int64             `yaml:"gracefull_shutdown_timeout"`
+	MigrationsPath           string            `yaml:"migrations_path"`
 }
 
 // GRPCGateWayConfig конфиг для gRPC-gateway.
@@ -27,6 +29,15 @@ type GRPCGateWayConfig struct {
 	ReadHeaderTimeout int64 `yaml:"read_header_timeout"`
 	WriteTimeout      int64 `yaml:"write_timeout"`
 	IdleTimeout       int64 `yaml:"idle_timeout"`
+}
+
+// MasterDBConfig конфиг для БД мастера.
+type MasterDBConfig struct {
+	Host     string `yaml:"host"`
+	Port     int64  `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DBName   string `yaml:"db_name"`
 }
 
 // LoadConfig загружает конфиг из файла .yaml

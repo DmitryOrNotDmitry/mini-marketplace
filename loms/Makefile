@@ -10,9 +10,6 @@ bindir:
 build: bindir
 	echo "build loms"
 
-run-migrations:
-	echo "run migrations"
-
 test:
 	go test ./internal/... -count=1
 
@@ -188,3 +185,19 @@ protoc-generate-win:
 	api/stocks/v1/stocks.proto && \
 	go mod tidy
 
+
+CI_MIGRATIONS_FOLDER := ./loms/migrations/
+CI_DB_DSN := postgresql://loms-user:loms-password@postgres-master:5432/loms_db?sslmode=disable
+
+run-migrations:
+	goose -dir $(CI_MIGRATIONS_FOLDER) postgres "$(CI_DB_DSN)" up
+
+
+LOCAL_MIGRATIONS_FOLDER := ./migrations/
+LOCAL_DB_DSN := postgresql://loms-user:loms-password@localhost:5432/loms_db?sslmode=disable
+
+migrate:
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN)" up
+
+migrate-down:
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN)" down

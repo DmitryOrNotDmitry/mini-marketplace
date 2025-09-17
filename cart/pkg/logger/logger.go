@@ -19,3 +19,8 @@ func Info(message string) {
 func Error(message string) {
 	log("ERROR", message)
 }
+
+// Warning выводит сообщение об предупреждении в лог
+func Warning(message string) {
+	log("WARNING", message)
+}

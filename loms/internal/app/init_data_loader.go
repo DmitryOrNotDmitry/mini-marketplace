@@ -33,7 +33,7 @@ func LoadStocks(stockCreator StockCreator, timeout time.Duration) error {
 	for _, stock := range stocks {
 		errStock := stockCreator.Create(ctx, stock)
 		if errStock != nil {
-			logger.Error(fmt.Sprintf("Error while try to create stock %+v", stock))
+			logger.Warning(fmt.Sprintf("Error while try to create stock %+v", stock))
 		}
 	}
 

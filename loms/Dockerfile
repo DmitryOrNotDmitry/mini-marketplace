@@ -18,6 +18,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /loms ./cmd/main.go
 FROM scratch
 COPY --from=builder loms /bin/loms
 COPY loms/configs/values_local.yaml /bin/config/values_local.yaml
+COPY loms/migrations /bin/migrations
 
 ENV CONFIG_FILE=/bin/config/values_local.yaml
 
