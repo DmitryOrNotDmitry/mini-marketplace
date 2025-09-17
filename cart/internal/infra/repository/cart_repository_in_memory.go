@@ -8,8 +8,10 @@ import (
 	"sync"
 )
 
+// Storage хранит корзины по ID.
 type Storage = map[int64]*CartEntity
 
+// OrderRepositoryInMemory хранит корзины пользователей в in-memory хранилище.
 type CartRepositoryInMemory struct {
 	storage Storage
 	mx      sync.RWMutex

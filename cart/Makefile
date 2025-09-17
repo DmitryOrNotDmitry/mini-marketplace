@@ -19,24 +19,17 @@ minimock-gen-common:
 	minimock -i route256/cart/internal/service.CartRepository -o ./mocks/ -s "_mock.go"
 	minimock -i route256/cart/internal/service.ProductService -o ./mocks/ -s "_mock.go"
 	minimock -i route256/cart/internal/service.HTTPClient -o ./mocks/ -s "_mock.go"
+	minimock -i route256/cart/internal/service.LomsService -o ./mocks/ -s "_mock.go"
 	minimock -i route256/cart/internal/handler.CartService -o ./mocks/ -s "_mock.go"
+	minimock -i route256/cart/internal/handler.OrderCheckouter -o ./mocks/ -s "_mock.go"
+	minimock -i route256/loms/pkg/api/stocks/v1.StockServiceV1Client -o ./mocks/ -s "_mock.go"
+	minimock -i route256/loms/pkg/api/orders/v1.OrderServiceV1Client -o ./mocks/ -s "_mock.go"
 
 test:
-	go test ./... -count=1
+	go test ./internal/... -count=1
 
 test-cover:
-	go test ./... -cover
-
-test-api:
-	rm -rf ./tests/allure-results
-	go test ./tests/... -tags=api
-
-test-api-win:
-	if exist tests\allure-results rmdir /s /q tests\allure-results
-	go test ./tests/... -tags=api
-
-allure: 
-	allure serve ./tests/allure-results
+	go test ./internal/... -count=1 -cover
 
 lint:
 	gocyclo -over 10 -ignore "_test|mocks|tests" .

@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "route256/loms/pkg/api/orders/v1;orders";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Loms Service";
+    version: "1.0.0";
+  };
+  schemes: HTTP;
+  consumes: "application/json";
+  produces: "application/json";
+  host: "localhost:8084";
+};
+
+service OrderServiceV1 {
+    rpc OrderCreateV1(OrderCreateRequest) returns (OrderCreateResponse) {
+        option(google.api.http) = {
+            post: "/order/create"
+            body: "*"
+        };
+    }
+
+    rpc OrderInfoV1(OrderInfoRequest) returns (OrderInfoResponse) {
+        option(google.api.http) = {
+            get: "/order/info"
+        };
+    }
+
+    rpc OrderPayV1(OrderPayRequest) returns (OrderPayResponse) {
+        option(google.api.http) = {
+            post: "/order/pay"
+            body: "*"
+        };
+    }
+
+    rpc OrderCancelV1(OrderCancelRequest) returns (OrderCancelResponse) {
+        option(google.api.http) = {
+            post: "/order/cancel"
+            body: "*"
+        };
+    }
+}
+
+message OrderCreateRequest {
+    int64 user_id = 1 [
+    (validate.rules).int64 = {
+        gt: 0
+    }];
+
+    repeated ItemInfo items = 2 [
+    (validate.rules).repeated  = {
+        min_items: 1
+    }];
+}
+
+message ItemInfo {
+    int64 sku_id = 1 [
+        (validate.rules).int64 = {
+            gt: 0
+        },
+        json_name = "sku"
+    ];
+
+    uint32 count = 2 [
+    (validate.rules).uint32 = {
+        gt: 0
+    }];
+}
+
+message OrderCreateResponse {
+    int64 order_id = 1;
+}
+
+message OrderInfoRequest {
+    int64 order_id = 1 [
+    (validate.rules).int64 = {
+        gt: 0
+    }];
+}
+
+message OrderInfoResponse {
+    int64 user_id = 1;
+    string status = 2;
+    repeated ItemInfo items = 3;
+}
+
+message OrderPayRequest {
+    int64 order_id = 1 [
+    (validate.rules).int64 = {
+        gt: 0
+    }];
+}
+
+message OrderPayResponse {
+}
+
+message OrderCancelRequest {
+    int64 order_id = 1 [
+    (validate.rules).int64 = {
+        gt: 0
+    }];
+}
+
+message OrderCancelResponse {
+}

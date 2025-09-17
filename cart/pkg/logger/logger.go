@@ -14,3 +14,8 @@ func log(level string, message string) {
 func Info(message string) {
 	log("INFO", message)
 }
+
+// Error выводит сообщение об ошибке в лог
+func Error(message string) {
+	log("ERROR", message)
+}

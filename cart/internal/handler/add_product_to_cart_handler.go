@@ -49,6 +49,11 @@ func (s *Server) AddCartItemHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if errors.Is(err, domain.ErrOutOfStock) {
+			MakeErrorResponse(w, domain.ErrOutOfStock, http.StatusPreconditionFailed)
+			return
+		}
+
 		MakeErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}

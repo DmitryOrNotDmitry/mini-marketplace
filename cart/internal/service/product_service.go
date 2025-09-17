@@ -13,10 +13,12 @@ import (
 
 var ErrNotOk = errors.New("status not ok")
 
+// HTTPClient описывает операции выполнения HTTP запросов.
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// ProductServiceHTTP реализует доступ к сервису сервису product по HTTP.
 type ProductServiceHTTP struct {
 	httpClient HTTPClient
 	token      string

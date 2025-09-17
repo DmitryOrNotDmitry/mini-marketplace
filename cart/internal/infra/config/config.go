@@ -7,21 +7,32 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config главный конфиг сервиса.
 type Config struct {
 	Server         CartServiceConfig    `yaml:"service"`
 	ProductService ProductServiceConfig `yaml:"product_service"`
+	LomsService    LomsServiceConfig    `yaml:"loms_service"`
 }
 
+// CartServiceConfig конфиг для сервиса cart.
 type CartServiceConfig struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
+	Host                     string `yaml:"host"`
+	Port                     string `yaml:"port"`
+	GracefullShutdownTimeout int64  `yaml:"gracefull_shutdown_timeout"`
 }
 
+// ProductServiceConfig конфиг для сервиса product.
 type ProductServiceConfig struct {
 	Protocol string `yaml:"protocol"`
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
 	Token    string `yaml:"token"`
+}
+
+// LomsServiceConfig конфиг для сервиса loms.
+type LomsServiceConfig struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
 }
 
 // LoadConfig загружает конфиг из файла .yaml

@@ -1,12 +1,33 @@
 services:
   cart:
-    build: ./cart
+    build:
+      context: .
+      dockerfile: cart/Dockerfile
     ports:
       - "8080:8080"
     depends_on:
       - products
+      - loms
+
+  loms:
+    build:
+      context: .
+      dockerfile: loms/Dockerfile
+    ports:
+      - "8083:8083"
+      - "8084:8084"
 
   products:
     image: gitlab-registry.ozon.dev/go/classroom-20/students/homework-draft/products:latest
     ports:
       - "8082:8082"
+  
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: swagger-ui
+    ports:
+      - "8100:8080"
+    environment:
+      SWAGGER_JSON: /swagger/swagger.json
+    volumes:
+      - ./loms/api/openapiv2/loms.swagger.json:/swagger/swagger.json

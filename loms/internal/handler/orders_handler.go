@@ -1,0 +1,129 @@
+package handler
+
+import (
+	"context"
+	"errors"
+	"route256/loms/internal/domain"
+	"route256/loms/pkg/api/orders/v1"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+// OrderService описывает операции доступа к сервису заказов.
+type OrderService interface {
+	// Create создает заказ.
+	Create(ctx context.Context, order *domain.Order) (int64, error)
+	// GetInfoByID возвращает заказ по ID.
+	GetInfoByID(ctx context.Context, orderID int64) (*domain.Order, error)
+	// PayByID меняет статус заказа на оплаченный.
+	PayByID(ctx context.Context, orderID int64) error
+	// CancelByID меняет статус заказа на отмененный.
+	CancelByID(ctx context.Context, orderID int64) error
+}
+
+// OrderServerGRPC обрабатывает gRPC-запросы для операций с заказами.
+type OrderServerGRPC struct {
+	orders.UnimplementedOrderServiceV1Server
+	orderService OrderService
+}
+
+// NewOrderServerGRPC создает новый экземпляр OrderServerGRPC.
+func NewOrderServerGRPC(orderService OrderService) *OrderServerGRPC {
+	return &OrderServerGRPC{
+		orderService: orderService,
+	}
+}
+
+// OrderCreate создает новый заказ.
+func (os *OrderServerGRPC) OrderCreateV1(ctx context.Context, req *orders.OrderCreateRequest) (*orders.OrderCreateResponse, error) {
+	order := &domain.Order{
+		UserID: req.UserId,
+		Items:  make([]*domain.OrderItem, 0, len(req.Items)),
+	}
+	for _, reqItem := range req.Items {
+		order.Items = append(order.Items, &domain.OrderItem{
+			SkuID: reqItem.SkuId,
+			Count: reqItem.Count,
+		})
+	}
+
+	orderID, err := os.orderService.Create(ctx, order)
+	if err != nil {
+		if errors.Is(err, domain.ErrCanNotReserveItem) {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
+
+		if errors.Is(err, domain.ErrItemStockNotExist) {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
+
+		return nil, status.Error(codes.Internal, "internal server error")
+	}
+
+	res := &orders.OrderCreateResponse{OrderId: orderID}
+
+	return res, nil
+}
+
+// OrderInfo возвращает информацию о заказе по его идентификатору.
+func (os *OrderServerGRPC) OrderInfoV1(ctx context.Context, req *orders.OrderInfoRequest) (*orders.OrderInfoResponse, error) {
+	order, err := os.orderService.GetInfoByID(ctx, req.OrderId)
+	if err != nil {
+		if errors.Is(err, domain.ErrOrderNotExist) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+
+		return nil, status.Error(codes.Internal, "internal server error")
+	}
+
+	res := &orders.OrderInfoResponse{
+		UserId: order.UserID,
+		Status: string(order.Status),
+		Items:  make([]*orders.ItemInfo, 0, len(order.Items)),
+	}
+	for _, item := range order.Items {
+		res.Items = append(res.Items, &orders.ItemInfo{
+			SkuId: item.SkuID,
+			Count: item.Count,
+		})
+	}
+
+	return res, nil
+}
+
+// OrderPay помечает заказ как оплаченный по его идентификатору.
+func (os *OrderServerGRPC) OrderPayV1(ctx context.Context, req *orders.OrderPayRequest) (*orders.OrderPayResponse, error) {
+	err := os.orderService.PayByID(ctx, req.OrderId)
+	if err != nil {
+		if errors.Is(err, domain.ErrOrderNotExist) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+
+		if errors.Is(err, domain.ErrPayWithInvalidOrderStatus) {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
+
+		return nil, status.Error(codes.Internal, "internal server error")
+	}
+
+	return &orders.OrderPayResponse{}, nil
+}
+
+// OrderCancel отменяет заказ по его идентификатору.
+func (os *OrderServerGRPC) OrderCancelV1(ctx context.Context, req *orders.OrderCancelRequest) (*orders.OrderCancelResponse, error) {
+	err := os.orderService.CancelByID(ctx, req.OrderId)
+	if err != nil {
+		if errors.Is(err, domain.ErrOrderNotExist) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+
+		if errors.Is(err, domain.ErrCancelWithInvalidOrderStatus) {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
+
+		return nil, status.Error(codes.Internal, "internal server error")
+	}
+
+	return &orders.OrderCancelResponse{}, nil
+}

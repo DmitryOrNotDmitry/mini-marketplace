@@ -7,4 +7,5 @@ use (
 	./comments
 	./loms
 	./notifier
+	./tests
 )
