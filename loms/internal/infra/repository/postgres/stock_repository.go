@@ -22,7 +22,7 @@ func Int64ToUint32(num int64) (uint32, error) {
 		return math.MaxUint32, fmt.Errorf("invalid num value (num > math.MaxUint32): %d", num)
 	}
 
-	return uint32(num), nil
+	return uint32(num), nil //nolint:gosec // G115: int64 -> uint32 checked manually
 }
 
 // NewStockRepository создает новый StockRepository.
