@@ -1,8 +1,9 @@
-package service
+package service_test
 
 import (
 	"context"
 	"route256/loms/internal/domain"
+	"route256/loms/internal/service"
 	mock "route256/loms/mocks"
 	"testing"
 
@@ -12,21 +13,24 @@ import (
 )
 
 type testComponentOS struct {
-	orderRepoMock *mock.OrderRepositoryMock
-	stockServMock *mock.StockServiceIMock
-	orderService  *OrderService
+	orderRepoMock   *mock.OrderRepositoryMock
+	stockServMock   *mock.StockServiceIMock
+	repoFactoryMock *mock.OrderRepoFactoryMock
+	orderService    *service.OrderService
 }
 
 func newTestComponentOS(t *testing.T) *testComponentOS {
 	mc := minimock.NewController(t)
 	orderRepoMock := mock.NewOrderRepositoryMock(mc)
 	stockServMock := mock.NewStockServiceIMock(mc)
-	orderService := NewOrderService(orderRepoMock, stockServMock)
+	repoFactoryMock := mock.NewOrderRepoFactoryMock(mc)
+	orderService := service.NewOrderService(stockServMock, repoFactoryMock)
 
 	return &testComponentOS{
-		orderRepoMock: orderRepoMock,
-		stockServMock: stockServMock,
-		orderService:  orderService,
+		orderRepoMock:   orderRepoMock,
+		stockServMock:   stockServMock,
+		orderService:    orderService,
+		repoFactoryMock: repoFactoryMock,
 	}
 }
 
@@ -42,6 +46,7 @@ func TestOrderService(t *testing.T) {
 		order := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}}
 		orderSaved := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 		tc.stockServMock.ReserveForMock.Return(nil)
 		tc.orderRepoMock.InsertMock.When(ctx, orderSaved).Then(1, nil)
 
@@ -60,6 +65,7 @@ func TestOrderService(t *testing.T) {
 		order := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}}
 		orderSaved := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}, Status: domain.Failed}
 
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 		tc.stockServMock.ReserveForMock.Return(domain.ErrCanNotReserveItem)
 		tc.orderRepoMock.InsertMock.When(ctx, orderSaved).Then(1, nil)
 
@@ -76,6 +82,7 @@ func TestOrderService(t *testing.T) {
 		orderID := int64(1)
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 
 		order, err := tc.orderService.GetInfoByID(ctx, orderID)
@@ -93,6 +100,7 @@ func TestOrderService(t *testing.T) {
 		orderID := int64(1)
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 		tc.stockServMock.ConfirmReserveForMock.Return(nil)
 		tc.orderRepoMock.UpdateStatusMock.When(ctx, orderID, domain.Paid).Then(nil)
@@ -109,6 +117,7 @@ func TestOrderService(t *testing.T) {
 		ctx := context.Background()
 		orderID := int64(1)
 
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(nil, domain.ErrOrderNotExist)
 
 		err := tc.orderService.PayByID(ctx, orderID)
@@ -121,6 +130,8 @@ func TestOrderService(t *testing.T) {
 		tc := newTestComponentOS(t)
 
 		ctx := context.Background()
+
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 
 		for orderID, status := range []domain.Status{domain.Failed, domain.Cancelled, domain.New} {
 			orderOut := &domain.Order{OrderID: int64(orderID), UserID: 1, Items: []*domain.OrderItem{}, Status: status}
@@ -142,6 +153,7 @@ func TestOrderService(t *testing.T) {
 
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.Paid}
 
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 
 		err := tc.orderService.PayByID(ctx, orderID)
@@ -157,6 +169,7 @@ func TestOrderService(t *testing.T) {
 		orderID := int64(1)
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 		tc.stockServMock.CancelReserveForMock.Return(nil)
 		tc.orderRepoMock.UpdateStatusMock.When(ctx, orderID, domain.Cancelled).Then(nil)
@@ -171,6 +184,8 @@ func TestOrderService(t *testing.T) {
 		tc := newTestComponentOS(t)
 
 		ctx := context.Background()
+
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 
 		for orderID, status := range []domain.Status{domain.Failed, domain.Paid} {
 			orderOut := &domain.Order{OrderID: int64(orderID), UserID: 1, Items: []*domain.OrderItem{}, Status: status}
@@ -192,10 +207,10 @@ func TestOrderService(t *testing.T) {
 
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.Cancelled}
 
+		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
 		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 
 		err := tc.orderService.CancelByID(ctx, orderID)
 		require.NoError(t, err)
 	})
-
 }

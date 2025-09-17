@@ -28,6 +28,8 @@ minimock-gen-common:
 	minimock -i route256/loms/internal/service.StockRepository -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/service.OrderRepository -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/service.StockServiceI -o ./mocks/ -s "_mock.go"
+	minimock -i route256/loms/internal/service.StockRepoFactory -o ./mocks/ -s "_mock.go"
+	minimock -i route256/loms/internal/service.OrderRepoFactory -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/handler.StockService -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/handler.OrderService -o ./mocks/ -s "_mock.go"
 
