@@ -15,6 +15,9 @@ test:
 
 test-cover:
 	go test ./internal/... -count=1 -cover
+
+test-integration:
+	go test ./internal/... -tags=integration
 	
 minimock-gen:
 	mkdir -p mocks
