@@ -21,6 +21,9 @@ const (
 type TxManager interface {
 	// WithTransaction выполняет функцию fn в дефолтном уровне изоляции транзакции.
 	WithTransaction(ctx context.Context, operationType OperationType, fn func(ctx context.Context) error) (err error)
+
+	// WithRepeatableRead выполняет функцию fn в RepeatableRead уровне изоляции транзакции.
+	WithRepeatableRead(ctx context.Context, operationType OperationType, fn func(ctx context.Context) error) (err error)
 }
 
 // OrderRepository описывает методы работы с заказами в хранилище.

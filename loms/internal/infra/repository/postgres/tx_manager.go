@@ -54,11 +54,21 @@ func (m *TxManager) WithRepeatableRead(ctx context.Context, operationType servic
 
 // WithTx выполняет fn в транзакции.
 func (m *TxManager) WithTx(ctx context.Context, operationType service.OperationType, options pgx.TxOptions, fn func(ctx context.Context) error) (err error) {
-	tx, err := m.getPool(operationType).BeginTx(ctx, options)
-	if err != nil {
-		return
+	var tx pgx.Tx
+
+	existedTx, existTx := TxFromCtx(ctx)
+	if existTx {
+		tx, err = existedTx.Begin(ctx)
+		if err != nil {
+			return
+		}
+	} else {
+		tx, err = m.getPool(operationType).BeginTx(ctx, options)
+		if err != nil {
+			return
+		}
+		ctx = ctxWithTx(ctx, tx)
 	}
-	ctx = ctxWithTx(ctx, tx)
 
 	defer func() {
 		if p := recover(); p != nil {
@@ -68,9 +78,9 @@ func (m *TxManager) WithTx(ctx context.Context, operationType service.OperationT
 			}
 			panic(p)
 		} else if err != nil {
-			roolbackErr := tx.Rollback(ctx)
-			if roolbackErr != nil {
-				logger.Warning(fmt.Sprintf("tx.Rollback: %s", roolbackErr.Error()))
+			rollbackErr := tx.Rollback(ctx)
+			if rollbackErr != nil {
+				logger.Warning(fmt.Sprintf("tx.Rollback: %s", rollbackErr.Error()))
 			}
 		} else {
 			err = tx.Commit(ctx)

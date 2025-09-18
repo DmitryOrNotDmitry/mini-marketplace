@@ -20,6 +20,10 @@ func (tx *TxManagerForTests) WithTransaction(ctx context.Context, operationType 
 	return fn(ctx)
 }
 
+func (tx *TxManagerForTests) WithRepeatableRead(ctx context.Context, operationType service.OperationType, fn func(ctx context.Context) error) error {
+	return fn(ctx)
+}
+
 type testComponentSS struct {
 	stockRepoMock   *mock.StockRepositoryMock
 	repoFactoryMock *mock.StockRepoFactoryMock

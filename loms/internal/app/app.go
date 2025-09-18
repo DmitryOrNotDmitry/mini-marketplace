@@ -71,7 +71,7 @@ func NewApp(configPath string) (*App, error) {
 	repositoryfactory := postgres.NewRepositoryFactory(poolManager)
 
 	stockService := service.NewStockService(repositoryfactory, txManager)
-	orderService := service.NewOrderService(stockService, repositoryfactory)
+	orderService := service.NewOrderService(stockService, repositoryfactory, txManager)
 
 	stocksHandler := handler.NewStockServerGRPC(stockService)
 	ordersHandler := handler.NewOrderServerGRPC(orderService)

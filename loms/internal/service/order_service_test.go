@@ -24,7 +24,7 @@ func newTestComponentOS(t *testing.T) *testComponentOS {
 	orderRepoMock := mock.NewOrderRepositoryMock(mc)
 	stockServMock := mock.NewStockServiceIMock(mc)
 	repoFactoryMock := mock.NewOrderRepoFactoryMock(mc)
-	orderService := service.NewOrderService(stockServMock, repoFactoryMock)
+	orderService := service.NewOrderService(stockServMock, repoFactoryMock, &TxManagerForTests{})
 
 	return &testComponentOS{
 		orderRepoMock:   orderRepoMock,

@@ -54,7 +54,7 @@ func (ss *StockService) GetAvailableCount(ctx context.Context, skuID int64) (uin
 
 // ReserveFor резервирует товары под заказ.
 func (ss *StockService) ReserveFor(ctx context.Context, order *domain.Order) error {
-	err := ss.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
+	err := ss.txManager.WithRepeatableRead(ctx, Write, func(ctx context.Context) error {
 		stockRepository := ss.repositoryFactory.CreateStock(ctx, FromTx)
 		for _, item := range order.Items {
 			stock, err := stockRepository.GetBySkuID(ctx, item.SkuID)

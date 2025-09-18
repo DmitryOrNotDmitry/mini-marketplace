@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"route256/cart/pkg/logger"
 	"route256/loms/internal/domain"
 )
 
@@ -27,35 +26,47 @@ type StockServiceI interface {
 type OrderService struct {
 	stockService      StockServiceI
 	repositoryFactory OrderRepoFactory
+	txManager         TxManager
 }
 
 // NewOrderService создает новый сервис управления заказами.
-func NewOrderService(stockService StockServiceI, repositoryFactory OrderRepoFactory) *OrderService {
+func NewOrderService(stockService StockServiceI, repositoryFactory OrderRepoFactory, txManager TxManager) *OrderService {
 	return &OrderService{
 		stockService:      stockService,
 		repositoryFactory: repositoryFactory,
+		txManager:         txManager,
 	}
 }
 
 // Create создает новый заказ, резервирует товары и возвращает идентификатор заказа.
 func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64, error) {
-	order.Status = domain.New
+	var orderID int64
+	var stockErr error
 
-	err := os.stockService.ReserveFor(ctx, order)
+	err := os.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
+		order.Status = domain.New
+
+		stockErr = os.stockService.ReserveFor(ctx, order)
+		if stockErr != nil {
+			stockErr = fmt.Errorf("stockService.ReserveFor: %w", stockErr)
+			order.Status = domain.Failed
+		} else {
+			order.Status = domain.AwaitingPayment
+		}
+
+		orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
+		var err error
+		orderID, err = orderRepository.Insert(ctx, order)
+		if err != nil {
+			return fmt.Errorf("orderRepository.Insert: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
-		err = fmt.Errorf("stockService.ReserveFor: %w", err)
-		order.Status = domain.Failed
-	} else {
-		order.Status = domain.AwaitingPayment
+		return 0, fmt.Errorf("txManager.WithTransaction: %w", err)
 	}
 
-	orderRepository := os.repositoryFactory.CreateOrder(ctx, Write)
-	orderID, errInsert := orderRepository.Insert(ctx, order)
-	if errInsert != nil {
-		return -1, fmt.Errorf("orderRepository.Insert: %w", errInsert)
-	}
-
-	return orderID, err
+	return orderID, stockErr
 }
 
 // GetInfoByID возвращает информацию о заказе по его идентификатору.
@@ -71,48 +82,62 @@ func (os *OrderService) GetInfoByID(ctx context.Context, orderID int64) (*domain
 
 // PayByID подтверждает оплату заказа по идентификатору.
 func (os *OrderService) PayByID(ctx context.Context, orderID int64) error {
-	order, err := os.GetInfoByID(ctx, orderID)
+	err := os.txManager.WithRepeatableRead(ctx, Write, func(ctx context.Context) error {
+		order, err := os.GetInfoByID(ctx, orderID)
+		if err != nil {
+			return fmt.Errorf("os.GetInfoByID: %w", err)
+		}
+
+		if order.Status == domain.Paid {
+			return nil
+		}
+
+		if order.Status != domain.AwaitingPayment {
+			return domain.ErrPayWithInvalidOrderStatus
+		}
+
+		err = os.stockService.ConfirmReserveFor(ctx, order)
+		if err != nil {
+			return fmt.Errorf("stockService.ConfirmReserveFor: %w", err)
+		}
+
+		orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
+		return orderRepository.UpdateStatus(ctx, orderID, domain.Paid)
+	})
 	if err != nil {
-		return fmt.Errorf("os.GetInfoByID: %w", err)
+		return fmt.Errorf("txManager.WithRepeatableRead: %w", err)
 	}
 
-	if order.Status == domain.Paid {
-		return nil
-	}
-
-	if order.Status != domain.AwaitingPayment {
-		return domain.ErrPayWithInvalidOrderStatus
-	}
-
-	err = os.stockService.ConfirmReserveFor(ctx, order)
-	if err != nil {
-		return fmt.Errorf("stockService.ConfirmReserveFor: %w", err)
-	}
-
-	orderRepository := os.repositoryFactory.CreateOrder(ctx, Write)
-	return orderRepository.UpdateStatus(ctx, orderID, domain.Paid)
+	return nil
 }
 
 // CancelByID отменяет заказ по идентификатору.
 func (os *OrderService) CancelByID(ctx context.Context, orderID int64) error {
-	order, err := os.GetInfoByID(ctx, orderID)
+	err := os.txManager.WithRepeatableRead(ctx, Write, func(ctx context.Context) error {
+		order, err := os.GetInfoByID(ctx, orderID)
+		if err != nil {
+			return fmt.Errorf("os.GetInfoByID: %w", err)
+		}
+
+		if order.Status == domain.Cancelled {
+			return nil
+		}
+
+		if order.Status == domain.Paid || order.Status == domain.Failed {
+			return domain.ErrCancelWithInvalidOrderStatus
+		}
+
+		errCancel := os.stockService.CancelReserveFor(ctx, order)
+		if errCancel != nil {
+			return fmt.Errorf("stockService.CancelReserveFor: %s", errCancel)
+		}
+
+		orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
+		return orderRepository.UpdateStatus(ctx, orderID, domain.Cancelled)
+	})
 	if err != nil {
-		return fmt.Errorf("os.GetInfoByID: %w", err)
+		return fmt.Errorf("txManager.WithRepeatableRead: %w", err)
 	}
 
-	if order.Status == domain.Cancelled {
-		return nil
-	}
-
-	if order.Status == domain.Paid || order.Status == domain.Failed {
-		return domain.ErrCancelWithInvalidOrderStatus
-	}
-
-	errCancel := os.stockService.CancelReserveFor(ctx, order)
-	if errCancel != nil {
-		logger.Error(fmt.Sprintf("stockService.CancelReserveFor: %s", errCancel.Error()))
-	}
-
-	orderRepository := os.repositoryFactory.CreateOrder(ctx, Write)
-	return orderRepository.UpdateStatus(ctx, orderID, domain.Cancelled)
+	return nil
 }
