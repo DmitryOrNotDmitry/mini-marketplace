@@ -71,23 +71,26 @@ func (m *TxManager) WithTx(ctx context.Context, operationType service.OperationT
 	}
 
 	defer func() {
-		if p := recover(); p != nil {
-			roolbackErr := tx.Rollback(ctx)
-			if roolbackErr != nil {
-				logger.Warning(fmt.Sprintf("tx.Rollback: %s", roolbackErr.Error()))
-			}
-			panic(p)
-		} else if err != nil {
-			rollbackErr := tx.Rollback(ctx)
-			if rollbackErr != nil {
-				logger.Warning(fmt.Sprintf("tx.Rollback: %s", rollbackErr.Error()))
-			}
-		} else {
-			err = tx.Commit(ctx)
-		}
+		err = m.handleTxDefer(ctx, tx, err)
 	}()
 
 	err = fn(ctx)
 
 	return
+}
+
+func (m *TxManager) handleTxDefer(ctx context.Context, tx pgx.Tx, err error) error {
+	if p := recover(); p != nil {
+		if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+			logger.Warning(fmt.Sprintf("tx.Rollback: %s", rollbackErr.Error()))
+		}
+		panic(p)
+	} else if err != nil {
+		if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+			logger.Warning(fmt.Sprintf("tx.Rollback: %s", rollbackErr.Error()))
+		}
+	} else {
+		err = tx.Commit(ctx)
+	}
+	return err
 }

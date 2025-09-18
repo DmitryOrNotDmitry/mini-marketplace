@@ -32,9 +32,9 @@ test-cover:
 	go test ./internal/... -count=1 -cover
 
 lint:
-	gocyclo -over 10 -ignore "_test|mocks|tests" .
-	gocognit -over 12 -ignore "_test|mocks|tests" .
+	gocyclo -over 10 -ignore "_test|mocks|tests|pkg|vendor" .
+	gocognit -over 12 -ignore "_test|mocks|tests|pkg|vendor" .
 
 lint-top:
-	gocyclo -top 10 -ignore "_test|mocks|tests" .
-	gocognit -top 10 -ignore "_test|mocks|tests" .
+	gocyclo -top 10 -ignore "_test|mocks|tests|pkg|vendor" .
+	gocognit -top 10 -ignore "_test|mocks|tests|pkg|vendor" .
