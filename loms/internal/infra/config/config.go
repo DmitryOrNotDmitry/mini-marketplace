@@ -9,8 +9,9 @@ import (
 
 // Config главный конфиг сервиса.
 type Config struct {
-	Server   LomsServiceConfig `yaml:"service"`
-	MasterDB MasterDBConfig    `yaml:"db_master"`
+	Server    LomsServiceConfig `yaml:"service"`
+	MasterDB  MasterDBConfig    `yaml:"db_master"`
+	ReplicaDB ReplicaDBConfig   `yaml:"db_replica"`
 }
 
 // LomsServiceConfig конфиг для сервиса loms.
@@ -31,8 +32,17 @@ type GRPCGateWayConfig struct {
 	IdleTimeout       int64 `yaml:"idle_timeout"`
 }
 
-// MasterDBConfig конфиг для БД мастера.
+// MasterDBConfig конфиг для мастера БД
 type MasterDBConfig struct {
+	Host     string `yaml:"host"`
+	Port     int64  `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DBName   string `yaml:"db_name"`
+}
+
+// ReplicaDBConfig конфиг для реплики БД.
+type ReplicaDBConfig struct {
 	Host     string `yaml:"host"`
 	Port     int64  `yaml:"port"`
 	User     string `yaml:"user"`

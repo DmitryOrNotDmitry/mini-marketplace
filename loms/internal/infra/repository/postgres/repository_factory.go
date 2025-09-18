@@ -7,26 +7,44 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type RepositoryFactory struct {
-	pool *pgxpool.Pool
+// PoolManager определяет интерфейс для получения пулов соединений.
+type PoolManager interface {
+	Readable() *pgxpool.Pool
+	Writable() *pgxpool.Pool
 }
 
-func NewRepositoryFactory(pool *pgxpool.Pool) *RepositoryFactory {
+// RepositoryFactory создает репозитории с нужным пулом соединений.
+type RepositoryFactory struct {
+	poolManager PoolManager
+}
+
+// NewRepositoryFactory создает новый RepositoryFactory.
+func NewRepositoryFactory(poolManager PoolManager) *RepositoryFactory {
 	return &RepositoryFactory{
-		pool: pool,
+		poolManager: poolManager,
 	}
 }
 
-func (rf *RepositoryFactory) CreateStock(ctx context.Context) service.StockRepository {
+func (rf *RepositoryFactory) getPool(operationType service.OperationType) *pgxpool.Pool {
+	if operationType == service.Read {
+		return rf.poolManager.Readable()
+	}
+
+	return rf.poolManager.Writable()
+}
+
+// CreateStock создает StockRepository с нужным пулом или транзакцией.
+func (rf *RepositoryFactory) CreateStock(ctx context.Context, operationType service.OperationType) service.StockRepository {
 	if tx, ok := TxFromCtx(ctx); ok {
 		return NewStockRepository(tx)
 	}
-	return NewStockRepository(rf.pool)
+	return NewStockRepository(rf.getPool(operationType))
 }
 
-func (rf *RepositoryFactory) CreateOrder(ctx context.Context) service.OrderRepository {
+// CreateOrder создает OrderRepository с нужным пулом или транзакцией.
+func (rf *RepositoryFactory) CreateOrder(ctx context.Context, operationType service.OperationType) service.OrderRepository {
 	if tx, ok := TxFromCtx(ctx); ok {
 		return NewOrderRepository(tx)
 	}
-	return NewOrderRepository(rf.pool)
+	return NewOrderRepository(rf.getPool(operationType))
 }

@@ -16,7 +16,7 @@ import (
 type TxManagerForTests struct {
 }
 
-func (tx *TxManagerForTests) WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+func (tx *TxManagerForTests) WithTransaction(ctx context.Context, operationType service.OperationType, fn func(ctx context.Context) error) error {
 	return fn(ctx)
 }
 

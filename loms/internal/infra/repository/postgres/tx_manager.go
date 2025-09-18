@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"context"
-	repo_sqlc "route256/loms/internal/infra/repository/postgres/sqlc/generated"
+	"fmt"
+	"route256/cart/pkg/logger"
+	"route256/loms/internal/service"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,41 +16,45 @@ func ctxWithTx(ctx context.Context, tx pgx.Tx) context.Context {
 	return context.WithValue(ctx, txKey{}, tx)
 }
 
+// TxFromCtx извлекает транзакцию из контекста.
 func TxFromCtx(ctx context.Context) (pgx.Tx, bool) {
 	tx, ok := ctx.Value(txKey{}).(pgx.Tx)
 	return tx, ok
 }
 
+// TxManager реализует интерфейс service.TxManager для работы с транзакциями.
 type TxManager struct {
-	pool *pgxpool.Pool
+	poolManager PoolManager
 }
 
-func NewPgTxManager(pool *pgxpool.Pool) *TxManager {
+// NewPgTxManager создает новый TxManager.
+func NewPgTxManager(poolManager PoolManager) *TxManager {
 	return &TxManager{
-		pool: pool,
+		poolManager: poolManager,
 	}
 }
 
-func (m *TxManager) NewQuerier(ctx context.Context) repo_sqlc.Querier {
-	if tx, ok := TxFromCtx(ctx); ok {
-		return repo_sqlc.New(tx)
+func (m *TxManager) getPool(operationType service.OperationType) *pgxpool.Pool {
+	if operationType == service.Read {
+		return m.poolManager.Readable()
 	}
-	return repo_sqlc.New(m.pool)
+
+	return m.poolManager.Writable()
 }
 
 // WithTransaction выполняет fn в транзакции с дефолтным уровнем изоляции.
-func (m *TxManager) WithTransaction(ctx context.Context, fn func(ctx context.Context) error) (err error) {
-	return m.WithTx(ctx, pgx.TxOptions{}, fn)
+func (m *TxManager) WithTransaction(ctx context.Context, operationType service.OperationType, fn func(ctx context.Context) error) (err error) {
+	return m.WithTx(ctx, operationType, pgx.TxOptions{}, fn)
 }
 
-// WithTransaction выполняет fn в транзакции с уровнем изоляции RepeatableRead.
-func (m *TxManager) WithRepeatableRead(ctx context.Context, fn func(ctx context.Context) error) (err error) {
-	return m.WithTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, fn)
+// WithRepeatableRead выполняет fn в транзакции с уровнем изоляции RepeatableRead.
+func (m *TxManager) WithRepeatableRead(ctx context.Context, operationType service.OperationType, fn func(ctx context.Context) error) (err error) {
+	return m.WithTx(ctx, operationType, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, fn)
 }
 
 // WithTx выполняет fn в транзакции.
-func (m *TxManager) WithTx(ctx context.Context, options pgx.TxOptions, fn func(ctx context.Context) error) (err error) {
-	tx, err := m.pool.BeginTx(ctx, options)
+func (m *TxManager) WithTx(ctx context.Context, operationType service.OperationType, options pgx.TxOptions, fn func(ctx context.Context) error) (err error) {
+	tx, err := m.getPool(operationType).BeginTx(ctx, options)
 	if err != nil {
 		return
 	}
@@ -56,14 +62,17 @@ func (m *TxManager) WithTx(ctx context.Context, options pgx.TxOptions, fn func(c
 
 	defer func() {
 		if p := recover(); p != nil {
-			// a panic occurred, rollback and repanic
-			_ = tx.Rollback(ctx)
+			roolbackErr := tx.Rollback(ctx)
+			if roolbackErr != nil {
+				logger.Warning(fmt.Sprintf("tx.Rollback: %s", roolbackErr.Error()))
+			}
 			panic(p)
 		} else if err != nil {
-			// something went wrong, rollback
-			_ = tx.Rollback(ctx)
+			roolbackErr := tx.Rollback(ctx)
+			if roolbackErr != nil {
+				logger.Warning(fmt.Sprintf("tx.Rollback: %s", roolbackErr.Error()))
+			}
 		} else {
-			// all good, commit
 			err = tx.Commit(ctx)
 		}
 	}()

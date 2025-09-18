@@ -22,8 +22,8 @@ db_master:
   db_name: loms_db
 
 db_replica:
-  host: localhost
-  port: 5433
+  host: postgres-replica
+  port: 5432
   user: loms-user
   password: loms-password
   db_name: loms_db

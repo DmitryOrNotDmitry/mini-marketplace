@@ -30,15 +30,18 @@ func (or *OrderRepository) Insert(ctx context.Context, order *domain.Order) (int
 		Status: string(order.Status),
 	})
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("querier.AddOrder: %w", err)
 	}
 
 	for _, item := range order.Items {
-		_ = or.querier.AddOrderItem(ctx, &repo_sqlc.AddOrderItemParams{
+		err = or.querier.AddOrderItem(ctx, &repo_sqlc.AddOrderItemParams{
 			Sku:     item.SkuID,
 			OrderID: orderID,
 			Count:   int64(item.Count),
 		})
+		if err != nil {
+			return 0, fmt.Errorf("querier.AddOrderItem: %w", err)
+		}
 	}
 
 	return orderID, nil

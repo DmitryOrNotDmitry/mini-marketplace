@@ -9,7 +9,7 @@ import (
 // StockRepoFactory создает экземпляры репозитория запасов.
 type StockRepoFactory interface {
 	// CreateStock создает новый репозиторий запасов.
-	CreateStock(ctx context.Context) StockRepository
+	CreateStock(ctx context.Context, operationType OperationType) StockRepository
 }
 
 // StockService реализует бизнес-логику управления запасами товаров.
@@ -32,7 +32,7 @@ func (ss *StockService) Create(ctx context.Context, stock *domain.Stock) error {
 		return domain.ErrItemStockNotValid
 	}
 
-	stockRepository := ss.repositoryFactory.CreateStock(ctx)
+	stockRepository := ss.repositoryFactory.CreateStock(ctx, Write)
 	err := stockRepository.Upsert(ctx, stock)
 	if err != nil {
 		return fmt.Errorf("stockRepository.Upsert: %w", err)
@@ -43,7 +43,7 @@ func (ss *StockService) Create(ctx context.Context, stock *domain.Stock) error {
 
 // GetAvailableCount возвращает количество доступного товара по SKU.
 func (ss *StockService) GetAvailableCount(ctx context.Context, skuID int64) (uint32, error) {
-	stockRepository := ss.repositoryFactory.CreateStock(ctx)
+	stockRepository := ss.repositoryFactory.CreateStock(ctx, Read)
 	stock, err := stockRepository.GetBySkuID(ctx, skuID)
 	if err != nil {
 		return 0, fmt.Errorf("stockRepository.GetBySkuID: %w", err)
@@ -54,8 +54,8 @@ func (ss *StockService) GetAvailableCount(ctx context.Context, skuID int64) (uin
 
 // ReserveFor резервирует товары под заказ.
 func (ss *StockService) ReserveFor(ctx context.Context, order *domain.Order) error {
-	err := ss.txManager.WithTransaction(ctx, func(ctx context.Context) error {
-		stockRepository := ss.repositoryFactory.CreateStock(ctx)
+	err := ss.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
+		stockRepository := ss.repositoryFactory.CreateStock(ctx, FromTx)
 		for _, item := range order.Items {
 			stock, err := stockRepository.GetBySkuID(ctx, item.SkuID)
 			if err != nil {
@@ -83,8 +83,8 @@ func (ss *StockService) ReserveFor(ctx context.Context, order *domain.Order) err
 
 // CancelReserveFor отменяет резервирование товаров по заказу.
 func (ss *StockService) CancelReserveFor(ctx context.Context, order *domain.Order) error {
-	err := ss.txManager.WithTransaction(ctx, func(ctx context.Context) error {
-		stockRepository := ss.repositoryFactory.CreateStock(ctx)
+	err := ss.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
+		stockRepository := ss.repositoryFactory.CreateStock(ctx, FromTx)
 		for _, item := range order.Items {
 			err := stockRepository.RemoveReserve(ctx, item.SkuID, item.Count)
 			if err != nil {
@@ -103,8 +103,8 @@ func (ss *StockService) CancelReserveFor(ctx context.Context, order *domain.Orde
 
 // ConfirmReserveFor подтверждает резервирование и уменьшает общий запас.
 func (ss *StockService) ConfirmReserveFor(ctx context.Context, order *domain.Order) error {
-	err := ss.txManager.WithTransaction(ctx, func(ctx context.Context) error {
-		stockRepository := ss.repositoryFactory.CreateStock(ctx)
+	err := ss.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
+		stockRepository := ss.repositoryFactory.CreateStock(ctx, FromTx)
 		for _, item := range order.Items {
 			err := stockRepository.ReduceReserveAndTotal(ctx, item.SkuID, item.Count)
 			if err != nil {

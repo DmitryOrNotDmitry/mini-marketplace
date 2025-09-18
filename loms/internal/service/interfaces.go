@@ -5,10 +5,22 @@ import (
 	"route256/loms/internal/domain"
 )
 
+// OperationType определяет тип операции.
+type OperationType int
+
+const (
+	// Read операция только для чтения.
+	Read OperationType = 1
+	// Write операция на запись.
+	Write OperationType = 2
+	// FromTx операция извлекается из транзакции.
+	FromTx OperationType = 3
+)
+
 // TxManager определяет интерфейс для работы с транзакциями.
 type TxManager interface {
 	// WithTransaction выполняет функцию fn в дефолтном уровне изоляции транзакции.
-	WithTransaction(ctx context.Context, fn func(ctx context.Context) error) (err error)
+	WithTransaction(ctx context.Context, operationType OperationType, fn func(ctx context.Context) error) (err error)
 }
 
 // OrderRepository описывает методы работы с заказами в хранилище.

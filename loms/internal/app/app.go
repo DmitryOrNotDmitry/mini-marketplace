@@ -51,21 +51,24 @@ func NewApp(configPath string) (*App, error) {
 
 	reflection.Register(app.grpcServer)
 
-	postgresDSN := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", app.Config.MasterDB.User, app.Config.MasterDB.Password,
+	postgresMasterDSN := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", app.Config.MasterDB.User, app.Config.MasterDB.Password,
 		app.Config.MasterDB.Host, app.Config.MasterDB.Port, app.Config.MasterDB.DBName)
 
-	err = applyMigrations(postgresDSN, app.Config.Server.MigrationsPath)
+	postgresReplicaDSN := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", app.Config.ReplicaDB.User, app.Config.ReplicaDB.Password,
+		app.Config.ReplicaDB.Host, app.Config.ReplicaDB.Port, app.Config.ReplicaDB.DBName)
+
+	err = applyMigrations(postgresMasterDSN, app.Config.Server.MigrationsPath)
 	if err != nil {
 		logger.Warning(fmt.Sprintf("Skip migrations applying with error: %s", err.Error()))
 	}
 
-	pool, err := postgres.NewPool(context.TODO(), postgresDSN)
+	poolManager, err := postgres.NewRRPoolManager(context.TODO(), postgresMasterDSN, []string{postgresReplicaDSN})
 	if err != nil {
-		return nil, fmt.Errorf("NewPool: %w", err)
+		return nil, fmt.Errorf("postgres.NewRRPoolManager: %w", err)
 	}
 
-	txManager := postgres.NewPgTxManager(pool)
-	repositoryfactory := postgres.NewRepositoryFactory(pool)
+	txManager := postgres.NewPgTxManager(poolManager)
+	repositoryfactory := postgres.NewRepositoryFactory(poolManager)
 
 	stockService := service.NewStockService(repositoryfactory, txManager)
 	orderService := service.NewOrderService(stockService, repositoryfactory)

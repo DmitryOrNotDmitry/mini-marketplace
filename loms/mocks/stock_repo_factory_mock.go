@@ -19,9 +19,9 @@ type StockRepoFactoryMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
-	funcCreateStock          func(ctx context.Context) (s1 mm_service.StockRepository)
+	funcCreateStock          func(ctx context.Context, operationType mm_service.OperationType) (s1 mm_service.StockRepository)
 	funcCreateStockOrigin    string
-	inspectFuncCreateStock   func(ctx context.Context)
+	inspectFuncCreateStock   func(ctx context.Context, operationType mm_service.OperationType)
 	afterCreateStockCounter  uint64
 	beforeCreateStockCounter uint64
 	CreateStockMock          mStockRepoFactoryMockCreateStock
@@ -69,12 +69,14 @@ type StockRepoFactoryMockCreateStockExpectation struct {
 
 // StockRepoFactoryMockCreateStockParams contains parameters of the StockRepoFactory.CreateStock
 type StockRepoFactoryMockCreateStockParams struct {
-	ctx context.Context
+	ctx           context.Context
+	operationType mm_service.OperationType
 }
 
 // StockRepoFactoryMockCreateStockParamPtrs contains pointers to parameters of the StockRepoFactory.CreateStock
 type StockRepoFactoryMockCreateStockParamPtrs struct {
-	ctx *context.Context
+	ctx           *context.Context
+	operationType *mm_service.OperationType
 }
 
 // StockRepoFactoryMockCreateStockResults contains results of the StockRepoFactory.CreateStock
@@ -84,8 +86,9 @@ type StockRepoFactoryMockCreateStockResults struct {
 
 // StockRepoFactoryMockCreateStockOrigins contains origins of expectations of the StockRepoFactory.CreateStock
 type StockRepoFactoryMockCreateStockExpectationOrigins struct {
-	origin    string
-	originCtx string
+	origin              string
+	originCtx           string
+	originOperationType string
 }
 
 // Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
@@ -99,7 +102,7 @@ func (mmCreateStock *mStockRepoFactoryMockCreateStock) Optional() *mStockRepoFac
 }
 
 // Expect sets up expected params for StockRepoFactory.CreateStock
-func (mmCreateStock *mStockRepoFactoryMockCreateStock) Expect(ctx context.Context) *mStockRepoFactoryMockCreateStock {
+func (mmCreateStock *mStockRepoFactoryMockCreateStock) Expect(ctx context.Context, operationType mm_service.OperationType) *mStockRepoFactoryMockCreateStock {
 	if mmCreateStock.mock.funcCreateStock != nil {
 		mmCreateStock.mock.t.Fatalf("StockRepoFactoryMock.CreateStock mock is already set by Set")
 	}
@@ -112,7 +115,7 @@ func (mmCreateStock *mStockRepoFactoryMockCreateStock) Expect(ctx context.Contex
 		mmCreateStock.mock.t.Fatalf("StockRepoFactoryMock.CreateStock mock is already set by ExpectParams functions")
 	}
 
-	mmCreateStock.defaultExpectation.params = &StockRepoFactoryMockCreateStockParams{ctx}
+	mmCreateStock.defaultExpectation.params = &StockRepoFactoryMockCreateStockParams{ctx, operationType}
 	mmCreateStock.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
 	for _, e := range mmCreateStock.expectations {
 		if minimock.Equal(e.params, mmCreateStock.defaultExpectation.params) {
@@ -146,8 +149,31 @@ func (mmCreateStock *mStockRepoFactoryMockCreateStock) ExpectCtxParam1(ctx conte
 	return mmCreateStock
 }
 
+// ExpectOperationTypeParam2 sets up expected param operationType for StockRepoFactory.CreateStock
+func (mmCreateStock *mStockRepoFactoryMockCreateStock) ExpectOperationTypeParam2(operationType mm_service.OperationType) *mStockRepoFactoryMockCreateStock {
+	if mmCreateStock.mock.funcCreateStock != nil {
+		mmCreateStock.mock.t.Fatalf("StockRepoFactoryMock.CreateStock mock is already set by Set")
+	}
+
+	if mmCreateStock.defaultExpectation == nil {
+		mmCreateStock.defaultExpectation = &StockRepoFactoryMockCreateStockExpectation{}
+	}
+
+	if mmCreateStock.defaultExpectation.params != nil {
+		mmCreateStock.mock.t.Fatalf("StockRepoFactoryMock.CreateStock mock is already set by Expect")
+	}
+
+	if mmCreateStock.defaultExpectation.paramPtrs == nil {
+		mmCreateStock.defaultExpectation.paramPtrs = &StockRepoFactoryMockCreateStockParamPtrs{}
+	}
+	mmCreateStock.defaultExpectation.paramPtrs.operationType = &operationType
+	mmCreateStock.defaultExpectation.expectationOrigins.originOperationType = minimock.CallerInfo(1)
+
+	return mmCreateStock
+}
+
 // Inspect accepts an inspector function that has same arguments as the StockRepoFactory.CreateStock
-func (mmCreateStock *mStockRepoFactoryMockCreateStock) Inspect(f func(ctx context.Context)) *mStockRepoFactoryMockCreateStock {
+func (mmCreateStock *mStockRepoFactoryMockCreateStock) Inspect(f func(ctx context.Context, operationType mm_service.OperationType)) *mStockRepoFactoryMockCreateStock {
 	if mmCreateStock.mock.inspectFuncCreateStock != nil {
 		mmCreateStock.mock.t.Fatalf("Inspect function is already set for StockRepoFactoryMock.CreateStock")
 	}
@@ -172,7 +198,7 @@ func (mmCreateStock *mStockRepoFactoryMockCreateStock) Return(s1 mm_service.Stoc
 }
 
 // Set uses given function f to mock the StockRepoFactory.CreateStock method
-func (mmCreateStock *mStockRepoFactoryMockCreateStock) Set(f func(ctx context.Context) (s1 mm_service.StockRepository)) *StockRepoFactoryMock {
+func (mmCreateStock *mStockRepoFactoryMockCreateStock) Set(f func(ctx context.Context, operationType mm_service.OperationType) (s1 mm_service.StockRepository)) *StockRepoFactoryMock {
 	if mmCreateStock.defaultExpectation != nil {
 		mmCreateStock.mock.t.Fatalf("Default expectation is already set for the StockRepoFactory.CreateStock method")
 	}
@@ -188,14 +214,14 @@ func (mmCreateStock *mStockRepoFactoryMockCreateStock) Set(f func(ctx context.Co
 
 // When sets expectation for the StockRepoFactory.CreateStock which will trigger the result defined by the following
 // Then helper
-func (mmCreateStock *mStockRepoFactoryMockCreateStock) When(ctx context.Context) *StockRepoFactoryMockCreateStockExpectation {
+func (mmCreateStock *mStockRepoFactoryMockCreateStock) When(ctx context.Context, operationType mm_service.OperationType) *StockRepoFactoryMockCreateStockExpectation {
 	if mmCreateStock.mock.funcCreateStock != nil {
 		mmCreateStock.mock.t.Fatalf("StockRepoFactoryMock.CreateStock mock is already set by Set")
 	}
 
 	expectation := &StockRepoFactoryMockCreateStockExpectation{
 		mock:               mmCreateStock.mock,
-		params:             &StockRepoFactoryMockCreateStockParams{ctx},
+		params:             &StockRepoFactoryMockCreateStockParams{ctx, operationType},
 		expectationOrigins: StockRepoFactoryMockCreateStockExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
 	mmCreateStock.expectations = append(mmCreateStock.expectations, expectation)
@@ -230,17 +256,17 @@ func (mmCreateStock *mStockRepoFactoryMockCreateStock) invocationsDone() bool {
 }
 
 // CreateStock implements mm_service.StockRepoFactory
-func (mmCreateStock *StockRepoFactoryMock) CreateStock(ctx context.Context) (s1 mm_service.StockRepository) {
+func (mmCreateStock *StockRepoFactoryMock) CreateStock(ctx context.Context, operationType mm_service.OperationType) (s1 mm_service.StockRepository) {
 	mm_atomic.AddUint64(&mmCreateStock.beforeCreateStockCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreateStock.afterCreateStockCounter, 1)
 
 	mmCreateStock.t.Helper()
 
 	if mmCreateStock.inspectFuncCreateStock != nil {
-		mmCreateStock.inspectFuncCreateStock(ctx)
+		mmCreateStock.inspectFuncCreateStock(ctx, operationType)
 	}
 
-	mm_params := StockRepoFactoryMockCreateStockParams{ctx}
+	mm_params := StockRepoFactoryMockCreateStockParams{ctx, operationType}
 
 	// Record call args
 	mmCreateStock.CreateStockMock.mutex.Lock()
@@ -259,13 +285,18 @@ func (mmCreateStock *StockRepoFactoryMock) CreateStock(ctx context.Context) (s1 
 		mm_want := mmCreateStock.CreateStockMock.defaultExpectation.params
 		mm_want_ptrs := mmCreateStock.CreateStockMock.defaultExpectation.paramPtrs
 
-		mm_got := StockRepoFactoryMockCreateStockParams{ctx}
+		mm_got := StockRepoFactoryMockCreateStockParams{ctx, operationType}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
 				mmCreateStock.t.Errorf("StockRepoFactoryMock.CreateStock got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
 					mmCreateStock.CreateStockMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.operationType != nil && !minimock.Equal(*mm_want_ptrs.operationType, mm_got.operationType) {
+				mmCreateStock.t.Errorf("StockRepoFactoryMock.CreateStock got unexpected parameter operationType, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmCreateStock.CreateStockMock.defaultExpectation.expectationOrigins.originOperationType, *mm_want_ptrs.operationType, mm_got.operationType, minimock.Diff(*mm_want_ptrs.operationType, mm_got.operationType))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
@@ -280,9 +311,9 @@ func (mmCreateStock *StockRepoFactoryMock) CreateStock(ctx context.Context) (s1 
 		return (*mm_results).s1
 	}
 	if mmCreateStock.funcCreateStock != nil {
-		return mmCreateStock.funcCreateStock(ctx)
+		return mmCreateStock.funcCreateStock(ctx, operationType)
 	}
-	mmCreateStock.t.Fatalf("Unexpected call to StockRepoFactoryMock.CreateStock. %v", ctx)
+	mmCreateStock.t.Fatalf("Unexpected call to StockRepoFactoryMock.CreateStock. %v %v", ctx, operationType)
 	return
 }
 

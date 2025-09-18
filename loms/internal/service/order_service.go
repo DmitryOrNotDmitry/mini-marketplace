@@ -10,7 +10,7 @@ import (
 // OrderRepoFactory создает экземпляры репозитория заказов.
 type OrderRepoFactory interface {
 	// CreateOrder создает новый репозиторий заказов.
-	CreateOrder(ctx context.Context) OrderRepository
+	CreateOrder(ctx context.Context, operationType OperationType) OrderRepository
 }
 
 // StockServiceI описывает методы работы с резервированием товаров.
@@ -49,7 +49,7 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 		order.Status = domain.AwaitingPayment
 	}
 
-	orderRepository := os.repositoryFactory.CreateOrder(ctx)
+	orderRepository := os.repositoryFactory.CreateOrder(ctx, Write)
 	orderID, errInsert := orderRepository.Insert(ctx, order)
 	if errInsert != nil {
 		return -1, fmt.Errorf("orderRepository.Insert: %w", errInsert)
@@ -60,7 +60,7 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 
 // GetInfoByID возвращает информацию о заказе по его идентификатору.
 func (os *OrderService) GetInfoByID(ctx context.Context, orderID int64) (*domain.Order, error) {
-	orderRepository := os.repositoryFactory.CreateOrder(ctx)
+	orderRepository := os.repositoryFactory.CreateOrder(ctx, Read)
 	order, err := orderRepository.GetByIDOrderItemsBySKU(ctx, orderID)
 	if err != nil {
 		return nil, fmt.Errorf("orderRepository.GetByIDOrderItemsBySKU: %w", err)
@@ -89,7 +89,7 @@ func (os *OrderService) PayByID(ctx context.Context, orderID int64) error {
 		return fmt.Errorf("stockService.ConfirmReserveFor: %w", err)
 	}
 
-	orderRepository := os.repositoryFactory.CreateOrder(ctx)
+	orderRepository := os.repositoryFactory.CreateOrder(ctx, Write)
 	return orderRepository.UpdateStatus(ctx, orderID, domain.Paid)
 }
 
@@ -113,6 +113,6 @@ func (os *OrderService) CancelByID(ctx context.Context, orderID int64) error {
 		logger.Error(fmt.Sprintf("stockService.CancelReserveFor: %s", errCancel.Error()))
 	}
 
-	orderRepository := os.repositoryFactory.CreateOrder(ctx)
+	orderRepository := os.repositoryFactory.CreateOrder(ctx, Write)
 	return orderRepository.UpdateStatus(ctx, orderID, domain.Cancelled)
 }
