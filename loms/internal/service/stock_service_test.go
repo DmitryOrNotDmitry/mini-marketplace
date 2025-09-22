@@ -1,10 +1,11 @@
-package service
+package service_test
 
 import (
 	"context"
 	"testing"
 
 	"route256/loms/internal/domain"
+	"route256/loms/internal/service"
 	mock "route256/loms/mocks"
 
 	"github.com/gojuno/minimock/v3"
@@ -12,19 +13,33 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type TxManagerForTests struct {
+}
+
+func (tx *TxManagerForTests) WithTransaction(ctx context.Context, _ service.OperationType, fn func(ctx context.Context) error) error {
+	return fn(ctx)
+}
+
+func (tx *TxManagerForTests) WithRepeatableRead(ctx context.Context, _ service.OperationType, fn func(ctx context.Context) error) error {
+	return fn(ctx)
+}
+
 type testComponentSS struct {
-	stockRepoMock *mock.StockRepositoryMock
-	stockService  *StockService
+	stockRepoMock   *mock.StockRepositoryMock
+	repoFactoryMock *mock.StockRepoFactoryMock
+	stockService    *service.StockService
 }
 
 func newTestComponentSS(t *testing.T) *testComponentSS {
 	mc := minimock.NewController(t)
 	stockRepoMock := mock.NewStockRepositoryMock(mc)
-	stockService := NewStockService(stockRepoMock)
+	repoFactoryMock := mock.NewStockRepoFactoryMock(mc)
+	stockService := service.NewStockService(repoFactoryMock, &TxManagerForTests{})
 
 	return &testComponentSS{
-		stockRepoMock: stockRepoMock,
-		stockService:  stockService,
+		stockRepoMock:   stockRepoMock,
+		stockService:    stockService,
+		repoFactoryMock: repoFactoryMock,
 	}
 }
 
@@ -40,6 +55,7 @@ func TestStockService(t *testing.T) {
 		skuID := int64(1)
 		stock := &domain.Stock{SkuID: skuID, TotalCount: 100, Reserved: 10}
 
+		tc.repoFactoryMock.CreateStockMock.Return(tc.stockRepoMock)
 		tc.stockRepoMock.GetBySkuIDMock.When(ctx, skuID).Then(stock, nil)
 
 		count, err := tc.stockService.GetAvailableCount(ctx, skuID)
@@ -64,7 +80,13 @@ func TestStockService(t *testing.T) {
 				&domain.OrderItem{SkuID: 3, Count: 100},
 			},
 		}
+		stock := &domain.Stock{
+			Reserved:   uint32(0),
+			TotalCount: uint32(100),
+		}
 
+		tc.repoFactoryMock.CreateStockMock.Return(tc.stockRepoMock)
+		tc.stockRepoMock.GetBySkuIDMock.Return(stock, nil)
 		tc.stockRepoMock.AddReserveMock.Return(nil)
 
 		err := tc.stockService.ReserveFor(ctx, order)
@@ -87,11 +109,15 @@ func TestStockService(t *testing.T) {
 				&domain.OrderItem{SkuID: 3, Count: 100},
 			},
 		}
+		stock := &domain.Stock{
+			Reserved:   uint32(0),
+			TotalCount: uint32(100),
+		}
 
+		tc.repoFactoryMock.CreateStockMock.Return(tc.stockRepoMock)
+		tc.stockRepoMock.GetBySkuIDMock.Return(stock, nil)
 		tc.stockRepoMock.AddReserveMock.When(ctx, order.Items[0].SkuID, order.Items[0].Count).Then(nil)
 		tc.stockRepoMock.AddReserveMock.When(ctx, order.Items[1].SkuID, order.Items[1].Count).Then(domain.ErrCanNotReserveItem)
-
-		tc.stockRepoMock.RemoveReserveMock.When(ctx, order.Items[0].SkuID, order.Items[0].Count).Then(nil)
 
 		err := tc.stockService.ReserveFor(ctx, order)
 		require.Error(t, err)
@@ -114,6 +140,7 @@ func TestStockService(t *testing.T) {
 			},
 		}
 
+		tc.repoFactoryMock.CreateStockMock.Return(tc.stockRepoMock)
 		tc.stockRepoMock.RemoveReserveMock.Times(3).Return(nil)
 
 		err := tc.stockService.CancelReserveFor(ctx, order)
@@ -137,6 +164,7 @@ func TestStockService(t *testing.T) {
 			},
 		}
 
+		tc.repoFactoryMock.CreateStockMock.Return(tc.stockRepoMock)
 		tc.stockRepoMock.ReduceReserveAndTotalMock.When(ctx, order.Items[0].SkuID, order.Items[0].Count).Then(nil)
 		tc.stockRepoMock.ReduceReserveAndTotalMock.When(ctx, order.Items[1].SkuID, order.Items[1].Count).Then(nil)
 		tc.stockRepoMock.ReduceReserveAndTotalMock.When(ctx, order.Items[2].SkuID, order.Items[2].Count).Then(nil)

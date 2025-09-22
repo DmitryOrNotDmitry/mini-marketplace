@@ -10,14 +10,14 @@ bindir:
 build: bindir
 	echo "build loms"
 
-run-migrations:
-	echo "run migrations"
-
 test:
 	go test ./internal/... -count=1
 
 test-cover:
 	go test ./internal/... -count=1 -cover
+
+test-integration:
+	go test ./internal/... -tags=integration
 	
 minimock-gen:
 	mkdir -p mocks
@@ -31,6 +31,8 @@ minimock-gen-common:
 	minimock -i route256/loms/internal/service.StockRepository -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/service.OrderRepository -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/service.StockServiceI -o ./mocks/ -s "_mock.go"
+	minimock -i route256/loms/internal/service.StockRepoFactory -o ./mocks/ -s "_mock.go"
+	minimock -i route256/loms/internal/service.OrderRepoFactory -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/handler.StockService -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/internal/handler.OrderService -o ./mocks/ -s "_mock.go"
 
@@ -188,3 +190,19 @@ protoc-generate-win:
 	api/stocks/v1/stocks.proto && \
 	go mod tidy
 
+
+CI_MIGRATIONS_FOLDER := ./loms/migrations/
+CI_DB_DSN := postgresql://loms-user:loms-password@postgres-master:5432/loms_db?sslmode=disable
+
+run-migrations:
+	goose -dir $(CI_MIGRATIONS_FOLDER) postgres "$(CI_DB_DSN)" up
+
+
+LOCAL_MIGRATIONS_FOLDER := ./migrations/
+LOCAL_DB_DSN := postgresql://loms-user:loms-password@localhost:5432/loms_db?sslmode=disable
+
+migrate:
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN)" up
+
+migrate-down:
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN)" down

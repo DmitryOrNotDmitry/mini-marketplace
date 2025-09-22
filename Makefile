@@ -16,6 +16,9 @@ test-cover:
 	$(MAKE) -C ./cart test-cover
 	$(MAKE) -C ./loms test-cover
 
+test-integration:
+	$(MAKE) -C ./loms test-integration
+
 
 test-api:
 	rm -rf tests/tests/allure-results

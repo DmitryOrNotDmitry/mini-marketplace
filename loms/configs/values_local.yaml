@@ -6,7 +6,6 @@ service:
     read_header_timeout: 10
     write_timeout: 15
     idle_timeout: 60
-  load_stocks_data_timeout: 10
   gracefull_shutdown_timeout: 10
 
 jaeger:
@@ -14,15 +13,15 @@ jaeger:
   port: 6831
 
 db_master:
-  host: localhost
+  host: postgres-master
   port: 5432
   user: loms-user
   password: loms-password
   db_name: loms_db
 
 db_replica:
-  host: localhost
-  port: 5433
+  host: postgres-replica
+  port: 5432
   user: loms-user
   password: loms-password
   db_name: loms_db

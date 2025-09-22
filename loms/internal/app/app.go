@@ -10,13 +10,15 @@ import (
 	"route256/loms/internal/infra/config"
 	"route256/loms/internal/infra/grpc/interceptor"
 	"route256/loms/internal/infra/http/middleware"
-	"route256/loms/internal/infra/repository"
+	"route256/loms/internal/infra/repository/postgres"
 	"route256/loms/internal/service"
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lib/pq" // Import postgres driver
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -47,12 +49,37 @@ func NewApp(configPath string) (*App, error) {
 
 	reflection.Register(app.grpcServer)
 
-	idGen := repository.NewIDGeneratorSync()
-	stockRepository := repository.NewInMemoryStockRepository(10)
-	orderRepository := repository.NewInMemoryOrderRepository(idGen, 10)
+	postgresMasterDSN := dsnBuilder(app.Config.MasterDB.User, app.Config.MasterDB.Password,
+		app.Config.MasterDB.Host, app.Config.MasterDB.Port, app.Config.MasterDB.DBName)
 
-	stockService := service.NewStockService(stockRepository)
-	orderService := service.NewOrderService(orderRepository, stockService)
+	postgresReplicaDSN := dsnBuilder(app.Config.ReplicaDB.User, app.Config.ReplicaDB.Password,
+		app.Config.ReplicaDB.Host, app.Config.ReplicaDB.Port, app.Config.ReplicaDB.DBName)
+
+	ctx := context.Background()
+	masterPool, err := newPool(ctx, postgresMasterDSN)
+	if err != nil {
+		return nil, fmt.Errorf("newPool: %w", err)
+	}
+
+	replicaPools := []*pgxpool.Pool{}
+	for _, dsn := range []string{postgresReplicaDSN} {
+		pool, errPool := newPool(ctx, dsn)
+		if errPool != nil {
+			return nil, fmt.Errorf("newPool: %w", errPool)
+		}
+		replicaPools = append(replicaPools, pool)
+	}
+
+	poolManager, err := postgres.NewRRPoolManager(masterPool, replicaPools)
+	if err != nil {
+		return nil, fmt.Errorf("postgres.NewRRPoolManager: %w", err)
+	}
+
+	txManager := postgres.NewPgTxManager(poolManager)
+	repositoryfactory := postgres.NewRepositoryFactory(poolManager)
+
+	stockService := service.NewStockService(repositoryfactory, txManager)
+	orderService := service.NewOrderService(stockService, repositoryfactory, txManager)
 
 	stocksHandler := handler.NewStockServerGRPC(stockService)
 	ordersHandler := handler.NewOrderServerGRPC(orderService)
@@ -60,12 +87,25 @@ func NewApp(configPath string) (*App, error) {
 	stocks.RegisterStockServiceV1Server(app.grpcServer, stocksHandler)
 	orders.RegisterOrderServiceV1Server(app.grpcServer, ordersHandler)
 
-	err = LoadStocks(stockService, time.Duration(app.Config.Server.LoadStocksDataTimeout)*time.Second)
+	return app, nil
+}
+
+func dsnBuilder(user, password, host string, port int64, dbname string) string {
+	return fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname)
+}
+
+func newPool(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
+	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		logger.Error(fmt.Sprintf("LoadStocks: %s", err))
+		return nil, fmt.Errorf("pgxpool.ParseConfig (dsn=%s): %w", dsn, err)
 	}
 
-	return app, nil
+	pool, err := pgxpool.NewWithConfig(ctx, config)
+	if err != nil {
+		return nil, fmt.Errorf("pgxpool.NewWithConfig (dsn=%s): %w", dsn, err)
+	}
+
+	return pool, nil
 }
 
 // ListenAndServeGRPC запускает gRPC-сервер приложения.
