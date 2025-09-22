@@ -2,9 +2,7 @@ package app
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"route256/cart/pkg/logger"
@@ -19,8 +17,8 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq" // Import postgres driver
-	"github.com/pressly/goose/v3"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -51,18 +49,28 @@ func NewApp(configPath string) (*App, error) {
 
 	reflection.Register(app.grpcServer)
 
-	postgresMasterDSN := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", app.Config.MasterDB.User, app.Config.MasterDB.Password,
+	postgresMasterDSN := dsnBuilder(app.Config.MasterDB.User, app.Config.MasterDB.Password,
 		app.Config.MasterDB.Host, app.Config.MasterDB.Port, app.Config.MasterDB.DBName)
 
-	postgresReplicaDSN := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", app.Config.ReplicaDB.User, app.Config.ReplicaDB.Password,
+	postgresReplicaDSN := dsnBuilder(app.Config.ReplicaDB.User, app.Config.ReplicaDB.Password,
 		app.Config.ReplicaDB.Host, app.Config.ReplicaDB.Port, app.Config.ReplicaDB.DBName)
 
-	err = applyMigrations(postgresMasterDSN, app.Config.Server.MigrationsPath)
+	ctx := context.Background()
+	masterPool, err := newPool(ctx, postgresMasterDSN)
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Skip migrations applying with error: %s", err.Error()))
+		return nil, fmt.Errorf("newPool: %w", err)
 	}
 
-	poolManager, err := postgres.NewRRPoolManager(context.TODO(), postgresMasterDSN, []string{postgresReplicaDSN})
+	replicaPools := []*pgxpool.Pool{}
+	for _, dsn := range []string{postgresReplicaDSN} {
+		pool, errPool := newPool(ctx, dsn)
+		if errPool != nil {
+			return nil, fmt.Errorf("newPool: %w", errPool)
+		}
+		replicaPools = append(replicaPools, pool)
+	}
+
+	poolManager, err := postgres.NewRRPoolManager(masterPool, replicaPools)
 	if err != nil {
 		return nil, fmt.Errorf("postgres.NewRRPoolManager: %w", err)
 	}
@@ -79,30 +87,25 @@ func NewApp(configPath string) (*App, error) {
 	stocks.RegisterStockServiceV1Server(app.grpcServer, stocksHandler)
 	orders.RegisterOrderServiceV1Server(app.grpcServer, ordersHandler)
 
-	err = LoadStocks(stockService, time.Duration(app.Config.Server.LoadStocksDataTimeout)*time.Second)
-	if err != nil {
-		logger.Error(fmt.Sprintf("LoadStocks: %s", err))
-	}
-
 	return app, nil
 }
 
-func applyMigrations(dsn, migrationsFolder string) error {
-	db, err := sql.Open("postgres", dsn)
+func dsnBuilder(user, password, host string, port int64, dbname string) string {
+	return fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname)
+}
+
+func newPool(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
+	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		log.Fatalf("Failed to open DB: %v", err)
-	}
-	defer db.Close()
-
-	if err := goose.SetDialect("postgres"); err != nil {
-		return fmt.Errorf("failed to set dialect: %w", err)
+		return nil, fmt.Errorf("pgxpool.ParseConfig (dsn=%s): %w", dsn, err)
 	}
 
-	if err := goose.Up(db, migrationsFolder); err != nil {
-		return fmt.Errorf("failed to apply migrations: %w", err)
+	pool, err := pgxpool.NewWithConfig(ctx, config)
+	if err != nil {
+		return nil, fmt.Errorf("pgxpool.NewWithConfig (dsn=%s): %w", dsn, err)
 	}
 
-	return nil
+	return pool, nil
 }
 
 // ListenAndServeGRPC запускает gRPC-сервер приложения.

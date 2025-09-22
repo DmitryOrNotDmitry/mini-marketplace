@@ -60,12 +60,12 @@ func (m *TxManager) WithTx(ctx context.Context, operationType service.OperationT
 	if existTx {
 		tx, err = existedTx.Begin(ctx)
 		if err != nil {
-			return
+			return err
 		}
 	} else {
 		tx, err = m.getPool(operationType).BeginTx(ctx, options)
 		if err != nil {
-			return
+			return err
 		}
 		ctx = ctxWithTx(ctx, tx)
 	}
@@ -74,9 +74,7 @@ func (m *TxManager) WithTx(ctx context.Context, operationType service.OperationT
 		err = m.handleTxDefer(ctx, tx, err)
 	}()
 
-	err = fn(ctx)
-
-	return
+	return fn(ctx)
 }
 
 func (m *TxManager) handleTxDefer(ctx context.Context, tx pgx.Tx, err error) error {

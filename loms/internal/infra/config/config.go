@@ -20,9 +20,7 @@ type LomsServiceConfig struct {
 	GRPCPort                 string            `yaml:"grpc_port"`
 	HTTPPort                 string            `yaml:"http_port"`
 	GRPCGateWay              GRPCGateWayConfig `yaml:"grpc_gateway"`
-	LoadStocksDataTimeout    int64             `yaml:"load_stocks_data_timeout"`
 	GracefullShutdownTimeout int64             `yaml:"gracefull_shutdown_timeout"`
-	MigrationsPath           string            `yaml:"migrations_path"`
 }
 
 // GRPCGateWayConfig конфиг для gRPC-gateway.

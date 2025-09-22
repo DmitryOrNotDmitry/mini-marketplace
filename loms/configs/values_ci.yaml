@@ -6,7 +6,6 @@ service:
     read_header_timeout: 10
     write_timeout: 15
     idle_timeout: 60
-  load_stocks_data_timeout: 10
   gracefull_shutdown_timeout: 10
 
 jaeger:

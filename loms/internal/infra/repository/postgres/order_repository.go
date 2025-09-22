@@ -6,26 +6,26 @@ import (
 	"fmt"
 	"route256/cart/pkg/logger"
 	"route256/loms/internal/domain"
-	repo_sqlc "route256/loms/internal/infra/repository/postgres/sqlc/generated"
+	sqlcrepos "route256/loms/internal/infra/repository/postgres/sqlc/generated"
 
 	"github.com/jackc/pgx/v5"
 )
 
 // NewOrderRepository создает новый OrderRepository.
-func NewOrderRepository(pool repo_sqlc.DBTX) *OrderRepository {
+func NewOrderRepository(pool sqlcrepos.DBTX) *OrderRepository {
 	return &OrderRepository{
-		repo_sqlc.New(pool),
+		sqlcrepos.New(pool),
 	}
 }
 
 // OrderRepository предоставляет доступ к хранилищу заказов из postgres.
 type OrderRepository struct {
-	querier repo_sqlc.Querier
+	querier sqlcrepos.Querier
 }
 
 // Insert добавляет новый заказ и возвращает его ID из postgres.
 func (or *OrderRepository) Insert(ctx context.Context, order *domain.Order) (int64, error) {
-	orderID, err := or.querier.AddOrder(ctx, &repo_sqlc.AddOrderParams{
+	orderID, err := or.querier.AddOrder(ctx, &sqlcrepos.AddOrderParams{
 		UserID: order.UserID,
 		Status: string(order.Status),
 	})
@@ -34,7 +34,7 @@ func (or *OrderRepository) Insert(ctx context.Context, order *domain.Order) (int
 	}
 
 	for _, item := range order.Items {
-		err = or.querier.AddOrderItem(ctx, &repo_sqlc.AddOrderItemParams{
+		err = or.querier.AddOrderItem(ctx, &sqlcrepos.AddOrderItemParams{
 			Sku:     item.SkuID,
 			OrderID: orderID,
 			Count:   int64(item.Count),
@@ -86,7 +86,7 @@ func (or *OrderRepository) GetByIDOrderItemsBySKU(ctx context.Context, orderID i
 
 // UpdateStatus обновляет статус заказа из postgres.
 func (or *OrderRepository) UpdateStatus(ctx context.Context, orderID int64, newStatus domain.Status) error {
-	err := or.querier.UpdateStatusByID(ctx, &repo_sqlc.UpdateStatusByIDParams{
+	err := or.querier.UpdateStatusByID(ctx, &sqlcrepos.UpdateStatusByIDParams{
 		OrderID: orderID,
 		Status:  string(newStatus),
 	})

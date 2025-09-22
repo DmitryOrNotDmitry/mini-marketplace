@@ -7,7 +7,7 @@ import (
 	"math"
 	"route256/cart/pkg/logger"
 	"route256/loms/internal/domain"
-	repo_sqlc "route256/loms/internal/infra/repository/postgres/sqlc/generated"
+	sqlcrepos "route256/loms/internal/infra/repository/postgres/sqlc/generated"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -26,20 +26,20 @@ func Int64ToUint32(num int64) (uint32, error) {
 }
 
 // NewStockRepository создает новый StockRepository.
-func NewStockRepository(pool repo_sqlc.DBTX) *StockRepository {
+func NewStockRepository(pool sqlcrepos.DBTX) *StockRepository {
 	return &StockRepository{
-		repo_sqlc.New(pool),
+		sqlcrepos.New(pool),
 	}
 }
 
 // StockRepository предоставляет доступ к хранилищу запасов из postgres.
 type StockRepository struct {
-	querier repo_sqlc.Querier
+	querier sqlcrepos.Querier
 }
 
 // Upsert добавляет или обновляет запись о запасе в postgres.
 func (sr *StockRepository) Upsert(ctx context.Context, stock *domain.Stock) error {
-	err := sr.querier.AddStock(ctx, &repo_sqlc.AddStockParams{
+	err := sr.querier.AddStock(ctx, &sqlcrepos.AddStockParams{
 		Sku:        stock.SkuID,
 		TotalCount: int64(stock.TotalCount),
 		Reserved:   int64(stock.Reserved),
@@ -53,7 +53,7 @@ func (sr *StockRepository) Upsert(ctx context.Context, stock *domain.Stock) erro
 
 // AddReserve резервирует товар по SKU в postgres.
 func (sr *StockRepository) AddReserve(ctx context.Context, skuID int64, delta uint32) error {
-	err := sr.querier.Reserve(ctx, &repo_sqlc.ReserveParams{
+	err := sr.querier.Reserve(ctx, &sqlcrepos.ReserveParams{
 		Sku:      skuID,
 		Reserved: int64(delta),
 	})
@@ -66,7 +66,7 @@ func (sr *StockRepository) AddReserve(ctx context.Context, skuID int64, delta ui
 
 // RemoveReserve убирает резерв с товара по SKU в postgres.
 func (sr *StockRepository) RemoveReserve(ctx context.Context, skuID int64, delta uint32) error {
-	err := sr.querier.RemoveReserve(ctx, &repo_sqlc.RemoveReserveParams{
+	err := sr.querier.RemoveReserve(ctx, &sqlcrepos.RemoveReserveParams{
 		Sku:      skuID,
 		Reserved: int64(delta),
 	})
@@ -79,7 +79,7 @@ func (sr *StockRepository) RemoveReserve(ctx context.Context, skuID int64, delta
 
 // ReduceReserveAndTotal уменьшает резерв и общий запас товара по SKU в postgres.
 func (sr *StockRepository) ReduceReserveAndTotal(ctx context.Context, skuID int64, delta uint32) error {
-	err := sr.querier.ReduceTotalAndReserve(ctx, &repo_sqlc.ReduceTotalAndReserveParams{
+	err := sr.querier.ReduceTotalAndReserve(ctx, &sqlcrepos.ReduceTotalAndReserveParams{
 		Sku:      skuID,
 		Reserved: int64(delta),
 	})
