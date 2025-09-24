@@ -80,14 +80,21 @@ func TestCartService(t *testing.T) {
 		tc := newTestComponentCS(t)
 
 		ctx := context.Background()
-		item1 := &domain.CartItem{Sku: 1, Count: 2, Name: "name 1", Price: 100}
-		item2 := &domain.CartItem{Sku: 2, Count: 2, Name: "name 2", Price: 300}
-		item3 := &domain.CartItem{Sku: 3, Count: 2, Name: "name 3", Price: 200}
+		item1 := &domain.CartItem{Sku: 1, Count: 2}
+		item2 := &domain.CartItem{Sku: 2, Count: 2}
+		item3 := &domain.CartItem{Sku: 3, Count: 2}
+		product1 := &domain.Product{Name: "name 1", Price: 100}
+		product2 := &domain.Product{Name: "name 2", Price: 300}
+		product3 := &domain.Product{Name: "name 3", Price: 200}
 		userID := int64(1)
 
 		tc.cartRepoMock.GetCartByUserIDOrderBySkuMock.
 			When(ctx, userID).
 			Then(&domain.Cart{Items: []*domain.CartItem{item1, item2, item3}}, nil)
+
+		tc.productServMock.GetProductBySkuMock.When(ctx, item1.Sku).Then(product1, nil)
+		tc.productServMock.GetProductBySkuMock.When(ctx, item2.Sku).Then(product2, nil)
+		tc.productServMock.GetProductBySkuMock.When(ctx, item3.Sku).Then(product3, nil)
 
 		cart, err := tc.cartService.GetCart(ctx, userID)
 		require.NoError(t, err)

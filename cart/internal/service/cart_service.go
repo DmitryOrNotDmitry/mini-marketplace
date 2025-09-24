@@ -49,7 +49,7 @@ func NewCartService(repository CartRepository, productService ProductService, lo
 
 // AddCartItem добавляет товар в корзину пользователя, если хватает запасов.
 func (s *CartService) AddCartItem(ctx context.Context, userID int64, newItem *domain.CartItem) (*domain.CartItem, error) {
-	product, err := s.productService.GetProductBySku(ctx, newItem.Sku)
+	_, err := s.productService.GetProductBySku(ctx, newItem.Sku)
 	if err != nil {
 		return nil, fmt.Errorf("productService.GetProductBySku: %w", err)
 	}
@@ -61,9 +61,6 @@ func (s *CartService) AddCartItem(ctx context.Context, userID int64, newItem *do
 	if productStock < newItem.Count {
 		return nil, domain.ErrOutOfStock
 	}
-
-	newItem.Price = uint32(product.Price)
-	newItem.Name = product.Name
 
 	addedCartItem, err := s.cartRepository.UpsertCartItem(ctx, userID, newItem)
 	if err != nil {
@@ -98,6 +95,16 @@ func (s *CartService) GetCart(ctx context.Context, userID int64) (*domain.Cart, 
 	cart, err := s.cartRepository.GetCartByUserIDOrderBySku(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("cartRepository.GetCartByUserIDOrderBySku: %w", err)
+	}
+
+	for _, item := range cart.Items {
+		product, err := s.productService.GetProductBySku(ctx, item.Sku)
+		if err != nil {
+			return nil, err
+		}
+
+		item.Name = product.Name
+		item.Price = product.Price
 	}
 
 	for _, item := range cart.Items {
