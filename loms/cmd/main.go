@@ -6,10 +6,9 @@ import (
 	"os"
 	"time"
 
+	"route256/cart/pkg/myerrgroup"
 	"route256/loms/internal/app"
 	pkgapp "route256/loms/pkg/app"
-
-	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -32,7 +31,7 @@ func main() {
 }
 
 func startApp(lomsApp *app.App) error {
-	errGroup := new(errgroup.Group)
+	errGroup := myerrgroup.New()
 	errGroup.Go(func() error {
 		return lomsApp.ListenAndServeGRPCGateway()
 	})
