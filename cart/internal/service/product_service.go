@@ -18,19 +18,25 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+type RateLimiter interface {
+	Acquire()
+}
+
 // ProductServiceHTTP реализует доступ к сервису сервису product по HTTP.
 type ProductServiceHTTP struct {
-	httpClient HTTPClient
-	token      string
-	address    string
+	httpClient  HTTPClient
+	rateLimiter RateLimiter
+	token       string
+	address     string
 }
 
 // NewProductServiceHTTP конструктор для ProductServiceHTTP.
-func NewProductServiceHTTP(httpClient HTTPClient, token string, address string) *ProductServiceHTTP {
+func NewProductServiceHTTP(httpClient HTTPClient, rateLimiter RateLimiter, token string, address string) *ProductServiceHTTP {
 	return &ProductServiceHTTP{
-		httpClient: httpClient,
-		token:      token,
-		address:    address,
+		httpClient:  httpClient,
+		rateLimiter: rateLimiter,
+		token:       token,
+		address:     address,
 	}
 }
 
@@ -42,6 +48,8 @@ type GetProductResponse struct {
 
 // GetProductBySku возвращает информацию о товаре по SKU из внешнего сервиса.
 func (s *ProductServiceHTTP) GetProductBySku(ctx context.Context, sku int64) (*domain.Product, error) {
+	s.rateLimiter.Acquire()
+
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 

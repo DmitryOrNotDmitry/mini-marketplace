@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"route256/cart/internal/domain"
+	"route256/cart/pkg/myerrgroup"
 )
 
 // CartRepository описывает методы работы с корзинами в хранилище.
@@ -97,14 +98,24 @@ func (s *CartService) GetCart(ctx context.Context, userID int64) (*domain.Cart, 
 		return nil, fmt.Errorf("cartRepository.GetCartByUserIDOrderBySku: %w", err)
 	}
 
-	for _, item := range cart.Items {
-		product, err := s.productService.GetProductBySku(ctx, item.Sku)
-		if err != nil {
-			return nil, err
-		}
+	errGroup, ctx := myerrgroup.WithContext(ctx)
 
-		item.Name = product.Name
-		item.Price = product.Price
+	for _, item := range cart.Items {
+		errGroup.Go(func() error {
+			product, err := s.productService.GetProductBySku(ctx, item.Sku)
+			if err != nil {
+				return fmt.Errorf("productService.GetProductBySku: %w", err)
+			}
+
+			item.Name = product.Name
+			item.Price = product.Price
+			return nil
+		})
+	}
+
+	err = errGroup.Wait()
+	if err != nil {
+		return nil, fmt.Errorf("errGroup.Wait: %w", err)
 	}
 
 	for _, item := range cart.Items {

@@ -92,9 +92,9 @@ func TestCartService(t *testing.T) {
 			When(ctx, userID).
 			Then(&domain.Cart{Items: []*domain.CartItem{item1, item2, item3}}, nil)
 
-		tc.productServMock.GetProductBySkuMock.When(ctx, item1.Sku).Then(product1, nil)
-		tc.productServMock.GetProductBySkuMock.When(ctx, item2.Sku).Then(product2, nil)
-		tc.productServMock.GetProductBySkuMock.When(ctx, item3.Sku).Then(product3, nil)
+		tc.productServMock.GetProductBySkuMock.When(minimock.AnyContext, item1.Sku).Then(product1, nil)
+		tc.productServMock.GetProductBySkuMock.When(minimock.AnyContext, item2.Sku).Then(product2, nil)
+		tc.productServMock.GetProductBySkuMock.When(minimock.AnyContext, item3.Sku).Then(product3, nil)
 
 		cart, err := tc.cartService.GetCart(ctx, userID)
 		require.NoError(t, err)

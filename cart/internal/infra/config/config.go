@@ -27,6 +27,7 @@ type ProductServiceConfig struct {
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
 	Token    string `yaml:"token"`
+	Limit    int    `yaml:"limit"`
 }
 
 // LomsServiceConfig конфиг для сервиса loms.

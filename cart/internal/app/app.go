@@ -11,6 +11,7 @@ import (
 	"route256/cart/internal/infra/config"
 	"route256/cart/internal/infra/http/middleware"
 	"route256/cart/internal/infra/http/roundtripper"
+	"route256/cart/internal/infra/ratelimit"
 	"route256/cart/internal/infra/repository"
 	"route256/cart/internal/service"
 	"route256/cart/pkg/logger"
@@ -65,9 +66,13 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 		Transport: transport,
 		Timeout:   10 * time.Second,
 	}
+	rps := app.Config.ProductService.Limit
+	interval := time.Second / time.Duration(rps)
+	rateLimiter := ratelimit.NewPoolRateLimiter(rps, interval)
 
 	productService := service.NewProductServiceHTTP(
 		httpClient,
+		rateLimiter,
 		app.Config.ProductService.Token,
 		fmt.Sprintf("%s://%s:%s", app.Config.ProductService.Protocol, app.Config.ProductService.Host, app.Config.ProductService.Port),
 	)
