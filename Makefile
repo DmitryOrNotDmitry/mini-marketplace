@@ -16,6 +16,11 @@ test-cover:
 	$(MAKE) -C ./cart test-cover
 	$(MAKE) -C ./loms test-cover
 
+test-race:
+	$(MAKE) -C ./cart test-race
+	$(MAKE) -C ./loms test-race
+
+
 test-integration:
 	$(MAKE) -C ./loms test-integration
 
