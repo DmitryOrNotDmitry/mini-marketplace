@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"math/big"
+	"sync"
 	"testing"
 
 	"route256/cart/internal/domain"
@@ -137,6 +138,46 @@ func TestCartRepositoryInMemory(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Empty(t, cart.Items)
+	})
+
+	t.Run("add 100 same item parallel", func(t *testing.T) {
+		t.Parallel()
+
+		repo := NewInMemoryCartRepository(10)
+		ctx := context.Background()
+
+		userID := int64(1)
+		sku := int64(1)
+		countItems := 100
+
+		var start sync.WaitGroup
+		start.Add(countItems)
+		var finish sync.WaitGroup
+		finish.Add(countItems)
+
+		for i := 0; i < countItems; i++ {
+			go func() {
+				defer finish.Done()
+				start.Done()
+				start.Wait()
+
+				item := &domain.CartItem{
+					Sku:   sku,
+					Count: 1,
+				}
+
+				_, err := repo.UpsertCartItem(ctx, userID, item)
+				require.NoError(t, err)
+			}()
+		}
+
+		finish.Wait()
+
+		cart, err := repo.GetCartByUserIDOrderBySku(ctx, userID)
+		require.NoError(t, err)
+
+		require.Len(t, cart.Items, 1)
+		assert.EqualValues(t, 100, cart.Items[0].Count)
 	})
 
 	t.Run("get sorted cartItems", func(t *testing.T) {
