@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"os"
 	"time"
@@ -24,10 +23,7 @@ func main() {
 		}
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(lomsApp.Config.Server.GracefullShutdownTimeout)*time.Second)
-	defer cancel()
-
-	pkgapp.GracefullShutdown(ctx, lomsApp)
+	pkgapp.GracefulShutdown(lomsApp, time.Duration(lomsApp.Config.Server.GracefulShutdownTimeout)*time.Second)
 }
 
 func startApp(lomsApp *app.App) error {

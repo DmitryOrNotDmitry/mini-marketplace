@@ -34,7 +34,10 @@ func (g *ErrorGroup) Go(f func() error) {
 			g.errMx.Lock()
 			if g.err == nil {
 				g.err = err
-				g.cancel()
+
+				if g.cancel != nil {
+					g.cancel()
+				}
 			}
 			g.errMx.Unlock()
 		}
