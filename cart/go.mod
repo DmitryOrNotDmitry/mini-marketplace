@@ -8,6 +8,7 @@ require (
 	github.com/go-playground/assert/v2 v2.2.0
 	github.com/gojuno/minimock/v3 v3.4.7
 	github.com/stretchr/testify v1.11.1
+	go.uber.org/goleak v1.3.0
 	google.golang.org/grpc v1.75.1
 	gopkg.in/yaml.v3 v3.0.1
 	route256/loms v0.0.0-00010101000000-000000000000
