@@ -102,9 +102,9 @@ func (s *CartService) GetCart(ctx context.Context, userID int64) (*domain.Cart, 
 
 	for _, item := range cart.Items {
 		errGroup.Go(func() error {
-			product, err := s.productService.GetProductBySku(ctx, item.Sku)
-			if err != nil {
-				return fmt.Errorf("productService.GetProductBySku: %w", err)
+			product, itemErr := s.productService.GetProductBySku(ctx, item.Sku)
+			if itemErr != nil {
+				return fmt.Errorf("productService.GetProductBySku: %w", itemErr)
 			}
 
 			item.Name = product.Name
