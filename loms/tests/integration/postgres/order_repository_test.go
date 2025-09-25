@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"route256/loms/internal/domain"
+	"route256/loms/internal/infra/repository/postgres"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -43,7 +44,7 @@ func TestPostgresOrderRepositoryIntegration(t *testing.T) {
 	pool, err := newTestPool(context.Background())
 	require.NoError(t, err)
 
-	orderRepository := NewOrderRepository(pool)
+	orderRepository := postgres.NewOrderRepository(pool)
 
 	t.Run("insert order and get", func(t *testing.T) {
 		t.Parallel()

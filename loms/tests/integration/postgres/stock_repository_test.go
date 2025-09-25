@@ -6,6 +6,7 @@ package postgres
 import (
 	"context"
 	"route256/loms/internal/domain"
+	"route256/loms/internal/infra/repository/postgres"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,7 +20,7 @@ func TestPostgresStockRepositoryIntegration(t *testing.T) {
 	pool, err := newTestPool(context.Background())
 	require.NoError(t, err)
 
-	stockRepository := NewStockRepository(pool)
+	stockRepository := postgres.NewStockRepository(pool)
 
 	t.Run("insert stock and get", func(t *testing.T) {
 		t.Parallel()
