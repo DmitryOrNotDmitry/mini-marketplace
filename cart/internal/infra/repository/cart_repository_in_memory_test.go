@@ -153,7 +153,7 @@ func TestCartRepositoryInMemory(t *testing.T) {
 
 		userID := int64(1)
 		sku := int64(1)
-		countItems := 100
+		const countItems = 100
 
 		var start sync.WaitGroup
 		start.Add(countItems)
@@ -182,7 +182,7 @@ func TestCartRepositoryInMemory(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Len(t, cart.Items, 1)
-		assert.EqualValues(t, 100, cart.Items[0].Count)
+		assert.EqualValues(t, countItems, cart.Items[0].Count)
 	})
 
 	t.Run("get sorted cartItems", func(t *testing.T) {

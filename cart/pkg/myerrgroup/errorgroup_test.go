@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 )
@@ -20,7 +21,7 @@ func TestErrorGroup(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		errGroup, _ := WithContext(ctx)
+		errGroup, egCtx := WithContext(ctx)
 
 		for range 2 {
 			errGroup.Go(func() error {
@@ -30,6 +31,12 @@ func TestErrorGroup(t *testing.T) {
 
 		err := errGroup.Wait()
 		require.NoError(t, err)
+
+		select {
+		case <-egCtx.Done():
+		default:
+			assert.Fail(t, "context must be done")
+		}
 	})
 
 	t.Run("with error", func(t *testing.T) {
@@ -50,5 +57,11 @@ func TestErrorGroup(t *testing.T) {
 		err := errGroup.Wait()
 		require.Error(t, err)
 		require.Error(t, ctx.Err())
+
+		select {
+		case <-ctx.Done():
+		default:
+			assert.Fail(t, "context must be done")
+		}
 	})
 }

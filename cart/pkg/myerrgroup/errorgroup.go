@@ -3,13 +3,14 @@ package myerrgroup
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 )
 
 type ErrorGroup struct {
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 	err    error
-	errMx  sync.Mutex
+	wasErr atomic.Bool
 }
 
 func New() *ErrorGroup {
@@ -29,22 +30,26 @@ func (g *ErrorGroup) Go(f func() error) {
 	go func() {
 		defer g.wg.Done()
 
-		err := f()
-		if err != nil && g.err == nil {
-			g.errMx.Lock()
-			if g.err == nil {
-				g.err = err
+		if g.wasErr.Load() {
+			return
+		}
 
+		err := f()
+		if err != nil {
+			if g.wasErr.CompareAndSwap(false, true) {
+				g.err = err
 				if g.cancel != nil {
 					g.cancel()
 				}
 			}
-			g.errMx.Unlock()
 		}
 	}()
 }
 
 func (g *ErrorGroup) Wait() error {
 	g.wg.Wait()
+	if g.cancel != nil {
+		g.cancel()
+	}
 	return g.err
 }
