@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"os"
 	"time"
@@ -23,8 +22,5 @@ func main() {
 		}
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cartApp.Config.Server.GracefullShutdownTimeout)*time.Second)
-	defer cancel()
-
-	pkgapp.GracefullShutdown(ctx, cartApp)
+	pkgapp.GracefulShutdown(cartApp, time.Duration(cartApp.Config.Server.GracefulShutdownTimeout)*time.Second)
 }

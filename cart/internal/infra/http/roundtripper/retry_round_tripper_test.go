@@ -7,7 +7,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"go.uber.org/goleak"
 )
+
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
+}
 
 type MockRoundTripper struct {
 	mock.Mock
@@ -19,6 +24,8 @@ func (m *MockRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 }
 
 func TestRetryRoundTripper_RoundTripOnlyErrors(t *testing.T) {
+	t.Parallel()
+
 	mockRoundTripper := new(MockRoundTripper)
 
 	// Мокнутый ответ для 420
@@ -42,6 +49,8 @@ func TestRetryRoundTripper_RoundTripOnlyErrors(t *testing.T) {
 }
 
 func TestRetryRoundTripper_RoundTripSuccessOnSecondCall(t *testing.T) {
+	t.Parallel()
+
 	mockRoundTripper := new(MockRoundTripper)
 
 	resp420 := &http.Response{
@@ -74,6 +83,8 @@ func TestRetryRoundTripper_RoundTripSuccessOnSecondCall(t *testing.T) {
 }
 
 func TestRetryRoundTripper_RoundTripSuccessOnSecondCallButZeroRetries(t *testing.T) {
+	t.Parallel()
+
 	mockRoundTripper := new(MockRoundTripper)
 
 	resp420 := &http.Response{

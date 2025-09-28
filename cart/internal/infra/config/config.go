@@ -16,9 +16,9 @@ type Config struct {
 
 // CartServiceConfig конфиг для сервиса cart.
 type CartServiceConfig struct {
-	Host                     string `yaml:"host"`
-	Port                     string `yaml:"port"`
-	GracefullShutdownTimeout int64  `yaml:"gracefull_shutdown_timeout"`
+	Host                    string `yaml:"host"`
+	Port                    string `yaml:"port"`
+	GracefulShutdownTimeout int64  `yaml:"graceful_shutdown_timeout"`
 }
 
 // ProductServiceConfig конфиг для сервиса product.
@@ -27,6 +27,7 @@ type ProductServiceConfig struct {
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
 	Token    string `yaml:"token"`
+	Limit    int    `yaml:"limit"`
 }
 
 // LomsServiceConfig конфиг для сервиса loms.

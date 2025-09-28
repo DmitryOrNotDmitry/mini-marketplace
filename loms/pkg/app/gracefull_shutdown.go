@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"route256/cart/pkg/logger"
 	"syscall"
+	"time"
 )
 
 // ShutdownedApp определяет методы для приложения, которое можно остановить gracefully
@@ -14,13 +15,16 @@ type ShutdownedApp interface {
 	Shutdown(context.Context) error
 }
 
-// GracefullShutdown выполняет gracefull shutdown для приложения.
-func GracefullShutdown(ctx context.Context, shutApp ShutdownedApp) {
+// GracefulShutdown выполняет graceful shutdown для приложения.
+func GracefulShutdown(shutApp ShutdownedApp, gracefulTimeout time.Duration) {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	<-stop
 	logger.Info("Shutting down service...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), gracefulTimeout)
+	defer cancel()
 
 	err := shutApp.Shutdown(ctx)
 	if err != nil {

@@ -1,15 +1,13 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"os"
 	"time"
 
+	"route256/cart/pkg/myerrgroup"
 	"route256/loms/internal/app"
 	pkgapp "route256/loms/pkg/app"
-
-	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -25,14 +23,11 @@ func main() {
 		}
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(lomsApp.Config.Server.GracefullShutdownTimeout)*time.Second)
-	defer cancel()
-
-	pkgapp.GracefullShutdown(ctx, lomsApp)
+	pkgapp.GracefulShutdown(lomsApp, time.Duration(lomsApp.Config.Server.GracefulShutdownTimeout)*time.Second)
 }
 
 func startApp(lomsApp *app.App) error {
-	errGroup := new(errgroup.Group)
+	errGroup := myerrgroup.New()
 	errGroup.Go(func() error {
 		return lomsApp.ListenAndServeGRPCGateway()
 	})

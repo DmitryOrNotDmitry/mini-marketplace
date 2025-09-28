@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"route256/cart/pkg/logger"
+	"route256/cart/pkg/myerrgroup"
 	"route256/loms/internal/handler"
 	"route256/loms/internal/infra/config"
 	"route256/loms/internal/infra/grpc/interceptor"
@@ -19,7 +20,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq" // Import postgres driver
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -160,7 +160,7 @@ func (a *App) ListenAndServeGRPCGateway() error {
 
 // Shutdown gracefully останавливает приложение.
 func (a *App) Shutdown(ctx context.Context) error {
-	errGroup := new(errgroup.Group)
+	errGroup, ctx := myerrgroup.WithContext(ctx)
 	errGroup.Go(func() error {
 		return a.grpcGWServer.Shutdown(ctx)
 	})
