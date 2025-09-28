@@ -15,14 +15,17 @@ var ErrNotOk = errors.New("status not ok")
 
 // HTTPClient описывает операции выполнения HTTP запросов.
 type HTTPClient interface {
+	// Do выполняет HTTP запрос.
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// RateLimiter описывает интерфейс для ограничения частоты запросов.
 type RateLimiter interface {
+	// Acquire блокирует до получения разрешения на выполнение запроса.
 	Acquire()
 }
 
-// ProductServiceHTTP реализует доступ к сервису сервису product по HTTP.
+// ProductServiceHTTP реализует доступ к сервису product по HTTP.
 type ProductServiceHTTP struct {
 	httpClient  HTTPClient
 	rateLimiter RateLimiter

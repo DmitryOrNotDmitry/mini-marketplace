@@ -4,12 +4,14 @@ import (
 	"time"
 )
 
+// PoolRateLimiter реализует ограничение RPS с помощью пула с периодическим пополнением.
 type PoolRateLimiter struct {
 	ticker *time.Ticker
 	pool   chan struct{}
 	stop   chan struct{}
 }
 
+// NewPoolRateLimiter создает новый PoolRateLimiter.
 func NewPoolRateLimiter(poolSize int, tickerDuration time.Duration) *PoolRateLimiter {
 	p := &PoolRateLimiter{
 		ticker: time.NewTicker(tickerDuration),
@@ -38,10 +40,12 @@ func NewPoolRateLimiter(poolSize int, tickerDuration time.Duration) *PoolRateLim
 	return p
 }
 
+// Stop останавливает работу PoolRateLimiter.
 func (p *PoolRateLimiter) Stop() {
 	close(p.stop)
 }
 
+// Acquire блокирует до получения разрешения из пула.
 func (p *PoolRateLimiter) Acquire() {
 	<-p.pool
 }
