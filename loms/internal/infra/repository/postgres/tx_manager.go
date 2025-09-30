@@ -80,12 +80,12 @@ func (m *TxManager) WithTx(ctx context.Context, operationType service.OperationT
 func (m *TxManager) handleTxDefer(ctx context.Context, tx pgx.Tx, err error) error {
 	if p := recover(); p != nil {
 		if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
-			logger.Warning(fmt.Sprintf("tx.Rollback: %s", rollbackErr.Error()))
+			logger.WarnwCtx(ctx, fmt.Sprintf("tx.Rollback: %s", rollbackErr.Error()))
 		}
 		panic(p)
 	} else if err != nil {
 		if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
-			logger.Warning(fmt.Sprintf("tx.Rollback: %s", rollbackErr.Error()))
+			logger.WarnwCtx(ctx, fmt.Sprintf("tx.Rollback: %s", rollbackErr.Error()))
 		}
 	} else {
 		err = tx.Commit(ctx)

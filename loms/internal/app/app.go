@@ -115,7 +115,7 @@ func (a *App) ListenAndServeGRPC() error {
 		return fmt.Errorf("net.Listen: %w", err)
 	}
 
-	logger.Info(fmt.Sprintf("Loms service listening gRPC at port %s", a.Config.Server.GRPCPort))
+	logger.Infow(fmt.Sprintf("Loms service listening gRPC at port %s", a.Config.Server.GRPCPort))
 
 	return a.grpcServer.Serve(listener)
 }
@@ -153,7 +153,7 @@ func (a *App) ListenAndServeGRPCGateway() error {
 		IdleTimeout:       time.Second * time.Duration(a.Config.Server.GRPCGateWay.IdleTimeout),
 	}
 
-	logger.Info(fmt.Sprintf("Loms service listening gRPC-Gateway (REST) at port %s", a.Config.Server.HTTPPort))
+	logger.Infow(fmt.Sprintf("Loms service listening gRPC-Gateway (REST) at port %s", a.Config.Server.HTTPPort))
 
 	return a.grpcGWServer.ListenAndServe()
 }

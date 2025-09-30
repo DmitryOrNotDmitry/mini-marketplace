@@ -53,7 +53,7 @@ func (app *App) ListenAndServe() error {
 		return fmt.Errorf("net.Listen: %w", err)
 	}
 
-	logger.Info(fmt.Sprintf("Cart service listening at http://%s", address))
+	logger.Infow(fmt.Sprintf("Cart service listening at http://%s", address))
 
 	return app.server.Serve(l)
 }

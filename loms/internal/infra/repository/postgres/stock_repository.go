@@ -103,12 +103,12 @@ func (sr *StockRepository) GetBySkuID(ctx context.Context, skuID int64) (*domain
 
 	totalCount, err := Int64ToUint32(stockDB.TotalCount)
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Int64ToUint32 (TotalCount=%d): %s", stockDB.TotalCount, err.Error()))
+		logger.WarnwCtx(ctx, fmt.Sprintf("Int64ToUint32 (TotalCount=%d): %s", stockDB.TotalCount, err.Error()))
 	}
 
 	reserved, err := Int64ToUint32(stockDB.Reserved)
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Int64ToUint32 (Reserved=%d): %s", stockDB.Reserved, err.Error()))
+		logger.WarnwCtx(ctx, fmt.Sprintf("Int64ToUint32 (Reserved=%d): %s", stockDB.Reserved, err.Error()))
 	}
 
 	return &domain.Stock{

@@ -6,10 +6,18 @@ import (
 	"time"
 
 	"route256/cart/internal/app"
+	"route256/cart/pkg/logger"
 	pkgapp "route256/loms/pkg/app"
+
+	"go.uber.org/zap"
 )
 
 func main() {
+	logger.InitLogger(&logger.LoggerConfig{
+		Level:       zap.InfoLevel,
+		ServiceName: "cart",
+	})
+
 	cartApp, err := app.NewApp(os.Getenv("CONFIG_FILE"))
 	if err != nil {
 		panic(err)
