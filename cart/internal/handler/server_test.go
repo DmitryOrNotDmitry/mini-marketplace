@@ -14,7 +14,12 @@ import (
 	"github.com/go-playground/assert/v2"
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
+
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
+}
 
 type testComponentS struct {
 	cartServMock       *mock.CartServiceMock

@@ -15,18 +15,21 @@ import (
 )
 
 type testComponentPS struct {
-	httpClientMock *mock.HTTPClientMock
-	productService *ProductServiceHTTP
+	httpClientMock  *mock.HTTPClientMock
+	rateLimiterMock *mock.RateLimiterMock
+	productService  *ProductServiceHTTP
 }
 
 func newTestComponentPS(t *testing.T) *testComponentPS {
 	mc := minimock.NewController(t)
 	httpClientMock := mock.NewHTTPClientMock(mc)
-	productService := NewProductServiceHTTP(httpClientMock, "token", "url-test")
+	rateLimiterMock := mock.NewRateLimiterMock(mc)
+	productService := NewProductServiceHTTP(httpClientMock, rateLimiterMock, "token", "url-test")
 
 	return &testComponentPS{
-		httpClientMock: httpClientMock,
-		productService: productService,
+		httpClientMock:  httpClientMock,
+		rateLimiterMock: rateLimiterMock,
+		productService:  productService,
 	}
 }
 
@@ -45,6 +48,7 @@ func TestProductServiceHttp_GetProductBySku(t *testing.T) {
 		}
 
 		tc.httpClientMock.DoMock.Return(response, nil)
+		tc.rateLimiterMock.AcquireMock.Return()
 
 		product, err := tc.productService.GetProductBySku(context.Background(), 12345)
 		require.NoError(t, err)
@@ -64,6 +68,7 @@ func TestProductServiceHttp_GetProductBySku(t *testing.T) {
 		}
 
 		tc.httpClientMock.DoMock.Return(response, nil)
+		tc.rateLimiterMock.AcquireMock.Return()
 
 		product, err := tc.productService.GetProductBySku(context.Background(), 99999)
 		require.Error(t, err)

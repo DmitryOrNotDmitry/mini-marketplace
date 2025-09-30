@@ -16,11 +16,11 @@ type Config struct {
 
 // LomsServiceConfig конфиг для сервиса loms.
 type LomsServiceConfig struct {
-	Host                     string            `yaml:"host"`
-	GRPCPort                 string            `yaml:"grpc_port"`
-	HTTPPort                 string            `yaml:"http_port"`
-	GRPCGateWay              GRPCGateWayConfig `yaml:"grpc_gateway"`
-	GracefullShutdownTimeout int64             `yaml:"gracefull_shutdown_timeout"`
+	Host                    string            `yaml:"host"`
+	GRPCPort                string            `yaml:"grpc_port"`
+	HTTPPort                string            `yaml:"http_port"`
+	GRPCGateWay             GRPCGateWayConfig `yaml:"grpc_gateway"`
+	GracefulShutdownTimeout int64             `yaml:"graceful_shutdown_timeout"`
 }
 
 // GRPCGateWayConfig конфиг для gRPC-gateway.

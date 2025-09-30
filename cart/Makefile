@@ -20,6 +20,7 @@ minimock-gen-common:
 	minimock -i route256/cart/internal/service.ProductService -o ./mocks/ -s "_mock.go"
 	minimock -i route256/cart/internal/service.HTTPClient -o ./mocks/ -s "_mock.go"
 	minimock -i route256/cart/internal/service.LomsService -o ./mocks/ -s "_mock.go"
+	minimock -i route256/cart/internal/service.RateLimiter -o ./mocks/ -s "_mock.go"
 	minimock -i route256/cart/internal/handler.CartService -o ./mocks/ -s "_mock.go"
 	minimock -i route256/cart/internal/handler.OrderCheckouter -o ./mocks/ -s "_mock.go"
 	minimock -i route256/loms/pkg/api/stocks/v1.StockServiceV1Client -o ./mocks/ -s "_mock.go"
@@ -30,6 +31,9 @@ test:
 
 test-cover:
 	go test ./internal/... -count=1 -cover
+
+test-race:
+	go test ./internal/... -count=1 -race
 
 lint:
 	gocyclo -over 10 -ignore "_test|mocks|tests|pkg|vendor" .
