@@ -9,7 +9,6 @@ services:
       - "9090:9090"
     networks:
       - homeworks256_mart-system
-    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
@@ -25,7 +24,15 @@ services:
       - homeworks256_mart-system
     depends_on:
       - prometheus
-    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    networks:
+      - homeworks256_mart-system
 
 volumes:
   prometheus_data:

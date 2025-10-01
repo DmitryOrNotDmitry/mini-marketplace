@@ -8,6 +8,7 @@ import (
 	"route256/cart/pkg/logger"
 	"route256/cart/pkg/myerrgroup"
 	postgrespkg "route256/cart/pkg/postgres"
+	"route256/cart/pkg/tracer"
 	"route256/loms/internal/handler"
 	"route256/loms/internal/infra/config"
 	"route256/loms/internal/infra/grpc/interceptor"
@@ -16,6 +17,7 @@ import (
 	"route256/loms/internal/service"
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
+	interceptorpkg "route256/loms/pkg/grpc/interceptor"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -29,9 +31,10 @@ import (
 
 // App создает компоненты для сервиса loms
 type App struct {
-	Config       *config.Config
-	grpcServer   *grpc.Server
-	grpcGWServer *http.Server
+	Config        *config.Config
+	grpcServer    *grpc.Server
+	grpcGWServer  *http.Server
+	tracerManager *tracer.TracerManager
 }
 
 // NewApp конструктор главного приложения.
@@ -42,8 +45,14 @@ func NewApp(configPath string) (*App, error) {
 	}
 
 	app := &App{Config: c}
+	app.tracerManager, err = tracer.NewTracerManager(context.Background(), "loms-service", "development")
+	if err != nil {
+		return nil, fmt.Errorf("tracer.NewTracerManager: %w", err)
+	}
+
 	app.grpcServer = grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
+			interceptorpkg.NewTracing(app.tracerManager).Do,
 			interceptor.Logging,
 			interceptor.Metrics,
 			interceptor.Validate,
@@ -170,6 +179,10 @@ func (a *App) ListenAndServeGRPCGateway() error {
 // Shutdown gracefully останавливает приложение.
 func (a *App) Shutdown(ctx context.Context) error {
 	errGroup, ctx := myerrgroup.WithContext(ctx)
+	errGroup.Go(func() error {
+		return a.tracerManager.Stop(ctx)
+	})
+
 	errGroup.Go(func() error {
 		return a.grpcGWServer.Shutdown(ctx)
 	})

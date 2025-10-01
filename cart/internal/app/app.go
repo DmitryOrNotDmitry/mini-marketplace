@@ -17,6 +17,8 @@ import (
 	"route256/cart/internal/service"
 	mvpkg "route256/cart/pkg/http/middleware"
 	"route256/cart/pkg/logger"
+	"route256/cart/pkg/myerrgroup"
+	"route256/cart/pkg/tracer"
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
 	"route256/loms/pkg/grpc/interceptor"
@@ -28,9 +30,10 @@ import (
 
 // App создает компоненты для сервиса cart
 type App struct {
-	Config       *config.Config
-	server       http.Server
-	repoObserver *metrics.RepositoryObserver
+	Config        *config.Config
+	server        http.Server
+	repoObserver  *metrics.RepositoryObserver
+	tracerManager *tracer.TracerManager
 }
 
 // NewApp конструктор главного приложения.
@@ -41,6 +44,11 @@ func NewApp(configPath string) (*App, error) {
 	}
 
 	app := &App{Config: c}
+	app.tracerManager, err = tracer.NewTracerManager(context.Background(), "cart-service", "development")
+	if err != nil {
+		return nil, fmt.Errorf("tracer.NewTracerManager: %w", err)
+	}
+
 	app.server.Handler, err = app.bootstrapHandlers()
 	if err != nil {
 		return nil, fmt.Errorf("app.bootstrapHandlers: %w", err)
@@ -85,7 +93,8 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 	conn, err := grpc.NewClient(
 		fmt.Sprintf("%s:%s", app.Config.LomsService.Host, app.Config.LomsService.Port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(
+		grpc.WithChainUnaryInterceptor(
+			interceptor.ClientTracing,
 			interceptor.ClientMetrics,
 		),
 	)
@@ -118,6 +127,7 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 
 	h := middleware.NewLoggerMiddleware(mx)
 	h = mvpkg.NewMetricsMiddleware(h)
+	h = mvpkg.NewTracing(h, app.tracerManager)
 
 	return h, nil
 }
@@ -125,5 +135,15 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 // Shutdown gracefully останавливает приложение.
 func (app *App) Shutdown(ctx context.Context) error {
 	app.repoObserver.Stop()
-	return app.server.Shutdown(ctx)
+
+	errGroup, ctx := myerrgroup.WithContext(ctx)
+	errGroup.Go(func() error {
+		return app.tracerManager.Stop(ctx)
+	})
+
+	errGroup.Go(func() error {
+		return app.server.Shutdown(ctx)
+	})
+
+	return errGroup.Wait()
 }
