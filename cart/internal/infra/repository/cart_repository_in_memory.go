@@ -109,3 +109,10 @@ func (r *CartRepositoryInMemory) GetCartByUserIDOrderBySku(_ context.Context, us
 
 	return cartCopy, nil
 }
+
+// Возращает кол-во созданные корзин в хранилище
+func (r *CartRepositoryInMemory) CountObjects() int {
+	r.mx.Lock()
+	defer r.mx.Unlock()
+	return len(r.storage)
+}

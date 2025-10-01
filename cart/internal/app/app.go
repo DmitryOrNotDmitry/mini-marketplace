@@ -11,21 +11,26 @@ import (
 	"route256/cart/internal/infra/config"
 	"route256/cart/internal/infra/http/middleware"
 	"route256/cart/internal/infra/http/roundtripper"
+	"route256/cart/internal/infra/metrics"
 	"route256/cart/internal/infra/ratelimit"
 	"route256/cart/internal/infra/repository"
 	"route256/cart/internal/service"
+	mvpkg "route256/cart/pkg/http/middleware"
 	"route256/cart/pkg/logger"
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
+	"route256/loms/pkg/grpc/interceptor"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 // App создает компоненты для сервиса cart
 type App struct {
-	Config *config.Config
-	server http.Server
+	Config       *config.Config
+	server       http.Server
+	repoObserver *metrics.RepositoryObserver
 }
 
 // NewApp конструктор главного приложения.
@@ -59,8 +64,8 @@ func (app *App) ListenAndServe() error {
 }
 
 func (app *App) bootstrapHandlers() (http.Handler, error) {
-
 	transport := http.DefaultTransport
+	transport = roundtripper.NewMetricsRoundTripper(transport)
 	transport = roundtripper.NewRetryRoundTripper(transport, []int{420, 429}, 3)
 	httpClient := &http.Client{
 		Transport: transport,
@@ -80,6 +85,9 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 	conn, err := grpc.NewClient(
 		fmt.Sprintf("%s:%s", app.Config.LomsService.Host, app.Config.LomsService.Port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(
+			interceptor.ClientMetrics,
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("grpc.NewClient: %w", err)
@@ -95,19 +103,27 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 
 	s := handler.NewServer(cartService, lomsService)
 
+	app.repoObserver = metrics.NewRepositoryObserver([]*metrics.RepositoryInfo{
+		{Repo: cartRepository, ObjectsName: "cart", Interval: 5 * time.Second},
+	})
+
 	mx := http.NewServeMux()
+
 	mx.HandleFunc("POST /user/{user_id}/cart/{sku_id}", s.AddCartItemHandler)
 	mx.HandleFunc("DELETE /user/{user_id}/cart/{sku_id}", s.DeleteCartItemHandler)
 	mx.HandleFunc("DELETE /user/{user_id}/cart", s.ClearCartHandler)
 	mx.HandleFunc("GET /user/{user_id}/cart", s.GetCartHandler)
 	mx.HandleFunc("POST /checkout/{user_id}", s.CheckoutCartHandler)
+	mx.Handle("GET /metrics", promhttp.Handler())
 
 	h := middleware.NewLoggerMiddleware(mx)
+	h = mvpkg.NewMetricsMiddleware(h)
 
 	return h, nil
 }
 
 // Shutdown gracefully останавливает приложение.
 func (app *App) Shutdown(ctx context.Context) error {
+	app.repoObserver.Stop()
 	return app.server.Shutdown(ctx)
 }

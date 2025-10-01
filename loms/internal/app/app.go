@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"route256/cart/pkg/logger"
 	"route256/cart/pkg/myerrgroup"
+	postgrespkg "route256/cart/pkg/postgres"
 	"route256/loms/internal/handler"
 	"route256/loms/internal/infra/config"
 	"route256/loms/internal/infra/grpc/interceptor"
@@ -20,6 +21,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq" // Import postgres driver
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -43,6 +45,7 @@ func NewApp(configPath string) (*App, error) {
 	app.grpcServer = grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.Logging,
+			interceptor.Metrics,
 			interceptor.Validate,
 		),
 	)
@@ -100,6 +103,8 @@ func newPool(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("pgxpool.ParseConfig (dsn=%s): %w", dsn, err)
 	}
 
+	config.ConnConfig.Tracer = postgrespkg.NewMetricsTracer()
+
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("pgxpool.NewWithConfig (dsn=%s): %w", dsn, err)
@@ -143,7 +148,11 @@ func (a *App) ListenAndServeGRPCGateway() error {
 		return fmt.Errorf("stocks.RegisterStockServiceHandler: %w", err)
 	}
 
-	handler := middleware.CORSAllPass(gwMux)
+	mux := http.NewServeMux()
+	mux.Handle("/", gwMux)
+	mux.Handle("/metrics", promhttp.Handler())
+
+	handler := middleware.CORSAllPass(mux)
 
 	a.grpcGWServer = &http.Server{
 		Addr:              fmt.Sprintf(":%s", a.Config.Server.HTTPPort),
