@@ -4,13 +4,13 @@ import (
 	"context"
 	"sync"
 
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 var (
 	globalLog *zap.SugaredLogger
-	//defaultLevel = zap.NewAtomicLevelAt(zap.InfoLevel)
 
 	once = new(sync.Once)
 )
@@ -44,13 +44,6 @@ func InitLogger(logConfig *LoggerConfig) {
 }
 
 func getLogger() *zap.SugaredLogger {
-	// if globalLog == nil {
-	// 	InitLogger(&LoggerConfig{
-	// 		level:       defaultLevel.Level(),
-	// 		serviceName: "default logger",
-	// 	},
-	// 	)
-	// }
 	return globalLog
 }
 
@@ -61,6 +54,7 @@ func Warnw(msg string, keysAndValues ...interface{}) {
 
 // WarnwCtx выводит сообщение об предупреждении в лог, добавляя данные из контекста
 func WarnwCtx(ctx context.Context, msg string, keysAndValues ...interface{}) {
+	keysAndValues = addTracingVars(ctx, keysAndValues)
 	getLogger().Warnw(msg, keysAndValues...)
 }
 
@@ -71,6 +65,7 @@ func Errorw(msg string, keysAndValues ...interface{}) {
 
 // ErrorwCtx выводит сообщение об ошибке в лог, добавляя данные из контекста
 func ErrorwCtx(ctx context.Context, msg string, keysAndValues ...interface{}) {
+	keysAndValues = addTracingVars(ctx, keysAndValues)
 	getLogger().Errorw(msg, keysAndValues...)
 }
 
@@ -81,5 +76,22 @@ func Infow(msg string, keysAndValues ...interface{}) {
 
 // InfowCtx выводит информационное сообщение в лог, добавляя данные из контекста
 func InfowCtx(ctx context.Context, msg string, keysAndValues ...interface{}) {
+	keysAndValues = addTracingVars(ctx, keysAndValues)
 	getLogger().Infow(msg, keysAndValues...)
+}
+
+func addTracingVars(ctx context.Context, keysAndValues []interface{}) []interface{} {
+	span := trace.SpanFromContext(ctx)
+	if sc := span.SpanContext(); sc.IsValid() {
+		keysAndValues = append(keysAndValues,
+			"trace_id", sc.TraceID().String(),
+			"span_id", sc.SpanID().String(),
+		)
+	}
+	return keysAndValues
+}
+
+// Sync отправляет логи из буффера.
+func Sync() error {
+	return getLogger().Sync()
 }
