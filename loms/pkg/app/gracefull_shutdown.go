@@ -33,5 +33,8 @@ func GracefulShutdown(shutApp ShutdownedApp, gracefulTimeout time.Duration) {
 		logger.Infow("Service stopped gracefully")
 	}
 
-	logger.Sync()
+	err = logger.Sync()
+	if err != nil {
+		panic(err)
+	}
 }

@@ -21,8 +21,8 @@ const startTimeKey ctxKey = "queryStartTime"
 
 func (t *MetricsTracer) TraceQueryStart(
 	ctx context.Context,
-	conn *pgx.Conn,
-	data pgx.TraceQueryStartData,
+	_ *pgx.Conn,
+	_ pgx.TraceQueryStartData,
 ) context.Context {
 	ctx = context.WithValue(ctx, startTimeKey, time.Now())
 	return ctx
@@ -30,7 +30,7 @@ func (t *MetricsTracer) TraceQueryStart(
 
 func (t *MetricsTracer) TraceQueryEnd(
 	ctx context.Context,
-	conn *pgx.Conn,
+	_ *pgx.Conn,
 	data pgx.TraceQueryEndData,
 ) {
 	elapsed := time.Duration(0)
