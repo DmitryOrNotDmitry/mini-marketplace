@@ -12,12 +12,12 @@ import (
 	t "go.opentelemetry.io/otel/trace"
 )
 
-type TracerManager struct {
+type Manager struct {
 	Tracer   t.Tracer
 	provider *trace.TracerProvider
 }
 
-func NewTracerManager(ctx context.Context, serviceName string, enviroment string) (*TracerManager, error) {
+func NewTracerManager(ctx context.Context, serviceName string, enviroment string) (*Manager, error) {
 	exp, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL("http://jaeger:4318"))
 	if err != nil {
 		return nil, err
@@ -46,12 +46,12 @@ func NewTracerManager(ctx context.Context, serviceName string, enviroment string
 	)
 
 	tracer := otel.GetTracerProvider().Tracer(serviceName)
-	return &TracerManager{
+	return &Manager{
 		Tracer:   tracer,
 		provider: tracerProvider,
 	}, nil
 }
 
-func (t *TracerManager) Stop(ctx context.Context) error {
+func (t *Manager) Stop(ctx context.Context) error {
 	return t.provider.Shutdown(ctx)
 }

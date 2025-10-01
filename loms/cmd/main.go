@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	logger.InitLogger(&logger.LoggerConfig{
+	logger.InitLogger(&logger.Config{
 		Level:       zap.InfoLevel,
 		ServiceName: "loms",
 	})

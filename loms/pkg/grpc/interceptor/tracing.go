@@ -12,11 +12,11 @@ import (
 
 // Tracing собирает трейсы с gRPC-запросов.
 type Tracing struct {
-	tm *tracer.TracerManager
+	tm *tracer.Manager
 }
 
 // NewTracing создает новый Tracing
-func NewTracing(tm *tracer.TracerManager) *Tracing {
+func NewTracing(tm *tracer.Manager) *Tracing {
 	return &Tracing{tm: tm}
 }
 

@@ -34,7 +34,7 @@ type App struct {
 	Config        *config.Config
 	grpcServer    *grpc.Server
 	grpcGWServer  *http.Server
-	tracerManager *tracer.TracerManager
+	tracerManager *tracer.Manager
 }
 
 // NewApp конструктор главного приложения.

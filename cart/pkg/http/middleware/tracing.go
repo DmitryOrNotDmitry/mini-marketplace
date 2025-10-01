@@ -11,11 +11,11 @@ import (
 // Tracing - middleware для сбора трайсинга с HTTP-запросов.
 type Tracing struct {
 	h  http.Handler
-	tm *tracer.TracerManager
+	tm *tracer.Manager
 }
 
 // NewTracing создает middleware для сбора метрик HTTP-запросов.
-func NewTracing(h http.Handler, tm *tracer.TracerManager) http.Handler {
+func NewTracing(h http.Handler, tm *tracer.Manager) http.Handler {
 	return &Tracing{h: h, tm: tm}
 }
 

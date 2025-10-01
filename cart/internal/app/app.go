@@ -33,7 +33,7 @@ type App struct {
 	Config        *config.Config
 	server        http.Server
 	repoObserver  *metrics.RepositoryObserver
-	tracerManager *tracer.TracerManager
+	tracerManager *tracer.Manager
 }
 
 // NewApp конструктор главного приложения.

@@ -15,14 +15,14 @@ var (
 	once = new(sync.Once)
 )
 
-// LoggerConfig содержит параметры для логгера
-type LoggerConfig struct {
+// Config содержит параметры для логгера
+type Config struct {
 	Level       zapcore.Level
 	ServiceName string
 }
 
 // InitLogger инициализирует глобальный логгер
-func InitLogger(logConfig *LoggerConfig) {
+func InitLogger(logConfig *Config) {
 	once.Do(func() {
 		config := zap.NewProductionConfig()
 		config.OutputPaths = []string{"stdout"}
