@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
+	"time"
+
 	"route256/cart/pkg/logger"
 	"route256/cart/pkg/myerrgroup"
 	postgrespkg "route256/cart/pkg/postgres"
@@ -18,7 +21,6 @@ import (
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
 	interceptorpkg "route256/loms/pkg/grpc/interceptor"
-	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -159,6 +161,7 @@ func (a *App) ListenAndServeGRPCGateway() error {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", gwMux)
+	mux.HandleFunc("/debug/pprof/", http.DefaultServeMux.ServeHTTP)
 	mux.Handle("/metrics", promhttp.Handler())
 
 	handler := middleware.CORSAllPass(mux)

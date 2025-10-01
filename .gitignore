@@ -2,3 +2,4 @@
 bin
 tests/**/allure-results
 */vendor-proto
+*/trace.out

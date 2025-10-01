@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"time"
 
 	"route256/cart/internal/handler"
@@ -123,6 +124,8 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 	mx.HandleFunc("DELETE /user/{user_id}/cart", s.ClearCartHandler)
 	mx.HandleFunc("GET /user/{user_id}/cart", s.GetCartHandler)
 	mx.HandleFunc("POST /checkout/{user_id}", s.CheckoutCartHandler)
+
+	mx.HandleFunc("/debug/pprof/", http.DefaultServeMux.ServeHTTP)
 	mx.Handle("GET /metrics", promhttp.Handler())
 
 	h := middleware.NewLoggerMiddleware(mx)
