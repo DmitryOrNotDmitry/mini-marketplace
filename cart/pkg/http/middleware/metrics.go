@@ -29,10 +29,15 @@ func (rec *statusRecorder) WriteHeader(code int) {
 func (m *MetricsMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	wDecorator := &statusRecorder{
 		ResponseWriter: w,
+		status:         500,
 	}
 
 	start := time.Now()
 	defer func() {
+		if r := recover(); r != nil {
+			wDecorator.status = 500
+		}
+
 		pattern := r.Pattern
 		if pattern == "" {
 			pattern = r.URL.Path
