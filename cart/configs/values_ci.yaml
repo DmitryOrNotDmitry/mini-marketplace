@@ -7,6 +7,9 @@ service:
     service_name: cart-service
     environment: ci
 
+repo_observer:
+  interval: 5
+  
 jaeger:
   host: localhost
   port: 6831
