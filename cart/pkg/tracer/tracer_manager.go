@@ -19,8 +19,8 @@ type Manager struct {
 }
 
 // NewTracerManager создает новый экземпляр Manager для трассировки.
-func NewTracerManager(ctx context.Context, jaegerUrl, serviceName, enviroment string) (*Manager, error) {
-	exp, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL(jaegerUrl))
+func NewTracerManager(ctx context.Context, jaegerURL, serviceName, enviroment string) (*Manager, error) {
+	exp, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL(jaegerURL))
 	if err != nil {
 		return nil, err
 	}
