@@ -8,9 +8,11 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+// MetricsTracer реализует трассировку (middleware) запросов к базе данных для сбора метрик.
 type MetricsTracer struct {
 }
 
+// NewMetricsTracer создает новый экземпляр MetricsTracer.
 func NewMetricsTracer() *MetricsTracer {
 	return &MetricsTracer{}
 }

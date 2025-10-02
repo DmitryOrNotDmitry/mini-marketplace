@@ -47,7 +47,12 @@ func NewApp(configPath string) (*App, error) {
 	}
 
 	app := &App{Config: c}
-	app.tracerManager, err = tracer.NewTracerManager(context.Background(), "loms-service", "development")
+	app.tracerManager, err = tracer.NewTracerManager(
+		context.Background(),
+		fmt.Sprintf("http://%s:%s", app.Config.Jaeger.Host, app.Config.Jaeger.Port),
+		app.Config.Server.Tracing.ServiceName,
+		app.Config.Server.Tracing.Environment,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("tracer.NewTracerManager: %w", err)
 	}

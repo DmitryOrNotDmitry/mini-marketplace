@@ -8,12 +8,17 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
+// DBRequestCategory определяет тип запроса к базе данных.
 type DBRequestCategory = string
 
 const (
+	// Select категория для SELECT-запросов.
 	Select DBRequestCategory = "select"
+	// Update категория для UPDATE-запросов.
 	Update DBRequestCategory = "update"
+	// Insert категория для INSERT-запросов.
 	Insert DBRequestCategory = "insert"
+	// Delete категория для DELETE-запросов.
 	Delete DBRequestCategory = "delete"
 )
 
@@ -57,30 +62,36 @@ var (
 	}, []string{"object"})
 )
 
+// IncRequestCount увеличивает метрику счетчика запросов для указанного обработчика.
 func IncRequestCount(handler string) {
 	requestCounter.WithLabelValues(handler).Inc()
 }
 
+// AddRequestDurationHist добавляет значение в гистограмму длительности обработки запроса.
 func AddRequestDurationHist(handler string, status int, duration time.Duration) {
 	requestDurationHistogram.
 		WithLabelValues(handler, fmt.Sprint(status)).
 		Observe(float64(duration.Seconds()))
 }
 
+// IncRequestToExternalCount увеличивает метрику счетчика запросов к внешнему ресурсу.
 func IncRequestToExternalCount(resource string) {
 	requestToExternalCounter.WithLabelValues(resource).Inc()
 }
 
+// AddRequestToExternalDurationHist добавляет значение в гистограмму длительности запроса к внешнему ресурсу.
 func AddRequestToExternalDurationHist(resource string, status int, duration time.Duration) {
 	requestToExternalDurationHistogram.
 		WithLabelValues(resource, fmt.Sprint(status)).
 		Observe(float64(duration.Seconds()))
 }
 
+// IncDBRequestCount увеличивает метрику счетчика запросов к базе данных по категории.
 func IncDBRequestCount(category DBRequestCategory) {
 	requestToDBCounter.WithLabelValues(category).Inc()
 }
 
+// AddDBRequestDurationHist добавляет значение в гистограмму длительности запроса к базе данных.
 func AddDBRequestDurationHist(category DBRequestCategory, err error, duration time.Duration) {
 	errData := "no"
 	if err != nil {
@@ -92,6 +103,7 @@ func AddDBRequestDurationHist(category DBRequestCategory, err error, duration ti
 		Observe(float64(duration.Seconds()))
 }
 
+// StoreRepositorySize сохраняет размер репозитория для указанного объекта.
 func StoreRepositorySize(objectsName string, size float64) {
 	repositorySizeGauge.WithLabelValues(objectsName).Set(size)
 }

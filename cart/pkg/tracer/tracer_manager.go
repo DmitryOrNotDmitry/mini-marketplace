@@ -12,13 +12,15 @@ import (
 	t "go.opentelemetry.io/otel/trace"
 )
 
+// Manager управляет трассировщиком и провайдером трассировки.
 type Manager struct {
 	Tracer   t.Tracer
 	provider *trace.TracerProvider
 }
 
-func NewTracerManager(ctx context.Context, serviceName string, enviroment string) (*Manager, error) {
-	exp, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL("http://jaeger:4318"))
+// NewTracerManager создает новый экземпляр Manager для трассировки.
+func NewTracerManager(ctx context.Context, jaegerUrl, serviceName, enviroment string) (*Manager, error) {
+	exp, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL(jaegerUrl))
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +54,7 @@ func NewTracerManager(ctx context.Context, serviceName string, enviroment string
 	}, nil
 }
 
+// Stop завершает работу провайдера трассировки.
 func (t *Manager) Stop(ctx context.Context) error {
 	return t.provider.Shutdown(ctx)
 }

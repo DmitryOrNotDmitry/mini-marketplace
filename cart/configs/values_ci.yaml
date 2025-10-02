@@ -3,6 +3,9 @@ service:
   port: 8080
   workers: 5
   graceful_shutdown_timeout: 10
+  tracing:
+    service_name: cart-service
+    environment: ci
 
 jaeger:
   host: localhost

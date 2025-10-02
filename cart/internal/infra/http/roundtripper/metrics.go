@@ -23,8 +23,13 @@ func (m *MetricsRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 
 	resp, err := m.rt.RoundTrip(req)
 
-	metrics.IncRequestToExternalCount("/product")
-	metrics.AddRequestToExternalDurationHist("GET /product", resp.StatusCode, time.Since(start))
+	pattern := req.Pattern
+	if pattern == "" {
+		pattern = "empty pattern url"
+	}
+
+	metrics.IncRequestToExternalCount(pattern)
+	metrics.AddRequestToExternalDurationHist(pattern, resp.StatusCode, time.Since(start))
 
 	return resp, err
 }

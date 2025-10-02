@@ -45,7 +45,12 @@ func NewApp(configPath string) (*App, error) {
 	}
 
 	app := &App{Config: c}
-	app.tracerManager, err = tracer.NewTracerManager(context.Background(), "cart-service", "development")
+	app.tracerManager, err = tracer.NewTracerManager(
+		context.Background(),
+		fmt.Sprintf("http://%s:%s", app.Config.Jaeger.Host, app.Config.Jaeger.Port),
+		app.Config.Server.Tracing.ServiceName,
+		app.Config.Server.Tracing.Environment,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("tracer.NewTracerManager: %w", err)
 	}
@@ -114,7 +119,7 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 	s := handler.NewServer(cartService, lomsService)
 
 	app.repoObserver = metrics.NewRepositoryObserver([]*metrics.RepositoryInfo{
-		{Repo: cartRepository, ObjectsName: "cart", Interval: 5 * time.Second},
+		{Repo: cartRepository, ObjectsName: "cart", Interval: time.Duration(app.Config.RepoObserver.Interval) * time.Second},
 	})
 
 	mx := http.NewServeMux()

@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// ClientTracing реализует gRPC клиентский интерцептор для передачи контекста трассировки.
 func ClientTracing(
 	ctx context.Context,
 	method string,
