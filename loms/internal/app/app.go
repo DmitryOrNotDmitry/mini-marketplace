@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	_ "net/http/pprof"
+	_ "net/http/pprof" // nolint:gosec // profiling enabled for local debugging
 	"time"
 
 	"route256/cart/pkg/logger"
