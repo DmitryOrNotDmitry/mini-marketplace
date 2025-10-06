@@ -13,13 +13,19 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	logLevel      = zap.InfoLevel
+	serviceName   = "loms"
+	configPathVar = "CONFIG_FILE"
+)
+
 func main() {
 	logger.InitLogger(&logger.Config{
-		Level:       zap.InfoLevel,
-		ServiceName: "loms",
+		Level:       logLevel,
+		ServiceName: serviceName,
 	})
 
-	lomsApp, err := app.NewApp(os.Getenv("CONFIG_FILE"))
+	lomsApp, err := app.NewApp(os.Getenv(configPathVar))
 	if err != nil {
 		panic(err)
 	}

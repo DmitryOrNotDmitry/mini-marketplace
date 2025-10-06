@@ -119,7 +119,7 @@ func newPool(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("pgxpool.ParseConfig (dsn=%s): %w", dsn, err)
 	}
 
-	config.ConnConfig.Tracer = postgrespkg.NewMetricsTracer()
+	config.ConnConfig.Tracer = postgrespkg.NewMetricsQueryTracer()
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {

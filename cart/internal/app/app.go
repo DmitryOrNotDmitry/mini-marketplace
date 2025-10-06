@@ -16,7 +16,7 @@ import (
 	"route256/cart/internal/infra/ratelimit"
 	"route256/cart/internal/infra/repository"
 	"route256/cart/internal/service"
-	mvpkg "route256/cart/pkg/http/middleware"
+	mwpkg "route256/cart/pkg/http/middleware"
 	"route256/cart/pkg/logger"
 	"route256/cart/pkg/myerrgroup"
 	"route256/cart/pkg/tracer"
@@ -44,28 +44,28 @@ func NewApp(configPath string) (*App, error) {
 		return nil, fmt.Errorf("config.LoadConfig: %w", err)
 	}
 
-	app := &App{Config: c}
-	app.tracerManager, err = tracer.NewTracerManager(
+	a := &App{Config: c}
+	a.tracerManager, err = tracer.NewTracerManager(
 		context.Background(),
-		fmt.Sprintf("http://%s:%s", app.Config.Jaeger.Host, app.Config.Jaeger.Port),
-		app.Config.Server.Tracing.ServiceName,
-		app.Config.Server.Tracing.Environment,
+		fmt.Sprintf("http://%s:%s", a.Config.Jaeger.Host, a.Config.Jaeger.Port),
+		a.Config.Server.Tracing.ServiceName,
+		a.Config.Server.Tracing.Environment,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("tracer.NewTracerManager: %w", err)
 	}
 
-	app.server.Handler, err = app.bootstrapHandlers()
+	a.server.Handler, err = a.bootstrapHandlers()
 	if err != nil {
 		return nil, fmt.Errorf("app.bootstrapHandlers: %w", err)
 	}
 
-	return app, nil
+	return a, nil
 }
 
 // ListenAndServe запускает HTTP-сервер приложения.
-func (app *App) ListenAndServe() error {
-	address := fmt.Sprintf("%s:%s", app.Config.Server.Host, app.Config.Server.Port)
+func (a *App) ListenAndServe() error {
+	address := fmt.Sprintf("%s:%s", a.Config.Server.Host, a.Config.Server.Port)
 
 	l, err := net.Listen("tcp", address)
 	if err != nil {
@@ -74,10 +74,10 @@ func (app *App) ListenAndServe() error {
 
 	logger.Infow(fmt.Sprintf("Cart service listening at http://%s", address))
 
-	return app.server.Serve(l)
+	return a.server.Serve(l)
 }
 
-func (app *App) bootstrapHandlers() (http.Handler, error) {
+func (a *App) bootstrapHandlers() (http.Handler, error) {
 	transport := http.DefaultTransport
 	transport = roundtripper.NewMetricsRoundTripper(transport)
 	transport = roundtripper.NewRetryRoundTripper(transport, []int{420, 429}, 3)
@@ -85,19 +85,19 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 		Transport: transport,
 		Timeout:   10 * time.Second,
 	}
-	rps := app.Config.ProductService.Limit
+	rps := a.Config.ProductService.Limit
 	interval := time.Second / time.Duration(rps)
 	rateLimiter := ratelimit.NewPoolRateLimiter(rps, interval)
 
 	productService := service.NewProductServiceHTTP(
 		httpClient,
 		rateLimiter,
-		app.Config.ProductService.Token,
-		fmt.Sprintf("%s://%s:%s", app.Config.ProductService.Protocol, app.Config.ProductService.Host, app.Config.ProductService.Port),
+		a.Config.ProductService.Token,
+		fmt.Sprintf("%s://%s:%s", a.Config.ProductService.Protocol, a.Config.ProductService.Host, a.Config.ProductService.Port),
 	)
 
 	conn, err := grpc.NewClient(
-		fmt.Sprintf("%s:%s", app.Config.LomsService.Host, app.Config.LomsService.Port),
+		fmt.Sprintf("%s:%s", a.Config.LomsService.Host, a.Config.LomsService.Port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithChainUnaryInterceptor(
 			interceptor.ClientTracing,
@@ -118,9 +118,9 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 
 	s := handler.NewServer(cartService, lomsService)
 
-	app.repoObserver = metrics.NewRepositoryObserver([]*metrics.RepositoryInfo{
-		{Repo: cartRepository, ObjectsName: "cart", Interval: time.Duration(app.Config.RepoObserver.Interval) * time.Second},
-	})
+	a.repoObserver = metrics.NewRepositoryObserver([]*metrics.RepositoryInfo{
+		{Repo: cartRepository, ObjectName: "cart"},
+	}, time.Duration(a.Config.RepoObserver.Interval)*time.Second)
 
 	mx := http.NewServeMux()
 
@@ -134,23 +134,23 @@ func (app *App) bootstrapHandlers() (http.Handler, error) {
 	mx.Handle("GET /metrics", promhttp.Handler())
 
 	h := middleware.NewLoggerMiddleware(mx)
-	h = mvpkg.NewMetricsMiddleware(h)
-	h = mvpkg.NewTracing(h, app.tracerManager)
+	h = mwpkg.NewMetricsMiddleware(h)
+	h = mwpkg.NewTracing(h, a.tracerManager)
 
 	return h, nil
 }
 
 // Shutdown gracefully останавливает приложение.
-func (app *App) Shutdown(ctx context.Context) error {
-	app.repoObserver.Stop()
+func (a *App) Shutdown(ctx context.Context) error {
+	a.repoObserver.Stop()
 
 	errGroup, ctx := myerrgroup.WithContext(ctx)
 	errGroup.Go(func() error {
-		return app.tracerManager.Stop(ctx)
+		return a.tracerManager.Stop(ctx)
 	})
 
 	errGroup.Go(func() error {
-		return app.server.Shutdown(ctx)
+		return a.server.Shutdown(ctx)
 	})
 
 	return errGroup.Wait()

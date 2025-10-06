@@ -24,41 +24,41 @@ const (
 
 var (
 	requestCounter = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "handler_request_total_counter",
+		Name: "handler_requests_total",
 		Help: "Total count of request",
 	}, []string{"handler"})
 
 	requestDurationHistogram = promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    "handler_request_duration_historgram",
-		Help:    "Total duration of handler processing",
+		Name:    "handler_request_duration_seconds",
+		Help:    "Duration of handler processing",
 		Buckets: prometheus.DefBuckets,
 	}, []string{"handler", "status"})
 
 	requestToExternalCounter = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "request_to_external_services_total_counter",
+		Name: "external_service_requests_total",
 		Help: "Total count of request to external services",
 	}, []string{"resource"})
 
 	requestToExternalDurationHistogram = promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    "request_to_external_services_duration_historgram",
-		Help:    "Total duration of request to external services",
+		Name:    "external_service_request_duration_seconds",
+		Help:    "Duration of request to external services",
 		Buckets: prometheus.DefBuckets,
 	}, []string{"resource", "status"})
 
 	requestToDBCounter = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "database_request_total_counter",
+		Name: "database_requests_total",
 		Help: "Total count of request",
 	}, []string{"category"})
 
 	requestToDBDurationHistogram = promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    "database_request_duration_historgram",
-		Help:    "Total duration of request to database",
+		Name:    "database_request_duration_seconds",
+		Help:    "Duration of request to database",
 		Buckets: prometheus.DefBuckets,
 	}, []string{"category", "error"})
 
 	repositorySizeGauge = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "repo_size_gauge",
-		Help: "Size of repo",
+		Name: "repository_objects_count",
+		Help: "Current number of objects in the repository",
 	}, []string{"object"})
 )
 
@@ -104,6 +104,6 @@ func AddDBRequestDurationHist(category DBRequestCategory, err error, duration ti
 }
 
 // StoreRepositorySize сохраняет размер репозитория для указанного объекта.
-func StoreRepositorySize(objectsName string, size float64) {
-	repositorySizeGauge.WithLabelValues(objectsName).Set(size)
+func StoreRepositorySize(objectName string, size float64) {
+	repositorySizeGauge.WithLabelValues(objectName).Set(size)
 }

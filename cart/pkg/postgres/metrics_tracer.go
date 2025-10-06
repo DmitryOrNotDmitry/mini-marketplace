@@ -8,20 +8,20 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// MetricsTracer реализует трассировку (middleware) запросов к базе данных для сбора метрик.
-type MetricsTracer struct {
+// MetricsQueryTracer реализует middleware для sql запросов к БД для сбора метрик.
+type MetricsQueryTracer struct {
 }
 
-// NewMetricsTracer создает новый экземпляр MetricsTracer.
-func NewMetricsTracer() *MetricsTracer {
-	return &MetricsTracer{}
+// NewMetricsQueryTracer создает новый экземпляр MetricsQueryTracer.
+func NewMetricsQueryTracer() *MetricsQueryTracer {
+	return &MetricsQueryTracer{}
 }
 
 type ctxKey string
 
 const startTimeKey ctxKey = "queryStartTime"
 
-func (t *MetricsTracer) TraceQueryStart(
+func (t *MetricsQueryTracer) TraceQueryStart(
 	ctx context.Context,
 	_ *pgx.Conn,
 	_ pgx.TraceQueryStartData,
@@ -30,7 +30,7 @@ func (t *MetricsTracer) TraceQueryStart(
 	return ctx
 }
 
-func (t *MetricsTracer) TraceQueryEnd(
+func (t *MetricsQueryTracer) TraceQueryEnd(
 	ctx context.Context,
 	_ *pgx.Conn,
 	data pgx.TraceQueryEndData,
