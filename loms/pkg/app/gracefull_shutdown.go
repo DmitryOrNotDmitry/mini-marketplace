@@ -21,15 +21,20 @@ func GracefulShutdown(shutApp ShutdownedApp, gracefulTimeout time.Duration) {
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	<-stop
-	logger.Info("Shutting down service...")
+	logger.Infow("Shutting down service...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), gracefulTimeout)
 	defer cancel()
 
 	err := shutApp.Shutdown(ctx)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Service stopped with force %s", err.Error()))
+		logger.Errorw(fmt.Sprintf("Service stopped with force %s", err.Error()))
 	} else {
-		logger.Info("Service stopped gracefully")
+		logger.Infow("Service stopped gracefully")
+	}
+
+	err = logger.Sync()
+	if err != nil {
+		panic(err)
 	}
 }

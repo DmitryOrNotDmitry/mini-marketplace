@@ -32,7 +32,7 @@ func (m *LoggerMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sw := &statusWriter{ResponseWriter: w, status: -1}
 
 	defer func(now time.Time) {
-		logger.Info(fmt.Sprintf("%s %s -> %d (%s)",
+		logger.InfowCtx(r.Context(), fmt.Sprintf("%s %s -> %d (%s)",
 			r.Method, r.URL.String(), sw.status, time.Since(now)))
 	}(time.Now())
 

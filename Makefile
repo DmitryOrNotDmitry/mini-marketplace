@@ -8,6 +8,13 @@ build: cart-build loms-build notifier-build comments-build
 run-all:
 	docker compose up --build
 
+run-monitor:
+	docker compose -f docker-compose-monitoring.yml up -d
+
+stop-monitor:
+	docker compose -f docker-compose-monitoring.yml down
+
+
 test:
 	$(MAKE) -C ./cart test
 	$(MAKE) -C ./loms test

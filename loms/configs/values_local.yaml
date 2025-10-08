@@ -7,10 +7,13 @@ service:
     write_timeout: 15
     idle_timeout: 60
   graceful_shutdown_timeout: 10
+  tracing:
+    service_name: loms-service
+    environment: development
 
 jaeger:
-  host: localhost
-  port: 6831
+  host: jaeger
+  port: 4318
 
 db_master:
   host: postgres-master
