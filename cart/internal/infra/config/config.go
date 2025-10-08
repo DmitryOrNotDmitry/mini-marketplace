@@ -12,13 +12,16 @@ type Config struct {
 	Server         CartServiceConfig    `yaml:"service"`
 	ProductService ProductServiceConfig `yaml:"product_service"`
 	LomsService    LomsServiceConfig    `yaml:"loms_service"`
+	Jaeger         JaegerConfig         `yaml:"jaeger"`
+	RepoObserver   RepoObserverConfig   `yaml:"repo_observer"`
 }
 
 // CartServiceConfig конфиг для сервиса cart.
 type CartServiceConfig struct {
-	Host                    string `yaml:"host"`
-	Port                    string `yaml:"port"`
-	GracefulShutdownTimeout int64  `yaml:"graceful_shutdown_timeout"`
+	Host                    string        `yaml:"host"`
+	Port                    string        `yaml:"port"`
+	GracefulShutdownTimeout int64         `yaml:"graceful_shutdown_timeout"`
+	Tracing                 TracingConfig `yaml:"tracing"`
 }
 
 // ProductServiceConfig конфиг для сервиса product.
@@ -30,10 +33,27 @@ type ProductServiceConfig struct {
 	Limit    int    `yaml:"limit"`
 }
 
+// JaegerConfig конфиг для jaeger.
+type JaegerConfig struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
+}
+
+// TracingConfig конфиг для трассировки.
+type TracingConfig struct {
+	ServiceName string `yaml:"service_name"`
+	Environment string `yaml:"environment"`
+}
+
 // LomsServiceConfig конфиг для сервиса loms.
 type LomsServiceConfig struct {
 	Host string `yaml:"host"`
 	Port string `yaml:"port"`
+}
+
+// RepoObserverConfig конфиг для трассировки.
+type RepoObserverConfig struct {
+	Interval int `yaml:"interval"`
 }
 
 // LoadConfig загружает конфиг из файла .yaml

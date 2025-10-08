@@ -42,3 +42,13 @@ lint:
 lint-top:
 	gocyclo -top 10 -ignore "_test|mocks|tests|pkg|vendor" .
 	gocognit -top 10 -ignore "_test|mocks|tests|pkg|vendor" .
+
+pprof-heap: 
+	go tool pprof -http=":8000" http://localhost:8080/debug/pprof/heap
+
+pprof-cpu: 
+	go tool pprof -http=":8000" http://localhost:8080/debug/pprof/profile?seconds=5
+
+pprof-trace: 
+	curl -o trace.out http://localhost:8080/debug/pprof/trace?seconds=5
+	go tool trace trace.out

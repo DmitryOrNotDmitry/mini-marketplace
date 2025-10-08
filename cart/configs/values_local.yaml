@@ -3,10 +3,16 @@ service:
   port: 8080
   workers: 5
   graceful_shutdown_timeout: 10
+  tracing:
+    service_name: cart-service
+    environment: development
+
+repo_observer:
+  interval: 5
 
 jaeger:
-  host: localhost
-  port: 6831
+  host: jaeger
+  port: 4318
 
 product_service:
   protocol: http

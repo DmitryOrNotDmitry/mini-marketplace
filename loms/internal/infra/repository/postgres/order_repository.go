@@ -72,7 +72,7 @@ func (or *OrderRepository) GetByIDOrderItemsBySKU(ctx context.Context, orderID i
 	for _, itemDB := range orderItemsDB {
 		count, err := Int64ToUint32(itemDB.Count)
 		if err != nil {
-			logger.Warning(fmt.Sprintf("Int64ToUint32 (Count=%d): %s", itemDB.Count, err.Error()))
+			logger.WarnwCtx(ctx, fmt.Sprintf("Int64ToUint32 (Count=%d): %s", itemDB.Count, err.Error()))
 		}
 
 		order.Items = append(order.Items, &domain.OrderItem{

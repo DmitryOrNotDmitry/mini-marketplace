@@ -7,6 +7,9 @@ service:
     write_timeout: 15
     idle_timeout: 60
   graceful_shutdown_timeout: 10
+  tracing:
+    service_name: loms-service
+    environment: ci
 
 jaeger:
   host: localhost

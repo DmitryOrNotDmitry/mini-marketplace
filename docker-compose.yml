@@ -5,6 +5,8 @@ services:
       dockerfile: cart/Dockerfile
     ports:
       - "8080:8080"
+    networks:
+      - mart-system
     depends_on:
       - products
       - loms
@@ -16,6 +18,8 @@ services:
     ports:
       - "8083:8083"
       - "8084:8084"
+    networks:
+      - mart-system
     depends_on:
       postgres-replica:
         condition: service_healthy
@@ -24,12 +28,16 @@ services:
     image: gitlab-registry.ozon.dev/go/classroom-20/students/homework-draft/products:latest
     ports:
       - "8082:8082"
+    networks:
+      - mart-system
   
   swagger-ui:
     image: swaggerapi/swagger-ui:latest
     container_name: swagger-ui
     ports:
       - "8100:8080"
+    networks:
+      - mart-system
     environment:
       SWAGGER_JSON: /swagger/swagger.json
     volumes:
@@ -49,6 +57,8 @@ services:
       - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
     ports:
       - "5432:5432"
+    networks:
+      - mart-system
 
   postgres-replica:
     image: gitlab-registry.ozon.dev/go/classroom-20/students/base/postgres:16
@@ -66,9 +76,15 @@ services:
       - POSTGRESQL_MASTER_PORT_NUMBER=5432
     ports:
       - "5433:5432"
+    networks:
+      - mart-system
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U loms-user -d loms_db"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+
+networks:
+  mart-system:
+    driver: bridge

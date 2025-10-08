@@ -20,7 +20,7 @@ test-race:
 	go test ./internal/... -count=1 -race
 
 test-integration:
-	go test ./test/integration/... -tags=integration
+	go test ./tests/integration/... -tags=integration
 	
 minimock-gen:
 	mkdir -p mocks
@@ -209,3 +209,13 @@ migrate:
 
 migrate-down:
 	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN)" down
+
+pprof-heap: 
+	go tool pprof -http=":8000" http://localhost:8084/debug/pprof/heap
+
+pprof-cpu: 
+	go tool pprof -http=":8000" http://localhost:8084/debug/pprof/profile?seconds=5
+
+pprof-trace: 
+	curl -o trace.out http://localhost:8084/debug/pprof/trace?seconds=5
+	go tool trace trace.out

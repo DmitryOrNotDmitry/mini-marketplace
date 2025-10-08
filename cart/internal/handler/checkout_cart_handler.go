@@ -48,7 +48,7 @@ func (s *Server) CheckoutCartHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = s.cartService.ClearCart(ctx, userID)
 	if err != nil {
-		logger.Error(fmt.Sprintf("cartService.ClearCart: %s", err))
+		logger.ErrorwCtx(ctx, fmt.Sprintf("cartService.ClearCart: %s", err))
 	}
 
 	response := &CheckoutCartResponse{

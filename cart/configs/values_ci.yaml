@@ -3,7 +3,13 @@ service:
   port: 8080
   workers: 5
   graceful_shutdown_timeout: 10
+  tracing:
+    service_name: cart-service
+    environment: ci
 
+repo_observer:
+  interval: 5
+  
 jaeger:
   host: localhost
   port: 6831
