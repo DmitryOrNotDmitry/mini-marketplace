@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"time"
@@ -18,13 +19,24 @@ const (
 	configPathVar = "CONFIG_FILE"
 )
 
+type shutdownMain struct {
+	cancel context.CancelFunc
+	app    *app.App
+}
+
+func (a *shutdownMain) Shutdown(ctx context.Context) error {
+	a.cancel()
+	return a.app.Shutdown(ctx)
+}
+
 func main() {
 	logger.InitLogger(&logger.Config{
 		Level:       logLevel,
 		ServiceName: serviceName,
 	})
 
-	cartApp, err := app.NewApp(os.Getenv(configPathVar))
+	mainCtx, cancel := context.WithCancel(context.Background())
+	cartApp, err := app.NewApp(mainCtx, os.Getenv(configPathVar))
 	if err != nil {
 		panic(err)
 	}
@@ -36,5 +48,5 @@ func main() {
 		}
 	}()
 
-	pkgapp.GracefulShutdown(cartApp, time.Duration(cartApp.Config.Server.GracefulShutdownTimeout)*time.Second)
+	pkgapp.GracefulShutdown(&shutdownMain{cancel: cancel, app: cartApp}, time.Duration(cartApp.Config.Server.GracefulShutdownTimeout)*time.Second)
 }

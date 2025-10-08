@@ -40,7 +40,7 @@ type App struct {
 }
 
 // NewApp конструктор главного приложения.
-func NewApp(configPath string) (*App, error) {
+func NewApp(ctx context.Context, configPath string) (*App, error) {
 	c, err := config.LoadConfig(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("config.LoadConfig: %w", err)
@@ -48,7 +48,7 @@ func NewApp(configPath string) (*App, error) {
 
 	app := &App{Config: c}
 	app.tracerManager, err = tracer.NewTracerManager(
-		context.Background(),
+		ctx,
 		fmt.Sprintf("http://%s:%s", app.Config.Jaeger.Host, app.Config.Jaeger.Port),
 		app.Config.Server.Tracing.ServiceName,
 		app.Config.Server.Tracing.Environment,
@@ -74,7 +74,6 @@ func NewApp(configPath string) (*App, error) {
 	postgresReplicaDSN := dsnBuilder(app.Config.ReplicaDB.User, app.Config.ReplicaDB.Password,
 		app.Config.ReplicaDB.Host, app.Config.ReplicaDB.Port, app.Config.ReplicaDB.DBName)
 
-	ctx := context.Background()
 	masterPool, err := newPool(ctx, postgresMasterDSN)
 	if err != nil {
 		return nil, fmt.Errorf("newPool: %w", err)
@@ -142,7 +141,7 @@ func (a *App) ListenAndServeGRPC() error {
 }
 
 // ListenAndServeGRPCGateway запускает gRPC-gateway для gRPC-сервера приложений.
-func (a *App) ListenAndServeGRPCGateway() error {
+func (a *App) ListenAndServeGRPCGateway(ctx context.Context) error {
 	conn, err := grpc.NewClient(
 		fmt.Sprintf(":%s", a.Config.Server.GRPCPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -152,7 +151,6 @@ func (a *App) ListenAndServeGRPCGateway() error {
 	}
 
 	gwMux := runtime.NewServeMux()
-	ctx := context.Background()
 
 	err = orders.RegisterOrderServiceV1Handler(ctx, gwMux, conn)
 	if err != nil {

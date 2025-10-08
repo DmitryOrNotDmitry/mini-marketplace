@@ -38,7 +38,7 @@ type App struct {
 }
 
 // NewApp конструктор главного приложения.
-func NewApp(configPath string) (*App, error) {
+func NewApp(ctx context.Context, configPath string) (*App, error) {
 	c, err := config.LoadConfig(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("config.LoadConfig: %w", err)
@@ -46,7 +46,7 @@ func NewApp(configPath string) (*App, error) {
 
 	a := &App{Config: c}
 	a.tracerManager, err = tracer.NewTracerManager(
-		context.Background(),
+		ctx,
 		fmt.Sprintf("http://%s:%s", a.Config.Jaeger.Host, a.Config.Jaeger.Port),
 		a.Config.Server.Tracing.ServiceName,
 		a.Config.Server.Tracing.Environment,

@@ -26,6 +26,7 @@ type repository interface {
 func NewRepositoryObserver(repos []*RepositoryInfo, interval time.Duration) *RepositoryObserver {
 	r := &RepositoryObserver{
 		repos:    repos,
+		done:     make(chan struct{}),
 		interval: interval,
 	}
 
