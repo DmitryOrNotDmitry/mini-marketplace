@@ -48,3 +48,11 @@ func (rf *RepositoryFactory) CreateOrder(ctx context.Context, operationType serv
 	}
 	return NewOrderRepository(rf.getPool(operationType))
 }
+
+// CreateOrderEvent создает OrderEventRepository с нужным пулом или транзакцией.
+func (rf *RepositoryFactory) CreateOrderEvent(ctx context.Context, operationType service.OperationType) service.OrderEventRepository {
+	if tx, ok := TxFromCtx(ctx); ok {
+		return NewOrderEventRepository(tx)
+	}
+	return NewOrderEventRepository(rf.getPool(operationType))
+}

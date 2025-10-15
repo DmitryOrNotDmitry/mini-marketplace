@@ -6,10 +6,9 @@ import (
 	"route256/loms/internal/domain"
 )
 
-// OrderRepoFactory создает экземпляры репозитория заказов.
 type OrderRepoFactory interface {
-	// CreateOrder создает новый репозиторий заказов.
 	CreateOrder(ctx context.Context, operationType OperationType) OrderRepository
+	CreateOrderEvent(ctx context.Context, operationType OperationType) OrderEventRepository
 }
 
 // StockServiceI описывает методы работы с резервированием товаров.
@@ -40,32 +39,47 @@ func NewOrderService(stockService StockServiceI, repositoryFactory OrderRepoFact
 
 // Create создает новый заказ, резервирует товары и возвращает идентификатор заказа.
 func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64, error) {
-	var orderID int64
-	var stockErr error
+	var err error
+	order.OrderID, err = os.createWithStatusNew(ctx, order)
+	if err != nil {
+		return 0, fmt.Errorf("createWithStatusNew: %w", err)
+	}
 
+	var stockErr error
+	stockErr = os.stockService.ReserveFor(ctx, order)
+	if stockErr != nil {
+		stockErr = fmt.Errorf("stockService.ReserveFor: %w", stockErr)
+		order.Status = domain.Failed
+	} else {
+		order.Status = domain.AwaitingPayment
+	}
+
+	err = os.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
+		return os.updateOrderStatus(ctx, order)
+	})
+	if err != nil {
+		return 0, fmt.Errorf("txManager.WithTransaction: %w", err)
+	}
+
+	return order.OrderID, stockErr
+}
+
+func (os *OrderService) createWithStatusNew(ctx context.Context, order *domain.Order) (int64, error) {
 	err := os.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
 		orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
+		orderEventRepository := os.repositoryFactory.CreateOrderEvent(ctx, FromTx)
 
 		order.Status = domain.New
 
 		var err error
-		orderID, err = orderRepository.Insert(ctx, order)
+		order.OrderID, err = orderRepository.Insert(ctx, order)
 		if err != nil {
 			return fmt.Errorf("orderRepository.Insert: %w", err)
 		}
 
-		var nextStatus domain.Status
-		stockErr = os.stockService.ReserveFor(ctx, order)
-		if stockErr != nil {
-			stockErr = fmt.Errorf("stockService.ReserveFor: %w", stockErr)
-			nextStatus = domain.Failed
-		} else {
-			nextStatus = domain.AwaitingPayment
-		}
-
-		err = orderRepository.UpdateStatus(ctx, orderID, nextStatus)
+		err = orderEventRepository.Insert(ctx, order)
 		if err != nil {
-			return fmt.Errorf("orderRepository.UpdateStatus: %w", err)
+			return fmt.Errorf("orderEventRepository.Insert: %w", err)
 		}
 		return nil
 	})
@@ -73,7 +87,23 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 		return 0, fmt.Errorf("txManager.WithTransaction: %w", err)
 	}
 
-	return orderID, stockErr
+	return order.OrderID, nil
+}
+
+func (os *OrderService) updateOrderStatus(ctx context.Context, order *domain.Order) error {
+	orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
+	orderEventRepository := os.repositoryFactory.CreateOrderEvent(ctx, FromTx)
+
+	err := orderRepository.UpdateStatus(ctx, order.OrderID, order.Status)
+	if err != nil {
+		return fmt.Errorf("orderRepository.UpdateStatus: %w", err)
+	}
+
+	err = orderEventRepository.Insert(ctx, order)
+	if err != nil {
+		return fmt.Errorf("orderEventRepository.Insert: %w", err)
+	}
+	return nil
 }
 
 // GetInfoByID возвращает информацию о заказе по его идентификатору.
@@ -108,8 +138,9 @@ func (os *OrderService) PayByID(ctx context.Context, orderID int64) error {
 			return fmt.Errorf("stockService.ConfirmReserveFor: %w", err)
 		}
 
-		orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
-		return orderRepository.UpdateStatus(ctx, orderID, domain.Paid)
+		order.Status = domain.Paid
+
+		return os.updateOrderStatus(ctx, order)
 	})
 	if err != nil {
 		return fmt.Errorf("txManager.WithRepeatableRead: %w", err)
@@ -139,8 +170,9 @@ func (os *OrderService) CancelByID(ctx context.Context, orderID int64) error {
 			return fmt.Errorf("stockService.CancelReserveFor: %s", errCancel)
 		}
 
-		orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
-		return orderRepository.UpdateStatus(ctx, orderID, domain.Cancelled)
+		order.Status = domain.Cancelled
+
+		return os.updateOrderStatus(ctx, order)
 	})
 	if err != nil {
 		return fmt.Errorf("txManager.WithRepeatableRead: %w", err)

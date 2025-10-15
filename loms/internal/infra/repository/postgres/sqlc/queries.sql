@@ -55,3 +55,15 @@ where sku = $1;
 select *
 from stocks
 where sku = $1;
+
+-- name: GetStockBySKUForUpdate :one
+select *
+from stocks
+where sku = $1
+for update;
+
+
+
+-- name: InsertOrderEvent :exec
+insert into orders_event_outbox(order_id, status, moment, event_status)
+values ($1, $2, $3, $4);

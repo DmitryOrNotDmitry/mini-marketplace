@@ -25,6 +25,13 @@ type OrderRepoFactoryMock struct {
 	afterCreateOrderCounter  uint64
 	beforeCreateOrderCounter uint64
 	CreateOrderMock          mOrderRepoFactoryMockCreateOrder
+
+	funcCreateOrderEvent          func(ctx context.Context, operationType mm_service.OperationType) (o1 mm_service.OrderEventRepository)
+	funcCreateOrderEventOrigin    string
+	inspectFuncCreateOrderEvent   func(ctx context.Context, operationType mm_service.OperationType)
+	afterCreateOrderEventCounter  uint64
+	beforeCreateOrderEventCounter uint64
+	CreateOrderEventMock          mOrderRepoFactoryMockCreateOrderEvent
 }
 
 // NewOrderRepoFactoryMock returns a mock for mm_service.OrderRepoFactory
@@ -37,6 +44,9 @@ func NewOrderRepoFactoryMock(t minimock.Tester) *OrderRepoFactoryMock {
 
 	m.CreateOrderMock = mOrderRepoFactoryMockCreateOrder{mock: m}
 	m.CreateOrderMock.callArgs = []*OrderRepoFactoryMockCreateOrderParams{}
+
+	m.CreateOrderEventMock = mOrderRepoFactoryMockCreateOrderEvent{mock: m}
+	m.CreateOrderEventMock.callArgs = []*OrderRepoFactoryMockCreateOrderEventParams{}
 
 	t.Cleanup(m.MinimockFinish)
 
@@ -385,11 +395,355 @@ func (m *OrderRepoFactoryMock) MinimockCreateOrderInspect() {
 	}
 }
 
+type mOrderRepoFactoryMockCreateOrderEvent struct {
+	optional           bool
+	mock               *OrderRepoFactoryMock
+	defaultExpectation *OrderRepoFactoryMockCreateOrderEventExpectation
+	expectations       []*OrderRepoFactoryMockCreateOrderEventExpectation
+
+	callArgs []*OrderRepoFactoryMockCreateOrderEventParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// OrderRepoFactoryMockCreateOrderEventExpectation specifies expectation struct of the OrderRepoFactory.CreateOrderEvent
+type OrderRepoFactoryMockCreateOrderEventExpectation struct {
+	mock               *OrderRepoFactoryMock
+	params             *OrderRepoFactoryMockCreateOrderEventParams
+	paramPtrs          *OrderRepoFactoryMockCreateOrderEventParamPtrs
+	expectationOrigins OrderRepoFactoryMockCreateOrderEventExpectationOrigins
+	results            *OrderRepoFactoryMockCreateOrderEventResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// OrderRepoFactoryMockCreateOrderEventParams contains parameters of the OrderRepoFactory.CreateOrderEvent
+type OrderRepoFactoryMockCreateOrderEventParams struct {
+	ctx           context.Context
+	operationType mm_service.OperationType
+}
+
+// OrderRepoFactoryMockCreateOrderEventParamPtrs contains pointers to parameters of the OrderRepoFactory.CreateOrderEvent
+type OrderRepoFactoryMockCreateOrderEventParamPtrs struct {
+	ctx           *context.Context
+	operationType *mm_service.OperationType
+}
+
+// OrderRepoFactoryMockCreateOrderEventResults contains results of the OrderRepoFactory.CreateOrderEvent
+type OrderRepoFactoryMockCreateOrderEventResults struct {
+	o1 mm_service.OrderEventRepository
+}
+
+// OrderRepoFactoryMockCreateOrderEventOrigins contains origins of expectations of the OrderRepoFactory.CreateOrderEvent
+type OrderRepoFactoryMockCreateOrderEventExpectationOrigins struct {
+	origin              string
+	originCtx           string
+	originOperationType string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) Optional() *mOrderRepoFactoryMockCreateOrderEvent {
+	mmCreateOrderEvent.optional = true
+	return mmCreateOrderEvent
+}
+
+// Expect sets up expected params for OrderRepoFactory.CreateOrderEvent
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) Expect(ctx context.Context, operationType mm_service.OperationType) *mOrderRepoFactoryMockCreateOrderEvent {
+	if mmCreateOrderEvent.mock.funcCreateOrderEvent != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("OrderRepoFactoryMock.CreateOrderEvent mock is already set by Set")
+	}
+
+	if mmCreateOrderEvent.defaultExpectation == nil {
+		mmCreateOrderEvent.defaultExpectation = &OrderRepoFactoryMockCreateOrderEventExpectation{}
+	}
+
+	if mmCreateOrderEvent.defaultExpectation.paramPtrs != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("OrderRepoFactoryMock.CreateOrderEvent mock is already set by ExpectParams functions")
+	}
+
+	mmCreateOrderEvent.defaultExpectation.params = &OrderRepoFactoryMockCreateOrderEventParams{ctx, operationType}
+	mmCreateOrderEvent.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmCreateOrderEvent.expectations {
+		if minimock.Equal(e.params, mmCreateOrderEvent.defaultExpectation.params) {
+			mmCreateOrderEvent.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmCreateOrderEvent.defaultExpectation.params)
+		}
+	}
+
+	return mmCreateOrderEvent
+}
+
+// ExpectCtxParam1 sets up expected param ctx for OrderRepoFactory.CreateOrderEvent
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) ExpectCtxParam1(ctx context.Context) *mOrderRepoFactoryMockCreateOrderEvent {
+	if mmCreateOrderEvent.mock.funcCreateOrderEvent != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("OrderRepoFactoryMock.CreateOrderEvent mock is already set by Set")
+	}
+
+	if mmCreateOrderEvent.defaultExpectation == nil {
+		mmCreateOrderEvent.defaultExpectation = &OrderRepoFactoryMockCreateOrderEventExpectation{}
+	}
+
+	if mmCreateOrderEvent.defaultExpectation.params != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("OrderRepoFactoryMock.CreateOrderEvent mock is already set by Expect")
+	}
+
+	if mmCreateOrderEvent.defaultExpectation.paramPtrs == nil {
+		mmCreateOrderEvent.defaultExpectation.paramPtrs = &OrderRepoFactoryMockCreateOrderEventParamPtrs{}
+	}
+	mmCreateOrderEvent.defaultExpectation.paramPtrs.ctx = &ctx
+	mmCreateOrderEvent.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmCreateOrderEvent
+}
+
+// ExpectOperationTypeParam2 sets up expected param operationType for OrderRepoFactory.CreateOrderEvent
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) ExpectOperationTypeParam2(operationType mm_service.OperationType) *mOrderRepoFactoryMockCreateOrderEvent {
+	if mmCreateOrderEvent.mock.funcCreateOrderEvent != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("OrderRepoFactoryMock.CreateOrderEvent mock is already set by Set")
+	}
+
+	if mmCreateOrderEvent.defaultExpectation == nil {
+		mmCreateOrderEvent.defaultExpectation = &OrderRepoFactoryMockCreateOrderEventExpectation{}
+	}
+
+	if mmCreateOrderEvent.defaultExpectation.params != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("OrderRepoFactoryMock.CreateOrderEvent mock is already set by Expect")
+	}
+
+	if mmCreateOrderEvent.defaultExpectation.paramPtrs == nil {
+		mmCreateOrderEvent.defaultExpectation.paramPtrs = &OrderRepoFactoryMockCreateOrderEventParamPtrs{}
+	}
+	mmCreateOrderEvent.defaultExpectation.paramPtrs.operationType = &operationType
+	mmCreateOrderEvent.defaultExpectation.expectationOrigins.originOperationType = minimock.CallerInfo(1)
+
+	return mmCreateOrderEvent
+}
+
+// Inspect accepts an inspector function that has same arguments as the OrderRepoFactory.CreateOrderEvent
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) Inspect(f func(ctx context.Context, operationType mm_service.OperationType)) *mOrderRepoFactoryMockCreateOrderEvent {
+	if mmCreateOrderEvent.mock.inspectFuncCreateOrderEvent != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("Inspect function is already set for OrderRepoFactoryMock.CreateOrderEvent")
+	}
+
+	mmCreateOrderEvent.mock.inspectFuncCreateOrderEvent = f
+
+	return mmCreateOrderEvent
+}
+
+// Return sets up results that will be returned by OrderRepoFactory.CreateOrderEvent
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) Return(o1 mm_service.OrderEventRepository) *OrderRepoFactoryMock {
+	if mmCreateOrderEvent.mock.funcCreateOrderEvent != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("OrderRepoFactoryMock.CreateOrderEvent mock is already set by Set")
+	}
+
+	if mmCreateOrderEvent.defaultExpectation == nil {
+		mmCreateOrderEvent.defaultExpectation = &OrderRepoFactoryMockCreateOrderEventExpectation{mock: mmCreateOrderEvent.mock}
+	}
+	mmCreateOrderEvent.defaultExpectation.results = &OrderRepoFactoryMockCreateOrderEventResults{o1}
+	mmCreateOrderEvent.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmCreateOrderEvent.mock
+}
+
+// Set uses given function f to mock the OrderRepoFactory.CreateOrderEvent method
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) Set(f func(ctx context.Context, operationType mm_service.OperationType) (o1 mm_service.OrderEventRepository)) *OrderRepoFactoryMock {
+	if mmCreateOrderEvent.defaultExpectation != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("Default expectation is already set for the OrderRepoFactory.CreateOrderEvent method")
+	}
+
+	if len(mmCreateOrderEvent.expectations) > 0 {
+		mmCreateOrderEvent.mock.t.Fatalf("Some expectations are already set for the OrderRepoFactory.CreateOrderEvent method")
+	}
+
+	mmCreateOrderEvent.mock.funcCreateOrderEvent = f
+	mmCreateOrderEvent.mock.funcCreateOrderEventOrigin = minimock.CallerInfo(1)
+	return mmCreateOrderEvent.mock
+}
+
+// When sets expectation for the OrderRepoFactory.CreateOrderEvent which will trigger the result defined by the following
+// Then helper
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) When(ctx context.Context, operationType mm_service.OperationType) *OrderRepoFactoryMockCreateOrderEventExpectation {
+	if mmCreateOrderEvent.mock.funcCreateOrderEvent != nil {
+		mmCreateOrderEvent.mock.t.Fatalf("OrderRepoFactoryMock.CreateOrderEvent mock is already set by Set")
+	}
+
+	expectation := &OrderRepoFactoryMockCreateOrderEventExpectation{
+		mock:               mmCreateOrderEvent.mock,
+		params:             &OrderRepoFactoryMockCreateOrderEventParams{ctx, operationType},
+		expectationOrigins: OrderRepoFactoryMockCreateOrderEventExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmCreateOrderEvent.expectations = append(mmCreateOrderEvent.expectations, expectation)
+	return expectation
+}
+
+// Then sets up OrderRepoFactory.CreateOrderEvent return parameters for the expectation previously defined by the When method
+func (e *OrderRepoFactoryMockCreateOrderEventExpectation) Then(o1 mm_service.OrderEventRepository) *OrderRepoFactoryMock {
+	e.results = &OrderRepoFactoryMockCreateOrderEventResults{o1}
+	return e.mock
+}
+
+// Times sets number of times OrderRepoFactory.CreateOrderEvent should be invoked
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) Times(n uint64) *mOrderRepoFactoryMockCreateOrderEvent {
+	if n == 0 {
+		mmCreateOrderEvent.mock.t.Fatalf("Times of OrderRepoFactoryMock.CreateOrderEvent mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmCreateOrderEvent.expectedInvocations, n)
+	mmCreateOrderEvent.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmCreateOrderEvent
+}
+
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) invocationsDone() bool {
+	if len(mmCreateOrderEvent.expectations) == 0 && mmCreateOrderEvent.defaultExpectation == nil && mmCreateOrderEvent.mock.funcCreateOrderEvent == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmCreateOrderEvent.mock.afterCreateOrderEventCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmCreateOrderEvent.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// CreateOrderEvent implements mm_service.OrderRepoFactory
+func (mmCreateOrderEvent *OrderRepoFactoryMock) CreateOrderEvent(ctx context.Context, operationType mm_service.OperationType) (o1 mm_service.OrderEventRepository) {
+	mm_atomic.AddUint64(&mmCreateOrderEvent.beforeCreateOrderEventCounter, 1)
+	defer mm_atomic.AddUint64(&mmCreateOrderEvent.afterCreateOrderEventCounter, 1)
+
+	mmCreateOrderEvent.t.Helper()
+
+	if mmCreateOrderEvent.inspectFuncCreateOrderEvent != nil {
+		mmCreateOrderEvent.inspectFuncCreateOrderEvent(ctx, operationType)
+	}
+
+	mm_params := OrderRepoFactoryMockCreateOrderEventParams{ctx, operationType}
+
+	// Record call args
+	mmCreateOrderEvent.CreateOrderEventMock.mutex.Lock()
+	mmCreateOrderEvent.CreateOrderEventMock.callArgs = append(mmCreateOrderEvent.CreateOrderEventMock.callArgs, &mm_params)
+	mmCreateOrderEvent.CreateOrderEventMock.mutex.Unlock()
+
+	for _, e := range mmCreateOrderEvent.CreateOrderEventMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.o1
+		}
+	}
+
+	if mmCreateOrderEvent.CreateOrderEventMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmCreateOrderEvent.CreateOrderEventMock.defaultExpectation.Counter, 1)
+		mm_want := mmCreateOrderEvent.CreateOrderEventMock.defaultExpectation.params
+		mm_want_ptrs := mmCreateOrderEvent.CreateOrderEventMock.defaultExpectation.paramPtrs
+
+		mm_got := OrderRepoFactoryMockCreateOrderEventParams{ctx, operationType}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmCreateOrderEvent.t.Errorf("OrderRepoFactoryMock.CreateOrderEvent got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmCreateOrderEvent.CreateOrderEventMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.operationType != nil && !minimock.Equal(*mm_want_ptrs.operationType, mm_got.operationType) {
+				mmCreateOrderEvent.t.Errorf("OrderRepoFactoryMock.CreateOrderEvent got unexpected parameter operationType, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmCreateOrderEvent.CreateOrderEventMock.defaultExpectation.expectationOrigins.originOperationType, *mm_want_ptrs.operationType, mm_got.operationType, minimock.Diff(*mm_want_ptrs.operationType, mm_got.operationType))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmCreateOrderEvent.t.Errorf("OrderRepoFactoryMock.CreateOrderEvent got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmCreateOrderEvent.CreateOrderEventMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmCreateOrderEvent.CreateOrderEventMock.defaultExpectation.results
+		if mm_results == nil {
+			mmCreateOrderEvent.t.Fatal("No results are set for the OrderRepoFactoryMock.CreateOrderEvent")
+		}
+		return (*mm_results).o1
+	}
+	if mmCreateOrderEvent.funcCreateOrderEvent != nil {
+		return mmCreateOrderEvent.funcCreateOrderEvent(ctx, operationType)
+	}
+	mmCreateOrderEvent.t.Fatalf("Unexpected call to OrderRepoFactoryMock.CreateOrderEvent. %v %v", ctx, operationType)
+	return
+}
+
+// CreateOrderEventAfterCounter returns a count of finished OrderRepoFactoryMock.CreateOrderEvent invocations
+func (mmCreateOrderEvent *OrderRepoFactoryMock) CreateOrderEventAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmCreateOrderEvent.afterCreateOrderEventCounter)
+}
+
+// CreateOrderEventBeforeCounter returns a count of OrderRepoFactoryMock.CreateOrderEvent invocations
+func (mmCreateOrderEvent *OrderRepoFactoryMock) CreateOrderEventBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmCreateOrderEvent.beforeCreateOrderEventCounter)
+}
+
+// Calls returns a list of arguments used in each call to OrderRepoFactoryMock.CreateOrderEvent.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmCreateOrderEvent *mOrderRepoFactoryMockCreateOrderEvent) Calls() []*OrderRepoFactoryMockCreateOrderEventParams {
+	mmCreateOrderEvent.mutex.RLock()
+
+	argCopy := make([]*OrderRepoFactoryMockCreateOrderEventParams, len(mmCreateOrderEvent.callArgs))
+	copy(argCopy, mmCreateOrderEvent.callArgs)
+
+	mmCreateOrderEvent.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockCreateOrderEventDone returns true if the count of the CreateOrderEvent invocations corresponds
+// the number of defined expectations
+func (m *OrderRepoFactoryMock) MinimockCreateOrderEventDone() bool {
+	if m.CreateOrderEventMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.CreateOrderEventMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.CreateOrderEventMock.invocationsDone()
+}
+
+// MinimockCreateOrderEventInspect logs each unmet expectation
+func (m *OrderRepoFactoryMock) MinimockCreateOrderEventInspect() {
+	for _, e := range m.CreateOrderEventMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to OrderRepoFactoryMock.CreateOrderEvent at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterCreateOrderEventCounter := mm_atomic.LoadUint64(&m.afterCreateOrderEventCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.CreateOrderEventMock.defaultExpectation != nil && afterCreateOrderEventCounter < 1 {
+		if m.CreateOrderEventMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to OrderRepoFactoryMock.CreateOrderEvent at\n%s", m.CreateOrderEventMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to OrderRepoFactoryMock.CreateOrderEvent at\n%s with params: %#v", m.CreateOrderEventMock.defaultExpectation.expectationOrigins.origin, *m.CreateOrderEventMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcCreateOrderEvent != nil && afterCreateOrderEventCounter < 1 {
+		m.t.Errorf("Expected call to OrderRepoFactoryMock.CreateOrderEvent at\n%s", m.funcCreateOrderEventOrigin)
+	}
+
+	if !m.CreateOrderEventMock.invocationsDone() && afterCreateOrderEventCounter > 0 {
+		m.t.Errorf("Expected %d calls to OrderRepoFactoryMock.CreateOrderEvent at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.CreateOrderEventMock.expectedInvocations), m.CreateOrderEventMock.expectedInvocationsOrigin, afterCreateOrderEventCounter)
+	}
+}
+
 // MinimockFinish checks that all mocked methods have been called the expected number of times
 func (m *OrderRepoFactoryMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
 		if !m.minimockDone() {
 			m.MinimockCreateOrderInspect()
+
+			m.MinimockCreateOrderEventInspect()
 		}
 	})
 }
@@ -413,5 +767,6 @@ func (m *OrderRepoFactoryMock) MinimockWait(timeout mm_time.Duration) {
 func (m *OrderRepoFactoryMock) minimockDone() bool {
 	done := true
 	return done &&
-		m.MinimockCreateOrderDone()
+		m.MinimockCreateOrderDone() &&
+		m.MinimockCreateOrderEventDone()
 }

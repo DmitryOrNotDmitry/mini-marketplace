@@ -48,4 +48,12 @@ type StockRepository interface {
 	ReduceReserveAndTotal(ctx context.Context, skuID int64, delta uint32) error
 	// GetBySkuID возвращает информацию о запасе по SKU.
 	GetBySkuID(ctx context.Context, skuID int64) (*domain.Stock, error)
+	// GetBySkuIDForUpdate возвращает информацию о запасе по SKU с блокировкой на обновление.
+	GetBySkuIDForUpdate(ctx context.Context, skuID int64) (*domain.Stock, error)
+}
+
+// OrderEventRepository описывает методы работы с событиями о заказе.
+type OrderEventRepository interface {
+	// Insert добавляет новое событие по статусу в заказе
+	Insert(ctx context.Context, order *domain.Order) error
 }

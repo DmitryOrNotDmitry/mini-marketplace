@@ -7,6 +7,8 @@ package repo_sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addOrder = `-- name: AddOrder :one
@@ -120,6 +122,42 @@ func (q *Queries) GetStockBySKU(ctx context.Context, sku int64) (*Stock, error) 
 	var i Stock
 	err := row.Scan(&i.Sku, &i.TotalCount, &i.Reserved)
 	return &i, err
+}
+
+const getStockBySKUForUpdate = `-- name: GetStockBySKUForUpdate :one
+select sku, total_count, reserved
+from stocks
+where sku = $1
+for update
+`
+
+func (q *Queries) GetStockBySKUForUpdate(ctx context.Context, sku int64) (*Stock, error) {
+	row := q.db.QueryRow(ctx, getStockBySKUForUpdate, sku)
+	var i Stock
+	err := row.Scan(&i.Sku, &i.TotalCount, &i.Reserved)
+	return &i, err
+}
+
+const insertOrderEvent = `-- name: InsertOrderEvent :exec
+insert into orders_event_outbox(order_id, status, moment, event_status)
+values ($1, $2, $3, $4)
+`
+
+type InsertOrderEventParams struct {
+	OrderID     *int64
+	Status      string
+	Moment      pgtype.Timestamp
+	EventStatus string
+}
+
+func (q *Queries) InsertOrderEvent(ctx context.Context, arg *InsertOrderEventParams) error {
+	_, err := q.db.Exec(ctx, insertOrderEvent,
+		arg.OrderID,
+		arg.Status,
+		arg.Moment,
+		arg.EventStatus,
+	)
+	return err
 }
 
 const reduceTotalAndReserve = `-- name: ReduceTotalAndReserve :exec

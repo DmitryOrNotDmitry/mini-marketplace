@@ -18,24 +18,27 @@ func TestMain(m *testing.M) {
 }
 
 type testComponentOS struct {
-	orderRepoMock   *mock.OrderRepositoryMock
-	stockServMock   *mock.StockServiceIMock
-	repoFactoryMock *mock.OrderRepoFactoryMock
-	orderService    *service.OrderService
+	orderRepoMock      *mock.OrderRepositoryMock
+	orderEventRepoMock *mock.OrderEventRepositoryMock
+	stockServMock      *mock.StockServiceIMock
+	repoFactoryMock    *mock.OrderRepoFactoryMock
+	orderService       *service.OrderService
 }
 
 func newTestComponentOS(t *testing.T) *testComponentOS {
 	mc := minimock.NewController(t)
 	orderRepoMock := mock.NewOrderRepositoryMock(mc)
+	orderEventRepoMock := mock.NewOrderEventRepositoryMock(mc)
 	stockServMock := mock.NewStockServiceIMock(mc)
 	repoFactoryMock := mock.NewOrderRepoFactoryMock(mc)
 	orderService := service.NewOrderService(stockServMock, repoFactoryMock, &TxManagerForTests{})
 
 	return &testComponentOS{
-		orderRepoMock:   orderRepoMock,
-		stockServMock:   stockServMock,
-		orderService:    orderService,
-		repoFactoryMock: repoFactoryMock,
+		orderRepoMock:      orderRepoMock,
+		orderEventRepoMock: orderEventRepoMock,
+		stockServMock:      stockServMock,
+		orderService:       orderService,
+		repoFactoryMock:    repoFactoryMock,
 	}
 }
 
@@ -49,12 +52,20 @@ func TestOrderService(t *testing.T) {
 
 		ctx := context.Background()
 		order := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}}
-		orderSaved := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}, Status: domain.New}
+		orderWithNew := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}, Status: domain.New}
+		orderWithNewEvent := &domain.Order{OrderID: 1, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.New}
+		orderUpdatedStatus := &domain.Order{OrderID: 1, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
 		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
-		tc.orderRepoMock.InsertMock.When(ctx, orderSaved).Then(1, nil)
+		tc.repoFactoryMock.CreateOrderEventMock.Return(tc.orderEventRepoMock)
+
+		tc.orderRepoMock.InsertMock.When(ctx, orderWithNew).Then(1, nil)
+		tc.orderEventRepoMock.InsertMock.When(ctx, orderWithNewEvent).Then(nil)
+
 		tc.stockServMock.ReserveForMock.Return(nil)
+
 		tc.orderRepoMock.UpdateStatusMock.When(ctx, 1, domain.AwaitingPayment).Then(nil)
+		tc.orderEventRepoMock.InsertMock.When(ctx, orderUpdatedStatus).Then(nil)
 
 		orderID, err := tc.orderService.Create(ctx, order)
 		require.NoError(t, err)
@@ -72,9 +83,15 @@ func TestOrderService(t *testing.T) {
 		orderSaved := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}, Status: domain.New}
 
 		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
+		tc.repoFactoryMock.CreateOrderEventMock.Return(tc.orderEventRepoMock)
+
 		tc.orderRepoMock.InsertMock.When(ctx, orderSaved).Then(1, nil)
+		tc.orderEventRepoMock.InsertMock.Return(nil)
+
 		tc.stockServMock.ReserveForMock.Return(domain.ErrCanNotReserveItem)
+
 		tc.orderRepoMock.UpdateStatusMock.When(ctx, 1, domain.Failed).Then(nil)
+		tc.orderEventRepoMock.InsertMock.Return(nil)
 
 		_, err := tc.orderService.Create(ctx, order)
 		require.Error(t, err)
@@ -108,9 +125,13 @@ func TestOrderService(t *testing.T) {
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
 		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
+		tc.repoFactoryMock.CreateOrderEventMock.Return(tc.orderEventRepoMock)
+
 		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 		tc.stockServMock.ConfirmReserveForMock.Return(nil)
+
 		tc.orderRepoMock.UpdateStatusMock.When(ctx, orderID, domain.Paid).Then(nil)
+		tc.orderEventRepoMock.InsertMock.Return(nil)
 
 		err := tc.orderService.PayByID(ctx, orderID)
 		require.NoError(t, err)
@@ -177,9 +198,13 @@ func TestOrderService(t *testing.T) {
 		orderOut := &domain.Order{OrderID: orderID, UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
 
 		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
+		tc.repoFactoryMock.CreateOrderEventMock.Return(tc.orderEventRepoMock)
+
 		tc.orderRepoMock.GetByIDOrderItemsBySKUMock.When(ctx, orderID).Then(orderOut, nil)
 		tc.stockServMock.CancelReserveForMock.Return(nil)
+
 		tc.orderRepoMock.UpdateStatusMock.When(ctx, orderID, domain.Cancelled).Then(nil)
+		tc.orderEventRepoMock.InsertMock.Return(nil)
 
 		err := tc.orderService.CancelByID(ctx, orderID)
 		require.NoError(t, err)
