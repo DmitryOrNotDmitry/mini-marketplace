@@ -15,6 +15,13 @@ stop-monitor:
 	docker compose -f docker-compose-monitoring.yml down
 
 
+run-kafka:
+	docker compose -f docker-compose-kafka.yml up -d
+
+stop-kafka:
+	docker compose -f docker-compose-kafka.yml down
+
+
 test:
 	$(MAKE) -C ./cart test
 	$(MAKE) -C ./loms test
