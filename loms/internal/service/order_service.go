@@ -44,21 +44,28 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 	var stockErr error
 
 	err := os.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
+		orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
+
 		order.Status = domain.New
 
-		stockErr = os.stockService.ReserveFor(ctx, order)
-		if stockErr != nil {
-			stockErr = fmt.Errorf("stockService.ReserveFor: %w", stockErr)
-			order.Status = domain.Failed
-		} else {
-			order.Status = domain.AwaitingPayment
-		}
-
-		orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
 		var err error
 		orderID, err = orderRepository.Insert(ctx, order)
 		if err != nil {
 			return fmt.Errorf("orderRepository.Insert: %w", err)
+		}
+
+		var nextStatus domain.Status
+		stockErr = os.stockService.ReserveFor(ctx, order)
+		if stockErr != nil {
+			stockErr = fmt.Errorf("stockService.ReserveFor: %w", stockErr)
+			nextStatus = domain.Failed
+		} else {
+			nextStatus = domain.AwaitingPayment
+		}
+
+		err = orderRepository.UpdateStatus(ctx, orderID, nextStatus)
+		if err != nil {
+			return fmt.Errorf("orderRepository.UpdateStatus: %w", err)
 		}
 		return nil
 	})

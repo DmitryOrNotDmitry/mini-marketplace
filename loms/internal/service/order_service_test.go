@@ -49,11 +49,12 @@ func TestOrderService(t *testing.T) {
 
 		ctx := context.Background()
 		order := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}}
-		orderSaved := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}, Status: domain.AwaitingPayment}
+		orderSaved := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}, Status: domain.New}
 
 		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
-		tc.stockServMock.ReserveForMock.Return(nil)
 		tc.orderRepoMock.InsertMock.When(ctx, orderSaved).Then(1, nil)
+		tc.stockServMock.ReserveForMock.Return(nil)
+		tc.orderRepoMock.UpdateStatusMock.When(ctx, 1, domain.AwaitingPayment).Then(nil)
 
 		orderID, err := tc.orderService.Create(ctx, order)
 		require.NoError(t, err)
@@ -68,11 +69,12 @@ func TestOrderService(t *testing.T) {
 
 		ctx := context.Background()
 		order := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}}
-		orderSaved := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}, Status: domain.Failed}
+		orderSaved := &domain.Order{UserID: 1, Items: []*domain.OrderItem{}, Status: domain.New}
 
 		tc.repoFactoryMock.CreateOrderMock.Return(tc.orderRepoMock)
-		tc.stockServMock.ReserveForMock.Return(domain.ErrCanNotReserveItem)
 		tc.orderRepoMock.InsertMock.When(ctx, orderSaved).Then(1, nil)
+		tc.stockServMock.ReserveForMock.Return(domain.ErrCanNotReserveItem)
+		tc.orderRepoMock.UpdateStatusMock.When(ctx, 1, domain.Failed).Then(nil)
 
 		_, err := tc.orderService.Create(ctx, order)
 		require.Error(t, err)
