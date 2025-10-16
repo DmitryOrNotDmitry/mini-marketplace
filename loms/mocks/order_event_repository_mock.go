@@ -19,12 +19,26 @@ type OrderEventRepositoryMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
+	funcGetUnprocessedEventsLimit          func(ctx context.Context, limit int) (opa1 []*domain.OrderEventOutbox, err error)
+	funcGetUnprocessedEventsLimitOrigin    string
+	inspectFuncGetUnprocessedEventsLimit   func(ctx context.Context, limit int)
+	afterGetUnprocessedEventsLimitCounter  uint64
+	beforeGetUnprocessedEventsLimitCounter uint64
+	GetUnprocessedEventsLimitMock          mOrderEventRepositoryMockGetUnprocessedEventsLimit
+
 	funcInsert          func(ctx context.Context, order *domain.Order) (err error)
 	funcInsertOrigin    string
 	inspectFuncInsert   func(ctx context.Context, order *domain.Order)
 	afterInsertCounter  uint64
 	beforeInsertCounter uint64
 	InsertMock          mOrderEventRepositoryMockInsert
+
+	funcUpdateEventStatus          func(ctx context.Context, eventID int64, newStatus domain.EventStatus) (err error)
+	funcUpdateEventStatusOrigin    string
+	inspectFuncUpdateEventStatus   func(ctx context.Context, eventID int64, newStatus domain.EventStatus)
+	afterUpdateEventStatusCounter  uint64
+	beforeUpdateEventStatusCounter uint64
+	UpdateEventStatusMock          mOrderEventRepositoryMockUpdateEventStatus
 }
 
 // NewOrderEventRepositoryMock returns a mock for mm_service.OrderEventRepository
@@ -35,12 +49,361 @@ func NewOrderEventRepositoryMock(t minimock.Tester) *OrderEventRepositoryMock {
 		controller.RegisterMocker(m)
 	}
 
+	m.GetUnprocessedEventsLimitMock = mOrderEventRepositoryMockGetUnprocessedEventsLimit{mock: m}
+	m.GetUnprocessedEventsLimitMock.callArgs = []*OrderEventRepositoryMockGetUnprocessedEventsLimitParams{}
+
 	m.InsertMock = mOrderEventRepositoryMockInsert{mock: m}
 	m.InsertMock.callArgs = []*OrderEventRepositoryMockInsertParams{}
+
+	m.UpdateEventStatusMock = mOrderEventRepositoryMockUpdateEventStatus{mock: m}
+	m.UpdateEventStatusMock.callArgs = []*OrderEventRepositoryMockUpdateEventStatusParams{}
 
 	t.Cleanup(m.MinimockFinish)
 
 	return m
+}
+
+type mOrderEventRepositoryMockGetUnprocessedEventsLimit struct {
+	optional           bool
+	mock               *OrderEventRepositoryMock
+	defaultExpectation *OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation
+	expectations       []*OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation
+
+	callArgs []*OrderEventRepositoryMockGetUnprocessedEventsLimitParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation specifies expectation struct of the OrderEventRepository.GetUnprocessedEventsLimit
+type OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation struct {
+	mock               *OrderEventRepositoryMock
+	params             *OrderEventRepositoryMockGetUnprocessedEventsLimitParams
+	paramPtrs          *OrderEventRepositoryMockGetUnprocessedEventsLimitParamPtrs
+	expectationOrigins OrderEventRepositoryMockGetUnprocessedEventsLimitExpectationOrigins
+	results            *OrderEventRepositoryMockGetUnprocessedEventsLimitResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// OrderEventRepositoryMockGetUnprocessedEventsLimitParams contains parameters of the OrderEventRepository.GetUnprocessedEventsLimit
+type OrderEventRepositoryMockGetUnprocessedEventsLimitParams struct {
+	ctx   context.Context
+	limit int
+}
+
+// OrderEventRepositoryMockGetUnprocessedEventsLimitParamPtrs contains pointers to parameters of the OrderEventRepository.GetUnprocessedEventsLimit
+type OrderEventRepositoryMockGetUnprocessedEventsLimitParamPtrs struct {
+	ctx   *context.Context
+	limit *int
+}
+
+// OrderEventRepositoryMockGetUnprocessedEventsLimitResults contains results of the OrderEventRepository.GetUnprocessedEventsLimit
+type OrderEventRepositoryMockGetUnprocessedEventsLimitResults struct {
+	opa1 []*domain.OrderEventOutbox
+	err  error
+}
+
+// OrderEventRepositoryMockGetUnprocessedEventsLimitOrigins contains origins of expectations of the OrderEventRepository.GetUnprocessedEventsLimit
+type OrderEventRepositoryMockGetUnprocessedEventsLimitExpectationOrigins struct {
+	origin      string
+	originCtx   string
+	originLimit string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Optional() *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
+	mmGetUnprocessedEventsLimit.optional = true
+	return mmGetUnprocessedEventsLimit
+}
+
+// Expect sets up expected params for OrderEventRepository.GetUnprocessedEventsLimit
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Expect(ctx context.Context, limit int) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
+	if mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Set")
+	}
+
+	if mmGetUnprocessedEventsLimit.defaultExpectation == nil {
+		mmGetUnprocessedEventsLimit.defaultExpectation = &OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation{}
+	}
+
+	if mmGetUnprocessedEventsLimit.defaultExpectation.paramPtrs != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by ExpectParams functions")
+	}
+
+	mmGetUnprocessedEventsLimit.defaultExpectation.params = &OrderEventRepositoryMockGetUnprocessedEventsLimitParams{ctx, limit}
+	mmGetUnprocessedEventsLimit.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGetUnprocessedEventsLimit.expectations {
+		if minimock.Equal(e.params, mmGetUnprocessedEventsLimit.defaultExpectation.params) {
+			mmGetUnprocessedEventsLimit.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetUnprocessedEventsLimit.defaultExpectation.params)
+		}
+	}
+
+	return mmGetUnprocessedEventsLimit
+}
+
+// ExpectCtxParam1 sets up expected param ctx for OrderEventRepository.GetUnprocessedEventsLimit
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) ExpectCtxParam1(ctx context.Context) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
+	if mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Set")
+	}
+
+	if mmGetUnprocessedEventsLimit.defaultExpectation == nil {
+		mmGetUnprocessedEventsLimit.defaultExpectation = &OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation{}
+	}
+
+	if mmGetUnprocessedEventsLimit.defaultExpectation.params != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Expect")
+	}
+
+	if mmGetUnprocessedEventsLimit.defaultExpectation.paramPtrs == nil {
+		mmGetUnprocessedEventsLimit.defaultExpectation.paramPtrs = &OrderEventRepositoryMockGetUnprocessedEventsLimitParamPtrs{}
+	}
+	mmGetUnprocessedEventsLimit.defaultExpectation.paramPtrs.ctx = &ctx
+	mmGetUnprocessedEventsLimit.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmGetUnprocessedEventsLimit
+}
+
+// ExpectLimitParam2 sets up expected param limit for OrderEventRepository.GetUnprocessedEventsLimit
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) ExpectLimitParam2(limit int) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
+	if mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Set")
+	}
+
+	if mmGetUnprocessedEventsLimit.defaultExpectation == nil {
+		mmGetUnprocessedEventsLimit.defaultExpectation = &OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation{}
+	}
+
+	if mmGetUnprocessedEventsLimit.defaultExpectation.params != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Expect")
+	}
+
+	if mmGetUnprocessedEventsLimit.defaultExpectation.paramPtrs == nil {
+		mmGetUnprocessedEventsLimit.defaultExpectation.paramPtrs = &OrderEventRepositoryMockGetUnprocessedEventsLimitParamPtrs{}
+	}
+	mmGetUnprocessedEventsLimit.defaultExpectation.paramPtrs.limit = &limit
+	mmGetUnprocessedEventsLimit.defaultExpectation.expectationOrigins.originLimit = minimock.CallerInfo(1)
+
+	return mmGetUnprocessedEventsLimit
+}
+
+// Inspect accepts an inspector function that has same arguments as the OrderEventRepository.GetUnprocessedEventsLimit
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Inspect(f func(ctx context.Context, limit int)) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
+	if mmGetUnprocessedEventsLimit.mock.inspectFuncGetUnprocessedEventsLimit != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("Inspect function is already set for OrderEventRepositoryMock.GetUnprocessedEventsLimit")
+	}
+
+	mmGetUnprocessedEventsLimit.mock.inspectFuncGetUnprocessedEventsLimit = f
+
+	return mmGetUnprocessedEventsLimit
+}
+
+// Return sets up results that will be returned by OrderEventRepository.GetUnprocessedEventsLimit
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Return(opa1 []*domain.OrderEventOutbox, err error) *OrderEventRepositoryMock {
+	if mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Set")
+	}
+
+	if mmGetUnprocessedEventsLimit.defaultExpectation == nil {
+		mmGetUnprocessedEventsLimit.defaultExpectation = &OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation{mock: mmGetUnprocessedEventsLimit.mock}
+	}
+	mmGetUnprocessedEventsLimit.defaultExpectation.results = &OrderEventRepositoryMockGetUnprocessedEventsLimitResults{opa1, err}
+	mmGetUnprocessedEventsLimit.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGetUnprocessedEventsLimit.mock
+}
+
+// Set uses given function f to mock the OrderEventRepository.GetUnprocessedEventsLimit method
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Set(f func(ctx context.Context, limit int) (opa1 []*domain.OrderEventOutbox, err error)) *OrderEventRepositoryMock {
+	if mmGetUnprocessedEventsLimit.defaultExpectation != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("Default expectation is already set for the OrderEventRepository.GetUnprocessedEventsLimit method")
+	}
+
+	if len(mmGetUnprocessedEventsLimit.expectations) > 0 {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("Some expectations are already set for the OrderEventRepository.GetUnprocessedEventsLimit method")
+	}
+
+	mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit = f
+	mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimitOrigin = minimock.CallerInfo(1)
+	return mmGetUnprocessedEventsLimit.mock
+}
+
+// When sets expectation for the OrderEventRepository.GetUnprocessedEventsLimit which will trigger the result defined by the following
+// Then helper
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) When(ctx context.Context, limit int) *OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation {
+	if mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit != nil {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Set")
+	}
+
+	expectation := &OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation{
+		mock:               mmGetUnprocessedEventsLimit.mock,
+		params:             &OrderEventRepositoryMockGetUnprocessedEventsLimitParams{ctx, limit},
+		expectationOrigins: OrderEventRepositoryMockGetUnprocessedEventsLimitExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmGetUnprocessedEventsLimit.expectations = append(mmGetUnprocessedEventsLimit.expectations, expectation)
+	return expectation
+}
+
+// Then sets up OrderEventRepository.GetUnprocessedEventsLimit return parameters for the expectation previously defined by the When method
+func (e *OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation) Then(opa1 []*domain.OrderEventOutbox, err error) *OrderEventRepositoryMock {
+	e.results = &OrderEventRepositoryMockGetUnprocessedEventsLimitResults{opa1, err}
+	return e.mock
+}
+
+// Times sets number of times OrderEventRepository.GetUnprocessedEventsLimit should be invoked
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Times(n uint64) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
+	if n == 0 {
+		mmGetUnprocessedEventsLimit.mock.t.Fatalf("Times of OrderEventRepositoryMock.GetUnprocessedEventsLimit mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmGetUnprocessedEventsLimit.expectedInvocations, n)
+	mmGetUnprocessedEventsLimit.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGetUnprocessedEventsLimit
+}
+
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) invocationsDone() bool {
+	if len(mmGetUnprocessedEventsLimit.expectations) == 0 && mmGetUnprocessedEventsLimit.defaultExpectation == nil && mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmGetUnprocessedEventsLimit.mock.afterGetUnprocessedEventsLimitCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGetUnprocessedEventsLimit.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// GetUnprocessedEventsLimit implements mm_service.OrderEventRepository
+func (mmGetUnprocessedEventsLimit *OrderEventRepositoryMock) GetUnprocessedEventsLimit(ctx context.Context, limit int) (opa1 []*domain.OrderEventOutbox, err error) {
+	mm_atomic.AddUint64(&mmGetUnprocessedEventsLimit.beforeGetUnprocessedEventsLimitCounter, 1)
+	defer mm_atomic.AddUint64(&mmGetUnprocessedEventsLimit.afterGetUnprocessedEventsLimitCounter, 1)
+
+	mmGetUnprocessedEventsLimit.t.Helper()
+
+	if mmGetUnprocessedEventsLimit.inspectFuncGetUnprocessedEventsLimit != nil {
+		mmGetUnprocessedEventsLimit.inspectFuncGetUnprocessedEventsLimit(ctx, limit)
+	}
+
+	mm_params := OrderEventRepositoryMockGetUnprocessedEventsLimitParams{ctx, limit}
+
+	// Record call args
+	mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.mutex.Lock()
+	mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.callArgs = append(mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.callArgs, &mm_params)
+	mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.mutex.Unlock()
+
+	for _, e := range mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.opa1, e.results.err
+		}
+	}
+
+	if mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.defaultExpectation.Counter, 1)
+		mm_want := mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.defaultExpectation.params
+		mm_want_ptrs := mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.defaultExpectation.paramPtrs
+
+		mm_got := OrderEventRepositoryMockGetUnprocessedEventsLimitParams{ctx, limit}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmGetUnprocessedEventsLimit.t.Errorf("OrderEventRepositoryMock.GetUnprocessedEventsLimit got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.limit != nil && !minimock.Equal(*mm_want_ptrs.limit, mm_got.limit) {
+				mmGetUnprocessedEventsLimit.t.Errorf("OrderEventRepositoryMock.GetUnprocessedEventsLimit got unexpected parameter limit, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.defaultExpectation.expectationOrigins.originLimit, *mm_want_ptrs.limit, mm_got.limit, minimock.Diff(*mm_want_ptrs.limit, mm_got.limit))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmGetUnprocessedEventsLimit.t.Errorf("OrderEventRepositoryMock.GetUnprocessedEventsLimit got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmGetUnprocessedEventsLimit.GetUnprocessedEventsLimitMock.defaultExpectation.results
+		if mm_results == nil {
+			mmGetUnprocessedEventsLimit.t.Fatal("No results are set for the OrderEventRepositoryMock.GetUnprocessedEventsLimit")
+		}
+		return (*mm_results).opa1, (*mm_results).err
+	}
+	if mmGetUnprocessedEventsLimit.funcGetUnprocessedEventsLimit != nil {
+		return mmGetUnprocessedEventsLimit.funcGetUnprocessedEventsLimit(ctx, limit)
+	}
+	mmGetUnprocessedEventsLimit.t.Fatalf("Unexpected call to OrderEventRepositoryMock.GetUnprocessedEventsLimit. %v %v", ctx, limit)
+	return
+}
+
+// GetUnprocessedEventsLimitAfterCounter returns a count of finished OrderEventRepositoryMock.GetUnprocessedEventsLimit invocations
+func (mmGetUnprocessedEventsLimit *OrderEventRepositoryMock) GetUnprocessedEventsLimitAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetUnprocessedEventsLimit.afterGetUnprocessedEventsLimitCounter)
+}
+
+// GetUnprocessedEventsLimitBeforeCounter returns a count of OrderEventRepositoryMock.GetUnprocessedEventsLimit invocations
+func (mmGetUnprocessedEventsLimit *OrderEventRepositoryMock) GetUnprocessedEventsLimitBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetUnprocessedEventsLimit.beforeGetUnprocessedEventsLimitCounter)
+}
+
+// Calls returns a list of arguments used in each call to OrderEventRepositoryMock.GetUnprocessedEventsLimit.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Calls() []*OrderEventRepositoryMockGetUnprocessedEventsLimitParams {
+	mmGetUnprocessedEventsLimit.mutex.RLock()
+
+	argCopy := make([]*OrderEventRepositoryMockGetUnprocessedEventsLimitParams, len(mmGetUnprocessedEventsLimit.callArgs))
+	copy(argCopy, mmGetUnprocessedEventsLimit.callArgs)
+
+	mmGetUnprocessedEventsLimit.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockGetUnprocessedEventsLimitDone returns true if the count of the GetUnprocessedEventsLimit invocations corresponds
+// the number of defined expectations
+func (m *OrderEventRepositoryMock) MinimockGetUnprocessedEventsLimitDone() bool {
+	if m.GetUnprocessedEventsLimitMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.GetUnprocessedEventsLimitMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.GetUnprocessedEventsLimitMock.invocationsDone()
+}
+
+// MinimockGetUnprocessedEventsLimitInspect logs each unmet expectation
+func (m *OrderEventRepositoryMock) MinimockGetUnprocessedEventsLimitInspect() {
+	for _, e := range m.GetUnprocessedEventsLimitMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to OrderEventRepositoryMock.GetUnprocessedEventsLimit at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterGetUnprocessedEventsLimitCounter := mm_atomic.LoadUint64(&m.afterGetUnprocessedEventsLimitCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.GetUnprocessedEventsLimitMock.defaultExpectation != nil && afterGetUnprocessedEventsLimitCounter < 1 {
+		if m.GetUnprocessedEventsLimitMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to OrderEventRepositoryMock.GetUnprocessedEventsLimit at\n%s", m.GetUnprocessedEventsLimitMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to OrderEventRepositoryMock.GetUnprocessedEventsLimit at\n%s with params: %#v", m.GetUnprocessedEventsLimitMock.defaultExpectation.expectationOrigins.origin, *m.GetUnprocessedEventsLimitMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcGetUnprocessedEventsLimit != nil && afterGetUnprocessedEventsLimitCounter < 1 {
+		m.t.Errorf("Expected call to OrderEventRepositoryMock.GetUnprocessedEventsLimit at\n%s", m.funcGetUnprocessedEventsLimitOrigin)
+	}
+
+	if !m.GetUnprocessedEventsLimitMock.invocationsDone() && afterGetUnprocessedEventsLimitCounter > 0 {
+		m.t.Errorf("Expected %d calls to OrderEventRepositoryMock.GetUnprocessedEventsLimit at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GetUnprocessedEventsLimitMock.expectedInvocations), m.GetUnprocessedEventsLimitMock.expectedInvocationsOrigin, afterGetUnprocessedEventsLimitCounter)
+	}
 }
 
 type mOrderEventRepositoryMockInsert struct {
@@ -385,11 +748,388 @@ func (m *OrderEventRepositoryMock) MinimockInsertInspect() {
 	}
 }
 
+type mOrderEventRepositoryMockUpdateEventStatus struct {
+	optional           bool
+	mock               *OrderEventRepositoryMock
+	defaultExpectation *OrderEventRepositoryMockUpdateEventStatusExpectation
+	expectations       []*OrderEventRepositoryMockUpdateEventStatusExpectation
+
+	callArgs []*OrderEventRepositoryMockUpdateEventStatusParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// OrderEventRepositoryMockUpdateEventStatusExpectation specifies expectation struct of the OrderEventRepository.UpdateEventStatus
+type OrderEventRepositoryMockUpdateEventStatusExpectation struct {
+	mock               *OrderEventRepositoryMock
+	params             *OrderEventRepositoryMockUpdateEventStatusParams
+	paramPtrs          *OrderEventRepositoryMockUpdateEventStatusParamPtrs
+	expectationOrigins OrderEventRepositoryMockUpdateEventStatusExpectationOrigins
+	results            *OrderEventRepositoryMockUpdateEventStatusResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// OrderEventRepositoryMockUpdateEventStatusParams contains parameters of the OrderEventRepository.UpdateEventStatus
+type OrderEventRepositoryMockUpdateEventStatusParams struct {
+	ctx       context.Context
+	eventID   int64
+	newStatus domain.EventStatus
+}
+
+// OrderEventRepositoryMockUpdateEventStatusParamPtrs contains pointers to parameters of the OrderEventRepository.UpdateEventStatus
+type OrderEventRepositoryMockUpdateEventStatusParamPtrs struct {
+	ctx       *context.Context
+	eventID   *int64
+	newStatus *domain.EventStatus
+}
+
+// OrderEventRepositoryMockUpdateEventStatusResults contains results of the OrderEventRepository.UpdateEventStatus
+type OrderEventRepositoryMockUpdateEventStatusResults struct {
+	err error
+}
+
+// OrderEventRepositoryMockUpdateEventStatusOrigins contains origins of expectations of the OrderEventRepository.UpdateEventStatus
+type OrderEventRepositoryMockUpdateEventStatusExpectationOrigins struct {
+	origin          string
+	originCtx       string
+	originEventID   string
+	originNewStatus string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Optional() *mOrderEventRepositoryMockUpdateEventStatus {
+	mmUpdateEventStatus.optional = true
+	return mmUpdateEventStatus
+}
+
+// Expect sets up expected params for OrderEventRepository.UpdateEventStatus
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Expect(ctx context.Context, eventID int64, newStatus domain.EventStatus) *mOrderEventRepositoryMockUpdateEventStatus {
+	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+	}
+
+	if mmUpdateEventStatus.defaultExpectation == nil {
+		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{}
+	}
+
+	if mmUpdateEventStatus.defaultExpectation.paramPtrs != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by ExpectParams functions")
+	}
+
+	mmUpdateEventStatus.defaultExpectation.params = &OrderEventRepositoryMockUpdateEventStatusParams{ctx, eventID, newStatus}
+	mmUpdateEventStatus.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmUpdateEventStatus.expectations {
+		if minimock.Equal(e.params, mmUpdateEventStatus.defaultExpectation.params) {
+			mmUpdateEventStatus.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmUpdateEventStatus.defaultExpectation.params)
+		}
+	}
+
+	return mmUpdateEventStatus
+}
+
+// ExpectCtxParam1 sets up expected param ctx for OrderEventRepository.UpdateEventStatus
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) ExpectCtxParam1(ctx context.Context) *mOrderEventRepositoryMockUpdateEventStatus {
+	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+	}
+
+	if mmUpdateEventStatus.defaultExpectation == nil {
+		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{}
+	}
+
+	if mmUpdateEventStatus.defaultExpectation.params != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Expect")
+	}
+
+	if mmUpdateEventStatus.defaultExpectation.paramPtrs == nil {
+		mmUpdateEventStatus.defaultExpectation.paramPtrs = &OrderEventRepositoryMockUpdateEventStatusParamPtrs{}
+	}
+	mmUpdateEventStatus.defaultExpectation.paramPtrs.ctx = &ctx
+	mmUpdateEventStatus.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmUpdateEventStatus
+}
+
+// ExpectEventIDParam2 sets up expected param eventID for OrderEventRepository.UpdateEventStatus
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) ExpectEventIDParam2(eventID int64) *mOrderEventRepositoryMockUpdateEventStatus {
+	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+	}
+
+	if mmUpdateEventStatus.defaultExpectation == nil {
+		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{}
+	}
+
+	if mmUpdateEventStatus.defaultExpectation.params != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Expect")
+	}
+
+	if mmUpdateEventStatus.defaultExpectation.paramPtrs == nil {
+		mmUpdateEventStatus.defaultExpectation.paramPtrs = &OrderEventRepositoryMockUpdateEventStatusParamPtrs{}
+	}
+	mmUpdateEventStatus.defaultExpectation.paramPtrs.eventID = &eventID
+	mmUpdateEventStatus.defaultExpectation.expectationOrigins.originEventID = minimock.CallerInfo(1)
+
+	return mmUpdateEventStatus
+}
+
+// ExpectNewStatusParam3 sets up expected param newStatus for OrderEventRepository.UpdateEventStatus
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) ExpectNewStatusParam3(newStatus domain.EventStatus) *mOrderEventRepositoryMockUpdateEventStatus {
+	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+	}
+
+	if mmUpdateEventStatus.defaultExpectation == nil {
+		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{}
+	}
+
+	if mmUpdateEventStatus.defaultExpectation.params != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Expect")
+	}
+
+	if mmUpdateEventStatus.defaultExpectation.paramPtrs == nil {
+		mmUpdateEventStatus.defaultExpectation.paramPtrs = &OrderEventRepositoryMockUpdateEventStatusParamPtrs{}
+	}
+	mmUpdateEventStatus.defaultExpectation.paramPtrs.newStatus = &newStatus
+	mmUpdateEventStatus.defaultExpectation.expectationOrigins.originNewStatus = minimock.CallerInfo(1)
+
+	return mmUpdateEventStatus
+}
+
+// Inspect accepts an inspector function that has same arguments as the OrderEventRepository.UpdateEventStatus
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Inspect(f func(ctx context.Context, eventID int64, newStatus domain.EventStatus)) *mOrderEventRepositoryMockUpdateEventStatus {
+	if mmUpdateEventStatus.mock.inspectFuncUpdateEventStatus != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("Inspect function is already set for OrderEventRepositoryMock.UpdateEventStatus")
+	}
+
+	mmUpdateEventStatus.mock.inspectFuncUpdateEventStatus = f
+
+	return mmUpdateEventStatus
+}
+
+// Return sets up results that will be returned by OrderEventRepository.UpdateEventStatus
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Return(err error) *OrderEventRepositoryMock {
+	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+	}
+
+	if mmUpdateEventStatus.defaultExpectation == nil {
+		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{mock: mmUpdateEventStatus.mock}
+	}
+	mmUpdateEventStatus.defaultExpectation.results = &OrderEventRepositoryMockUpdateEventStatusResults{err}
+	mmUpdateEventStatus.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmUpdateEventStatus.mock
+}
+
+// Set uses given function f to mock the OrderEventRepository.UpdateEventStatus method
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Set(f func(ctx context.Context, eventID int64, newStatus domain.EventStatus) (err error)) *OrderEventRepositoryMock {
+	if mmUpdateEventStatus.defaultExpectation != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("Default expectation is already set for the OrderEventRepository.UpdateEventStatus method")
+	}
+
+	if len(mmUpdateEventStatus.expectations) > 0 {
+		mmUpdateEventStatus.mock.t.Fatalf("Some expectations are already set for the OrderEventRepository.UpdateEventStatus method")
+	}
+
+	mmUpdateEventStatus.mock.funcUpdateEventStatus = f
+	mmUpdateEventStatus.mock.funcUpdateEventStatusOrigin = minimock.CallerInfo(1)
+	return mmUpdateEventStatus.mock
+}
+
+// When sets expectation for the OrderEventRepository.UpdateEventStatus which will trigger the result defined by the following
+// Then helper
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) When(ctx context.Context, eventID int64, newStatus domain.EventStatus) *OrderEventRepositoryMockUpdateEventStatusExpectation {
+	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
+		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+	}
+
+	expectation := &OrderEventRepositoryMockUpdateEventStatusExpectation{
+		mock:               mmUpdateEventStatus.mock,
+		params:             &OrderEventRepositoryMockUpdateEventStatusParams{ctx, eventID, newStatus},
+		expectationOrigins: OrderEventRepositoryMockUpdateEventStatusExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmUpdateEventStatus.expectations = append(mmUpdateEventStatus.expectations, expectation)
+	return expectation
+}
+
+// Then sets up OrderEventRepository.UpdateEventStatus return parameters for the expectation previously defined by the When method
+func (e *OrderEventRepositoryMockUpdateEventStatusExpectation) Then(err error) *OrderEventRepositoryMock {
+	e.results = &OrderEventRepositoryMockUpdateEventStatusResults{err}
+	return e.mock
+}
+
+// Times sets number of times OrderEventRepository.UpdateEventStatus should be invoked
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Times(n uint64) *mOrderEventRepositoryMockUpdateEventStatus {
+	if n == 0 {
+		mmUpdateEventStatus.mock.t.Fatalf("Times of OrderEventRepositoryMock.UpdateEventStatus mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmUpdateEventStatus.expectedInvocations, n)
+	mmUpdateEventStatus.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmUpdateEventStatus
+}
+
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) invocationsDone() bool {
+	if len(mmUpdateEventStatus.expectations) == 0 && mmUpdateEventStatus.defaultExpectation == nil && mmUpdateEventStatus.mock.funcUpdateEventStatus == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmUpdateEventStatus.mock.afterUpdateEventStatusCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmUpdateEventStatus.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// UpdateEventStatus implements mm_service.OrderEventRepository
+func (mmUpdateEventStatus *OrderEventRepositoryMock) UpdateEventStatus(ctx context.Context, eventID int64, newStatus domain.EventStatus) (err error) {
+	mm_atomic.AddUint64(&mmUpdateEventStatus.beforeUpdateEventStatusCounter, 1)
+	defer mm_atomic.AddUint64(&mmUpdateEventStatus.afterUpdateEventStatusCounter, 1)
+
+	mmUpdateEventStatus.t.Helper()
+
+	if mmUpdateEventStatus.inspectFuncUpdateEventStatus != nil {
+		mmUpdateEventStatus.inspectFuncUpdateEventStatus(ctx, eventID, newStatus)
+	}
+
+	mm_params := OrderEventRepositoryMockUpdateEventStatusParams{ctx, eventID, newStatus}
+
+	// Record call args
+	mmUpdateEventStatus.UpdateEventStatusMock.mutex.Lock()
+	mmUpdateEventStatus.UpdateEventStatusMock.callArgs = append(mmUpdateEventStatus.UpdateEventStatusMock.callArgs, &mm_params)
+	mmUpdateEventStatus.UpdateEventStatusMock.mutex.Unlock()
+
+	for _, e := range mmUpdateEventStatus.UpdateEventStatusMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.Counter, 1)
+		mm_want := mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.params
+		mm_want_ptrs := mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.paramPtrs
+
+		mm_got := OrderEventRepositoryMockUpdateEventStatusParams{ctx, eventID, newStatus}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmUpdateEventStatus.t.Errorf("OrderEventRepositoryMock.UpdateEventStatus got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.eventID != nil && !minimock.Equal(*mm_want_ptrs.eventID, mm_got.eventID) {
+				mmUpdateEventStatus.t.Errorf("OrderEventRepositoryMock.UpdateEventStatus got unexpected parameter eventID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.expectationOrigins.originEventID, *mm_want_ptrs.eventID, mm_got.eventID, minimock.Diff(*mm_want_ptrs.eventID, mm_got.eventID))
+			}
+
+			if mm_want_ptrs.newStatus != nil && !minimock.Equal(*mm_want_ptrs.newStatus, mm_got.newStatus) {
+				mmUpdateEventStatus.t.Errorf("OrderEventRepositoryMock.UpdateEventStatus got unexpected parameter newStatus, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.expectationOrigins.originNewStatus, *mm_want_ptrs.newStatus, mm_got.newStatus, minimock.Diff(*mm_want_ptrs.newStatus, mm_got.newStatus))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmUpdateEventStatus.t.Errorf("OrderEventRepositoryMock.UpdateEventStatus got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.results
+		if mm_results == nil {
+			mmUpdateEventStatus.t.Fatal("No results are set for the OrderEventRepositoryMock.UpdateEventStatus")
+		}
+		return (*mm_results).err
+	}
+	if mmUpdateEventStatus.funcUpdateEventStatus != nil {
+		return mmUpdateEventStatus.funcUpdateEventStatus(ctx, eventID, newStatus)
+	}
+	mmUpdateEventStatus.t.Fatalf("Unexpected call to OrderEventRepositoryMock.UpdateEventStatus. %v %v %v", ctx, eventID, newStatus)
+	return
+}
+
+// UpdateEventStatusAfterCounter returns a count of finished OrderEventRepositoryMock.UpdateEventStatus invocations
+func (mmUpdateEventStatus *OrderEventRepositoryMock) UpdateEventStatusAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdateEventStatus.afterUpdateEventStatusCounter)
+}
+
+// UpdateEventStatusBeforeCounter returns a count of OrderEventRepositoryMock.UpdateEventStatus invocations
+func (mmUpdateEventStatus *OrderEventRepositoryMock) UpdateEventStatusBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdateEventStatus.beforeUpdateEventStatusCounter)
+}
+
+// Calls returns a list of arguments used in each call to OrderEventRepositoryMock.UpdateEventStatus.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Calls() []*OrderEventRepositoryMockUpdateEventStatusParams {
+	mmUpdateEventStatus.mutex.RLock()
+
+	argCopy := make([]*OrderEventRepositoryMockUpdateEventStatusParams, len(mmUpdateEventStatus.callArgs))
+	copy(argCopy, mmUpdateEventStatus.callArgs)
+
+	mmUpdateEventStatus.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockUpdateEventStatusDone returns true if the count of the UpdateEventStatus invocations corresponds
+// the number of defined expectations
+func (m *OrderEventRepositoryMock) MinimockUpdateEventStatusDone() bool {
+	if m.UpdateEventStatusMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.UpdateEventStatusMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.UpdateEventStatusMock.invocationsDone()
+}
+
+// MinimockUpdateEventStatusInspect logs each unmet expectation
+func (m *OrderEventRepositoryMock) MinimockUpdateEventStatusInspect() {
+	for _, e := range m.UpdateEventStatusMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatus at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterUpdateEventStatusCounter := mm_atomic.LoadUint64(&m.afterUpdateEventStatusCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.UpdateEventStatusMock.defaultExpectation != nil && afterUpdateEventStatusCounter < 1 {
+		if m.UpdateEventStatusMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatus at\n%s", m.UpdateEventStatusMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatus at\n%s with params: %#v", m.UpdateEventStatusMock.defaultExpectation.expectationOrigins.origin, *m.UpdateEventStatusMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcUpdateEventStatus != nil && afterUpdateEventStatusCounter < 1 {
+		m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatus at\n%s", m.funcUpdateEventStatusOrigin)
+	}
+
+	if !m.UpdateEventStatusMock.invocationsDone() && afterUpdateEventStatusCounter > 0 {
+		m.t.Errorf("Expected %d calls to OrderEventRepositoryMock.UpdateEventStatus at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.UpdateEventStatusMock.expectedInvocations), m.UpdateEventStatusMock.expectedInvocationsOrigin, afterUpdateEventStatusCounter)
+	}
+}
+
 // MinimockFinish checks that all mocked methods have been called the expected number of times
 func (m *OrderEventRepositoryMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
 		if !m.minimockDone() {
+			m.MinimockGetUnprocessedEventsLimitInspect()
+
 			m.MinimockInsertInspect()
+
+			m.MinimockUpdateEventStatusInspect()
 		}
 	})
 }
@@ -413,5 +1153,7 @@ func (m *OrderEventRepositoryMock) MinimockWait(timeout mm_time.Duration) {
 func (m *OrderEventRepositoryMock) minimockDone() bool {
 	done := true
 	return done &&
-		m.MinimockInsertDone()
+		m.MinimockGetUnprocessedEventsLimitDone() &&
+		m.MinimockInsertDone() &&
+		m.MinimockUpdateEventStatusDone()
 }

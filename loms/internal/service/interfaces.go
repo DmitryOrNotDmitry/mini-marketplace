@@ -56,4 +56,9 @@ type StockRepository interface {
 type OrderEventRepository interface {
 	// Insert добавляет новое событие по статусу в заказе
 	Insert(ctx context.Context, order *domain.Order) error
+
+	// GetUnprocessedEventsLimit возвращает неотправленные события с ограничением по количеству.
+	GetUnprocessedEventsLimit(ctx context.Context, limit int) ([]*domain.OrderEventOutbox, error)
+	// UpdateEventStatus обновляет статус события заказа.
+	UpdateEventStatus(ctx context.Context, eventID int64, newStatus domain.EventStatus) error
 }

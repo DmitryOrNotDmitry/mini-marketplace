@@ -138,6 +138,46 @@ func (q *Queries) GetStockBySKUForUpdate(ctx context.Context, sku int64) (*Stock
 	return &i, err
 }
 
+const getUnprocessedEventsLimit = `-- name: GetUnprocessedEventsLimit :many
+select id, order_id, status, moment
+from orders_event_outbox
+where event_status = 'new'
+order by moment
+limit $1
+`
+
+type GetUnprocessedEventsLimitRow struct {
+	ID      int64
+	OrderID *int64
+	Status  string
+	Moment  pgtype.Timestamp
+}
+
+func (q *Queries) GetUnprocessedEventsLimit(ctx context.Context, limit int32) ([]*GetUnprocessedEventsLimitRow, error) {
+	rows, err := q.db.Query(ctx, getUnprocessedEventsLimit, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetUnprocessedEventsLimitRow
+	for rows.Next() {
+		var i GetUnprocessedEventsLimitRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrderID,
+			&i.Status,
+			&i.Moment,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const insertOrderEvent = `-- name: InsertOrderEvent :exec
 insert into orders_event_outbox(order_id, status, moment, event_status)
 values ($1, $2, $3, $4)
@@ -206,6 +246,22 @@ type ReserveParams struct {
 
 func (q *Queries) Reserve(ctx context.Context, arg *ReserveParams) error {
 	_, err := q.db.Exec(ctx, reserve, arg.Sku, arg.Reserved)
+	return err
+}
+
+const updateEventStatus = `-- name: UpdateEventStatus :exec
+update orders_event_outbox
+set event_status = $2
+where id = $1
+`
+
+type UpdateEventStatusParams struct {
+	ID          int64
+	EventStatus string
+}
+
+func (q *Queries) UpdateEventStatus(ctx context.Context, arg *UpdateEventStatusParams) error {
+	_, err := q.db.Exec(ctx, updateEventStatus, arg.ID, arg.EventStatus)
 	return err
 }
 

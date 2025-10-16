@@ -9,10 +9,12 @@ import (
 
 // Config главный конфиг сервиса.
 type Config struct {
-	Server    LomsServiceConfig `yaml:"service"`
-	MasterDB  MasterDBConfig    `yaml:"db_master"`
-	ReplicaDB ReplicaDBConfig   `yaml:"db_replica"`
-	Jaeger    JaegerConfig      `yaml:"jaeger"`
+	Server         LomsServiceConfig          `yaml:"service"`
+	MasterDB       MasterDBConfig             `yaml:"db_master"`
+	ReplicaDB      ReplicaDBConfig            `yaml:"db_replica"`
+	Jaeger         JaegerConfig               `yaml:"jaeger"`
+	Kafka          KafkaConfig                `yaml:"kafka"`
+	OrderOutboxPub OrderOutboxPublisherConfig `yaml:"order_outbox_publisher"`
 }
 
 // LomsServiceConfig конфиг для сервиса loms.
@@ -60,6 +62,18 @@ type JaegerConfig struct {
 type TracingConfig struct {
 	ServiceName string `yaml:"service_name"`
 	Environment string `yaml:"environment"`
+}
+
+// KafkaConfig конфиг для kafka.
+type KafkaConfig struct {
+	OrderTopic string `yaml:"order_topic"`
+	Brokers    string `yaml:"brokers"`
+}
+
+// OrderOutboxPublisherConfig конфиг для воркера, разбирающего order outbox.
+type OrderOutboxPublisherConfig struct {
+	BatchSize     int `yaml:"batch_size"`
+	PeriodSeconds int `yaml:"period_seconds"`
 }
 
 // LoadConfig загружает конфиг из файла .yaml

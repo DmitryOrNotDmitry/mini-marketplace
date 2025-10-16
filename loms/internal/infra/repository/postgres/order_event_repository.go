@@ -43,3 +43,36 @@ func now() pgtype.Timestamp {
 		Valid: true,
 	}
 }
+
+// GetUnprocessedEventsLimit возращает первые limit событий, которые еще не обработаны.
+func (oe *OrderEventRepository) GetUnprocessedEventsLimit(ctx context.Context, limit int) ([]*domain.OrderEventOutbox, error) {
+	rows, err := oe.querier.GetUnprocessedEventsLimit(ctx, int32(limit))
+	if err != nil {
+		return nil, fmt.Errorf("querier.GetUnprocessedEventsLimit: %w", err)
+	}
+
+	res := make([]*domain.OrderEventOutbox, 0, len(rows))
+	for _, row := range rows {
+		res = append(res, &domain.OrderEventOutbox{
+			ID:      row.ID,
+			OrderID: *row.OrderID,
+			Status:  row.Status,
+			Moment:  row.Moment.Time,
+		})
+	}
+
+	return res, nil
+}
+
+// UpdateEventStatus обновляет статус события.
+func (oe *OrderEventRepository) UpdateEventStatus(ctx context.Context, eventID int64, newStatus domain.EventStatus) error {
+	err := oe.querier.UpdateEventStatus(ctx, &sqlcrepos.UpdateEventStatusParams{
+		ID:          eventID,
+		EventStatus: string(newStatus),
+	})
+	if err != nil {
+		return fmt.Errorf("querier.UpdateEventStatus: %w", err)
+	}
+
+	return nil
+}
