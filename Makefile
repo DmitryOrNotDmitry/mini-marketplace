@@ -6,7 +6,7 @@ lint: cart-lint loms-lint notifier-lint comments-lint
 build: cart-build loms-build notifier-build comments-build
 
 run-all:
-	docker compose up --build
+	docker compose up --build --scale notifier=3
 
 run-monitor:
 	docker compose -f docker-compose-monitoring.yml up -d

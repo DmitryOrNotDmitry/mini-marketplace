@@ -26,6 +26,16 @@ services:
       kafka-init-topics:
         condition: service_completed_successfully
 
+  notifier:
+    build:
+      context: .
+      dockerfile: notifier/Dockerfile
+    networks:
+      - mart-system
+    depends_on:
+      kafka-init-topics:
+        condition: service_completed_successfully
+
   products:
     image: gitlab-registry.ozon.dev/go/classroom-20/students/homework-draft/products:latest
     ports:
