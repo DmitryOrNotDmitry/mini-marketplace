@@ -72,8 +72,8 @@ type KafkaConfig struct {
 
 // OrderOutboxPublisherConfig конфиг для воркера, разбирающего order outbox.
 type OrderOutboxPublisherConfig struct {
-	BatchSize     int `yaml:"batch_size"`
-	PeriodSeconds int `yaml:"period_seconds"`
+	BatchSize     int32 `yaml:"batch_size"`
+	PeriodSeconds int   `yaml:"period_seconds"`
 }
 
 // LoadConfig загружает конфиг из файла .yaml

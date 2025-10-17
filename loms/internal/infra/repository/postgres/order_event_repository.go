@@ -45,8 +45,8 @@ func now() pgtype.Timestamp {
 }
 
 // GetUnprocessedEventsLimit возращает первые limit событий, которые еще не обработаны.
-func (oe *OrderEventRepository) GetUnprocessedEventsLimit(ctx context.Context, limit int) ([]*domain.OrderEventOutbox, error) {
-	rows, err := oe.querier.GetUnprocessedEventsLimit(ctx, int32(limit))
+func (oe *OrderEventRepository) GetUnprocessedEventsLimit(ctx context.Context, limit int32) ([]*domain.OrderEventOutbox, error) {
+	rows, err := oe.querier.GetUnprocessedEventsLimit(ctx, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querier.GetUnprocessedEventsLimit: %w", err)
 	}

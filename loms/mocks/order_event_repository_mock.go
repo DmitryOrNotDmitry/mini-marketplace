@@ -19,9 +19,9 @@ type OrderEventRepositoryMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
-	funcGetUnprocessedEventsLimit          func(ctx context.Context, limit int) (opa1 []*domain.OrderEventOutbox, err error)
+	funcGetUnprocessedEventsLimit          func(ctx context.Context, limit int32) (opa1 []*domain.OrderEventOutbox, err error)
 	funcGetUnprocessedEventsLimitOrigin    string
-	inspectFuncGetUnprocessedEventsLimit   func(ctx context.Context, limit int)
+	inspectFuncGetUnprocessedEventsLimit   func(ctx context.Context, limit int32)
 	afterGetUnprocessedEventsLimitCounter  uint64
 	beforeGetUnprocessedEventsLimitCounter uint64
 	GetUnprocessedEventsLimitMock          mOrderEventRepositoryMockGetUnprocessedEventsLimit
@@ -90,13 +90,13 @@ type OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation struct {
 // OrderEventRepositoryMockGetUnprocessedEventsLimitParams contains parameters of the OrderEventRepository.GetUnprocessedEventsLimit
 type OrderEventRepositoryMockGetUnprocessedEventsLimitParams struct {
 	ctx   context.Context
-	limit int
+	limit int32
 }
 
 // OrderEventRepositoryMockGetUnprocessedEventsLimitParamPtrs contains pointers to parameters of the OrderEventRepository.GetUnprocessedEventsLimit
 type OrderEventRepositoryMockGetUnprocessedEventsLimitParamPtrs struct {
 	ctx   *context.Context
-	limit *int
+	limit *int32
 }
 
 // OrderEventRepositoryMockGetUnprocessedEventsLimitResults contains results of the OrderEventRepository.GetUnprocessedEventsLimit
@@ -123,7 +123,7 @@ func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEvents
 }
 
 // Expect sets up expected params for OrderEventRepository.GetUnprocessedEventsLimit
-func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Expect(ctx context.Context, limit int) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Expect(ctx context.Context, limit int32) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
 	if mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit != nil {
 		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Set")
 	}
@@ -171,7 +171,7 @@ func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEvents
 }
 
 // ExpectLimitParam2 sets up expected param limit for OrderEventRepository.GetUnprocessedEventsLimit
-func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) ExpectLimitParam2(limit int) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) ExpectLimitParam2(limit int32) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
 	if mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit != nil {
 		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Set")
 	}
@@ -194,7 +194,7 @@ func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEvents
 }
 
 // Inspect accepts an inspector function that has same arguments as the OrderEventRepository.GetUnprocessedEventsLimit
-func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Inspect(f func(ctx context.Context, limit int)) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Inspect(f func(ctx context.Context, limit int32)) *mOrderEventRepositoryMockGetUnprocessedEventsLimit {
 	if mmGetUnprocessedEventsLimit.mock.inspectFuncGetUnprocessedEventsLimit != nil {
 		mmGetUnprocessedEventsLimit.mock.t.Fatalf("Inspect function is already set for OrderEventRepositoryMock.GetUnprocessedEventsLimit")
 	}
@@ -219,7 +219,7 @@ func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEvents
 }
 
 // Set uses given function f to mock the OrderEventRepository.GetUnprocessedEventsLimit method
-func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Set(f func(ctx context.Context, limit int) (opa1 []*domain.OrderEventOutbox, err error)) *OrderEventRepositoryMock {
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) Set(f func(ctx context.Context, limit int32) (opa1 []*domain.OrderEventOutbox, err error)) *OrderEventRepositoryMock {
 	if mmGetUnprocessedEventsLimit.defaultExpectation != nil {
 		mmGetUnprocessedEventsLimit.mock.t.Fatalf("Default expectation is already set for the OrderEventRepository.GetUnprocessedEventsLimit method")
 	}
@@ -235,7 +235,7 @@ func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEvents
 
 // When sets expectation for the OrderEventRepository.GetUnprocessedEventsLimit which will trigger the result defined by the following
 // Then helper
-func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) When(ctx context.Context, limit int) *OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation {
+func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEventsLimit) When(ctx context.Context, limit int32) *OrderEventRepositoryMockGetUnprocessedEventsLimitExpectation {
 	if mmGetUnprocessedEventsLimit.mock.funcGetUnprocessedEventsLimit != nil {
 		mmGetUnprocessedEventsLimit.mock.t.Fatalf("OrderEventRepositoryMock.GetUnprocessedEventsLimit mock is already set by Set")
 	}
@@ -277,7 +277,7 @@ func (mmGetUnprocessedEventsLimit *mOrderEventRepositoryMockGetUnprocessedEvents
 }
 
 // GetUnprocessedEventsLimit implements mm_service.OrderEventRepository
-func (mmGetUnprocessedEventsLimit *OrderEventRepositoryMock) GetUnprocessedEventsLimit(ctx context.Context, limit int) (opa1 []*domain.OrderEventOutbox, err error) {
+func (mmGetUnprocessedEventsLimit *OrderEventRepositoryMock) GetUnprocessedEventsLimit(ctx context.Context, limit int32) (opa1 []*domain.OrderEventOutbox, err error) {
 	mm_atomic.AddUint64(&mmGetUnprocessedEventsLimit.beforeGetUnprocessedEventsLimitCounter, 1)
 	defer mm_atomic.AddUint64(&mmGetUnprocessedEventsLimit.afterGetUnprocessedEventsLimitCounter, 1)
 

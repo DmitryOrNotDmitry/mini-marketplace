@@ -21,12 +21,12 @@ type orderEventRepoFactory interface {
 type OrderEventPublisher struct {
 	pub               publisher
 	repositoryFactory orderEventRepoFactory
-	batchSize         int
+	batchSize         int32
 	period            time.Duration
 }
 
 // NewOrderEventPublisher создает новый экземпляр OrderEventPublisher.
-func NewOrderEventPublisher(publisher publisher, repositoryFactory orderEventRepoFactory, batchSize int, period time.Duration) *OrderEventPublisher {
+func NewOrderEventPublisher(publisher publisher, repositoryFactory orderEventRepoFactory, batchSize int32, period time.Duration) *OrderEventPublisher {
 	return &OrderEventPublisher{
 		pub:               publisher,
 		repositoryFactory: repositoryFactory,
@@ -44,12 +44,14 @@ func (o *OrderEventPublisher) Start(ctx context.Context) {
 		for {
 			select {
 			case <-ticker.C:
-				o.sendEvents(ctx)
+				err := o.sendEvents(ctx)
+				if err != nil {
+					logger.Warnw("error at sendEvents()", "err", err)
+				}
 			case <-ctx.Done():
 				return
 			}
 		}
-
 	}()
 }
 
