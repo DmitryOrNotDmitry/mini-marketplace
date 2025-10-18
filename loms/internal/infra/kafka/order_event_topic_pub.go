@@ -19,10 +19,12 @@ func NewOrderEventTopicKafka(brokers []string, topic string) (*OrderEventTopicKa
 	}
 
 	config := sarama.NewConfig()
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Retry.Max = 3
+	config.Producer.Partitioner = sarama.NewHashPartitioner
+	config.Producer.Idempotent = false
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true
-	config.Producer.Partitioner = sarama.NewHashPartitioner
-	config.Producer.RequiredAcks = sarama.WaitForAll
 
 	var err error
 	o.producer, err = sarama.NewSyncProducer(brokers, config)

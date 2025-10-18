@@ -25,6 +25,7 @@ func NewOrderEventTopicSubKafka(groupID string, topics []string, brokers []strin
 
 	config := sarama.NewConfig()
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
+	config.Consumer.Offsets.AutoCommit.Enable = false
 
 	var err error
 	o.consumerGroup, err = sarama.NewConsumerGroup(brokers, groupID, config)
