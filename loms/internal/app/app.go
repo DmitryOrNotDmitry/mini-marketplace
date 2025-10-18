@@ -111,7 +111,7 @@ func NewApp(ctx context.Context, configPath string) (*App, error) {
 		return nil, fmt.Errorf("kafka.NewOrderEventTopicKafka: %w", err)
 	}
 
-	orderEventPublisher := service.NewOrderEventPublisher(orderEventPubKafka, repositoryFactory, app.Config.OrderOutboxPub.BatchSize,
+	orderEventPublisher := service.NewOrderEventPublisher(orderEventPubKafka, txManager, repositoryFactory, app.Config.OrderOutboxPub.BatchSize,
 		time.Duration(app.Config.OrderOutboxPub.PeriodSeconds)*time.Second)
 	orderEventPublisher.Start(ctx)
 

@@ -20,15 +20,17 @@ type orderEventRepoFactory interface {
 // OrderEventPublisher отвечает за публикацию событий заказов.
 type OrderEventPublisher struct {
 	pub               publisher
+	txManager         TxManager
 	repositoryFactory orderEventRepoFactory
 	batchSize         int32
 	period            time.Duration
 }
 
 // NewOrderEventPublisher создает новый экземпляр OrderEventPublisher.
-func NewOrderEventPublisher(publisher publisher, repositoryFactory orderEventRepoFactory, batchSize int32, period time.Duration) *OrderEventPublisher {
+func NewOrderEventPublisher(publisher publisher, txManager TxManager, repositoryFactory orderEventRepoFactory, batchSize int32, period time.Duration) *OrderEventPublisher {
 	return &OrderEventPublisher{
 		pub:               publisher,
+		txManager:         txManager,
 		repositoryFactory: repositoryFactory,
 		batchSize:         batchSize,
 		period:            period,
@@ -62,11 +64,12 @@ func (o *OrderEventPublisher) sendEvents(ctx context.Context) error {
 		return err
 	}
 
-	writeOrderEventRepo := o.repositoryFactory.CreateOrderEvent(ctx, Write)
-
+	statuses := make(map[int64]domain.EventStatus, len(events))
 	erroredOrders := make(map[int64]struct{})
+
 	for _, event := range events {
 		if _, ok := erroredOrders[event.OrderID]; ok {
+			statuses[event.ID] = domain.Dead
 			continue
 		}
 
@@ -76,22 +79,40 @@ func (o *OrderEventPublisher) sendEvents(ctx context.Context) error {
 			Moment:  event.Moment.Format(time.RFC3339),
 		}
 
-		msgBytes, err := json.Marshal(msg)
-		if err != nil {
+		msgBytes, innerErr := json.Marshal(msg)
+		if innerErr != nil {
+			statuses[event.ID] = domain.Dead
 			erroredOrders[msg.OrderID] = struct{}{}
 			continue
 		}
 
-		err = o.pub.Send(messageKey(msg), msgBytes)
-		if err != nil {
+		innerErr = o.pub.Send(messageKey(msg), msgBytes)
+		if innerErr != nil {
+			statuses[event.ID] = domain.Dead
 			erroredOrders[msg.OrderID] = struct{}{}
 			continue
 		}
 
-		err = writeOrderEventRepo.UpdateEventStatus(ctx, event.ID, domain.Complete)
-		if err != nil {
-			logger.WarnwCtx(ctx, fmt.Sprintf("Сообщение о статусе заказа с id=%d успешно отправлено в kafka, но статус в outbox не обновлен", event.ID), "err", err)
+		statuses[event.ID] = domain.Complete
+	}
+
+	return o.updateEventsStatusesTx(ctx, events, statuses)
+}
+
+func (o *OrderEventPublisher) updateEventsStatusesTx(ctx context.Context, events []*domain.OrderEventOutbox, statuses map[int64]domain.EventStatus) error {
+	err := o.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
+		writeOrderEventRepo := o.repositoryFactory.CreateOrderEvent(ctx, FromTx)
+
+		for _, event := range events {
+			err := writeOrderEventRepo.UpdateEventStatus(ctx, event.ID, statuses[event.ID])
+			if err != nil {
+				return fmt.Errorf("не удалось обновить статусы событий заказов в outbox (ошибка на event_id=%d): %w", event.ID, err)
+			}
 		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("txManager.WithTransaction: %w", err)
 	}
 
 	return nil

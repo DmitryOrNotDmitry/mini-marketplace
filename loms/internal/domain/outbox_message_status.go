@@ -9,4 +9,7 @@ const (
 
 	// Complete - событие обработано
 	Complete EventStatus = "complete"
+
+	// Dead - при обработке события возникла ошибка
+	Dead EventStatus = "dead"
 )
