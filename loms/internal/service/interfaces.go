@@ -59,6 +59,6 @@ type OrderEventRepository interface {
 
 	// GetUnprocessedEventsLimit возвращает неотправленные события с ограничением по количеству.
 	GetUnprocessedEventsLimit(ctx context.Context, limit int32) ([]*domain.OrderEventOutbox, error)
-	// UpdateEventStatus обновляет статус события заказа.
-	UpdateEventStatus(ctx context.Context, eventID int64, newStatus domain.EventStatus) error
+	// UpdateEventStatusBatch обновляет статус событий заказа батчем.
+	UpdateEventStatusBatch(ctx context.Context, eventIDs []int64, newStatus domain.EventStatus) error
 }

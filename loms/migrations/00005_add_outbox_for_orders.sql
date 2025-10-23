@@ -3,9 +3,9 @@
 CREATE TABLE orders_event_outbox (
     id BIGSERIAL PRIMARY KEY,
     order_id BIGINT,
-    status TEXT NOT NULL DEFAULT 'new'::text,
+    order_status TEXT NOT NULL,
     moment TIMESTAMP NOT NULL,
-    event_status TEXT NOT NULL DEFAULT 'new'::text
+    event_status TEXT NOT NULL
 );
 -- +goose StatementEnd
 

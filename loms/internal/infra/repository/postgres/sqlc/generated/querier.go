@@ -21,7 +21,7 @@ type Querier interface {
 	ReduceTotalAndReserve(ctx context.Context, arg *ReduceTotalAndReserveParams) error
 	RemoveReserve(ctx context.Context, arg *RemoveReserveParams) error
 	Reserve(ctx context.Context, arg *ReserveParams) error
-	UpdateEventStatus(ctx context.Context, arg *UpdateEventStatusParams) error
+	UpdateEventStatusBatch(ctx context.Context, arg *UpdateEventStatusBatchParams) error
 	UpdateStatusByID(ctx context.Context, arg *UpdateStatusByIDParams) error
 }
 

@@ -33,12 +33,12 @@ type OrderEventRepositoryMock struct {
 	beforeInsertCounter uint64
 	InsertMock          mOrderEventRepositoryMockInsert
 
-	funcUpdateEventStatus          func(ctx context.Context, eventID int64, newStatus domain.EventStatus) (err error)
-	funcUpdateEventStatusOrigin    string
-	inspectFuncUpdateEventStatus   func(ctx context.Context, eventID int64, newStatus domain.EventStatus)
-	afterUpdateEventStatusCounter  uint64
-	beforeUpdateEventStatusCounter uint64
-	UpdateEventStatusMock          mOrderEventRepositoryMockUpdateEventStatus
+	funcUpdateEventStatusBatch          func(ctx context.Context, eventIDs []int64, newStatus domain.EventStatus) (err error)
+	funcUpdateEventStatusBatchOrigin    string
+	inspectFuncUpdateEventStatusBatch   func(ctx context.Context, eventIDs []int64, newStatus domain.EventStatus)
+	afterUpdateEventStatusBatchCounter  uint64
+	beforeUpdateEventStatusBatchCounter uint64
+	UpdateEventStatusBatchMock          mOrderEventRepositoryMockUpdateEventStatusBatch
 }
 
 // NewOrderEventRepositoryMock returns a mock for mm_service.OrderEventRepository
@@ -55,8 +55,8 @@ func NewOrderEventRepositoryMock(t minimock.Tester) *OrderEventRepositoryMock {
 	m.InsertMock = mOrderEventRepositoryMockInsert{mock: m}
 	m.InsertMock.callArgs = []*OrderEventRepositoryMockInsertParams{}
 
-	m.UpdateEventStatusMock = mOrderEventRepositoryMockUpdateEventStatus{mock: m}
-	m.UpdateEventStatusMock.callArgs = []*OrderEventRepositoryMockUpdateEventStatusParams{}
+	m.UpdateEventStatusBatchMock = mOrderEventRepositoryMockUpdateEventStatusBatch{mock: m}
+	m.UpdateEventStatusBatchMock.callArgs = []*OrderEventRepositoryMockUpdateEventStatusBatchParams{}
 
 	t.Cleanup(m.MinimockFinish)
 
@@ -748,54 +748,54 @@ func (m *OrderEventRepositoryMock) MinimockInsertInspect() {
 	}
 }
 
-type mOrderEventRepositoryMockUpdateEventStatus struct {
+type mOrderEventRepositoryMockUpdateEventStatusBatch struct {
 	optional           bool
 	mock               *OrderEventRepositoryMock
-	defaultExpectation *OrderEventRepositoryMockUpdateEventStatusExpectation
-	expectations       []*OrderEventRepositoryMockUpdateEventStatusExpectation
+	defaultExpectation *OrderEventRepositoryMockUpdateEventStatusBatchExpectation
+	expectations       []*OrderEventRepositoryMockUpdateEventStatusBatchExpectation
 
-	callArgs []*OrderEventRepositoryMockUpdateEventStatusParams
+	callArgs []*OrderEventRepositoryMockUpdateEventStatusBatchParams
 	mutex    sync.RWMutex
 
 	expectedInvocations       uint64
 	expectedInvocationsOrigin string
 }
 
-// OrderEventRepositoryMockUpdateEventStatusExpectation specifies expectation struct of the OrderEventRepository.UpdateEventStatus
-type OrderEventRepositoryMockUpdateEventStatusExpectation struct {
+// OrderEventRepositoryMockUpdateEventStatusBatchExpectation specifies expectation struct of the OrderEventRepository.UpdateEventStatusBatch
+type OrderEventRepositoryMockUpdateEventStatusBatchExpectation struct {
 	mock               *OrderEventRepositoryMock
-	params             *OrderEventRepositoryMockUpdateEventStatusParams
-	paramPtrs          *OrderEventRepositoryMockUpdateEventStatusParamPtrs
-	expectationOrigins OrderEventRepositoryMockUpdateEventStatusExpectationOrigins
-	results            *OrderEventRepositoryMockUpdateEventStatusResults
+	params             *OrderEventRepositoryMockUpdateEventStatusBatchParams
+	paramPtrs          *OrderEventRepositoryMockUpdateEventStatusBatchParamPtrs
+	expectationOrigins OrderEventRepositoryMockUpdateEventStatusBatchExpectationOrigins
+	results            *OrderEventRepositoryMockUpdateEventStatusBatchResults
 	returnOrigin       string
 	Counter            uint64
 }
 
-// OrderEventRepositoryMockUpdateEventStatusParams contains parameters of the OrderEventRepository.UpdateEventStatus
-type OrderEventRepositoryMockUpdateEventStatusParams struct {
+// OrderEventRepositoryMockUpdateEventStatusBatchParams contains parameters of the OrderEventRepository.UpdateEventStatusBatch
+type OrderEventRepositoryMockUpdateEventStatusBatchParams struct {
 	ctx       context.Context
-	eventID   int64
+	eventIDs  []int64
 	newStatus domain.EventStatus
 }
 
-// OrderEventRepositoryMockUpdateEventStatusParamPtrs contains pointers to parameters of the OrderEventRepository.UpdateEventStatus
-type OrderEventRepositoryMockUpdateEventStatusParamPtrs struct {
+// OrderEventRepositoryMockUpdateEventStatusBatchParamPtrs contains pointers to parameters of the OrderEventRepository.UpdateEventStatusBatch
+type OrderEventRepositoryMockUpdateEventStatusBatchParamPtrs struct {
 	ctx       *context.Context
-	eventID   *int64
+	eventIDs  *[]int64
 	newStatus *domain.EventStatus
 }
 
-// OrderEventRepositoryMockUpdateEventStatusResults contains results of the OrderEventRepository.UpdateEventStatus
-type OrderEventRepositoryMockUpdateEventStatusResults struct {
+// OrderEventRepositoryMockUpdateEventStatusBatchResults contains results of the OrderEventRepository.UpdateEventStatusBatch
+type OrderEventRepositoryMockUpdateEventStatusBatchResults struct {
 	err error
 }
 
-// OrderEventRepositoryMockUpdateEventStatusOrigins contains origins of expectations of the OrderEventRepository.UpdateEventStatus
-type OrderEventRepositoryMockUpdateEventStatusExpectationOrigins struct {
+// OrderEventRepositoryMockUpdateEventStatusBatchOrigins contains origins of expectations of the OrderEventRepository.UpdateEventStatusBatch
+type OrderEventRepositoryMockUpdateEventStatusBatchExpectationOrigins struct {
 	origin          string
 	originCtx       string
-	originEventID   string
+	originEventIDs  string
 	originNewStatus string
 }
 
@@ -804,320 +804,320 @@ type OrderEventRepositoryMockUpdateEventStatusExpectationOrigins struct {
 // Optional() makes method check to work in '0 or more' mode.
 // It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
 // catch the problems when the expected method call is totally skipped during test run.
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Optional() *mOrderEventRepositoryMockUpdateEventStatus {
-	mmUpdateEventStatus.optional = true
-	return mmUpdateEventStatus
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) Optional() *mOrderEventRepositoryMockUpdateEventStatusBatch {
+	mmUpdateEventStatusBatch.optional = true
+	return mmUpdateEventStatusBatch
 }
 
-// Expect sets up expected params for OrderEventRepository.UpdateEventStatus
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Expect(ctx context.Context, eventID int64, newStatus domain.EventStatus) *mOrderEventRepositoryMockUpdateEventStatus {
-	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+// Expect sets up expected params for OrderEventRepository.UpdateEventStatusBatch
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) Expect(ctx context.Context, eventIDs []int64, newStatus domain.EventStatus) *mOrderEventRepositoryMockUpdateEventStatusBatch {
+	if mmUpdateEventStatusBatch.mock.funcUpdateEventStatusBatch != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by Set")
 	}
 
-	if mmUpdateEventStatus.defaultExpectation == nil {
-		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{}
+	if mmUpdateEventStatusBatch.defaultExpectation == nil {
+		mmUpdateEventStatusBatch.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusBatchExpectation{}
 	}
 
-	if mmUpdateEventStatus.defaultExpectation.paramPtrs != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by ExpectParams functions")
+	if mmUpdateEventStatusBatch.defaultExpectation.paramPtrs != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by ExpectParams functions")
 	}
 
-	mmUpdateEventStatus.defaultExpectation.params = &OrderEventRepositoryMockUpdateEventStatusParams{ctx, eventID, newStatus}
-	mmUpdateEventStatus.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
-	for _, e := range mmUpdateEventStatus.expectations {
-		if minimock.Equal(e.params, mmUpdateEventStatus.defaultExpectation.params) {
-			mmUpdateEventStatus.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmUpdateEventStatus.defaultExpectation.params)
+	mmUpdateEventStatusBatch.defaultExpectation.params = &OrderEventRepositoryMockUpdateEventStatusBatchParams{ctx, eventIDs, newStatus}
+	mmUpdateEventStatusBatch.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmUpdateEventStatusBatch.expectations {
+		if minimock.Equal(e.params, mmUpdateEventStatusBatch.defaultExpectation.params) {
+			mmUpdateEventStatusBatch.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmUpdateEventStatusBatch.defaultExpectation.params)
 		}
 	}
 
-	return mmUpdateEventStatus
+	return mmUpdateEventStatusBatch
 }
 
-// ExpectCtxParam1 sets up expected param ctx for OrderEventRepository.UpdateEventStatus
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) ExpectCtxParam1(ctx context.Context) *mOrderEventRepositoryMockUpdateEventStatus {
-	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+// ExpectCtxParam1 sets up expected param ctx for OrderEventRepository.UpdateEventStatusBatch
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) ExpectCtxParam1(ctx context.Context) *mOrderEventRepositoryMockUpdateEventStatusBatch {
+	if mmUpdateEventStatusBatch.mock.funcUpdateEventStatusBatch != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by Set")
 	}
 
-	if mmUpdateEventStatus.defaultExpectation == nil {
-		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{}
+	if mmUpdateEventStatusBatch.defaultExpectation == nil {
+		mmUpdateEventStatusBatch.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusBatchExpectation{}
 	}
 
-	if mmUpdateEventStatus.defaultExpectation.params != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Expect")
+	if mmUpdateEventStatusBatch.defaultExpectation.params != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by Expect")
 	}
 
-	if mmUpdateEventStatus.defaultExpectation.paramPtrs == nil {
-		mmUpdateEventStatus.defaultExpectation.paramPtrs = &OrderEventRepositoryMockUpdateEventStatusParamPtrs{}
+	if mmUpdateEventStatusBatch.defaultExpectation.paramPtrs == nil {
+		mmUpdateEventStatusBatch.defaultExpectation.paramPtrs = &OrderEventRepositoryMockUpdateEventStatusBatchParamPtrs{}
 	}
-	mmUpdateEventStatus.defaultExpectation.paramPtrs.ctx = &ctx
-	mmUpdateEventStatus.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+	mmUpdateEventStatusBatch.defaultExpectation.paramPtrs.ctx = &ctx
+	mmUpdateEventStatusBatch.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
 
-	return mmUpdateEventStatus
+	return mmUpdateEventStatusBatch
 }
 
-// ExpectEventIDParam2 sets up expected param eventID for OrderEventRepository.UpdateEventStatus
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) ExpectEventIDParam2(eventID int64) *mOrderEventRepositoryMockUpdateEventStatus {
-	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+// ExpectEventIDsParam2 sets up expected param eventIDs for OrderEventRepository.UpdateEventStatusBatch
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) ExpectEventIDsParam2(eventIDs []int64) *mOrderEventRepositoryMockUpdateEventStatusBatch {
+	if mmUpdateEventStatusBatch.mock.funcUpdateEventStatusBatch != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by Set")
 	}
 
-	if mmUpdateEventStatus.defaultExpectation == nil {
-		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{}
+	if mmUpdateEventStatusBatch.defaultExpectation == nil {
+		mmUpdateEventStatusBatch.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusBatchExpectation{}
 	}
 
-	if mmUpdateEventStatus.defaultExpectation.params != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Expect")
+	if mmUpdateEventStatusBatch.defaultExpectation.params != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by Expect")
 	}
 
-	if mmUpdateEventStatus.defaultExpectation.paramPtrs == nil {
-		mmUpdateEventStatus.defaultExpectation.paramPtrs = &OrderEventRepositoryMockUpdateEventStatusParamPtrs{}
+	if mmUpdateEventStatusBatch.defaultExpectation.paramPtrs == nil {
+		mmUpdateEventStatusBatch.defaultExpectation.paramPtrs = &OrderEventRepositoryMockUpdateEventStatusBatchParamPtrs{}
 	}
-	mmUpdateEventStatus.defaultExpectation.paramPtrs.eventID = &eventID
-	mmUpdateEventStatus.defaultExpectation.expectationOrigins.originEventID = minimock.CallerInfo(1)
+	mmUpdateEventStatusBatch.defaultExpectation.paramPtrs.eventIDs = &eventIDs
+	mmUpdateEventStatusBatch.defaultExpectation.expectationOrigins.originEventIDs = minimock.CallerInfo(1)
 
-	return mmUpdateEventStatus
+	return mmUpdateEventStatusBatch
 }
 
-// ExpectNewStatusParam3 sets up expected param newStatus for OrderEventRepository.UpdateEventStatus
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) ExpectNewStatusParam3(newStatus domain.EventStatus) *mOrderEventRepositoryMockUpdateEventStatus {
-	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+// ExpectNewStatusParam3 sets up expected param newStatus for OrderEventRepository.UpdateEventStatusBatch
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) ExpectNewStatusParam3(newStatus domain.EventStatus) *mOrderEventRepositoryMockUpdateEventStatusBatch {
+	if mmUpdateEventStatusBatch.mock.funcUpdateEventStatusBatch != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by Set")
 	}
 
-	if mmUpdateEventStatus.defaultExpectation == nil {
-		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{}
+	if mmUpdateEventStatusBatch.defaultExpectation == nil {
+		mmUpdateEventStatusBatch.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusBatchExpectation{}
 	}
 
-	if mmUpdateEventStatus.defaultExpectation.params != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Expect")
+	if mmUpdateEventStatusBatch.defaultExpectation.params != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by Expect")
 	}
 
-	if mmUpdateEventStatus.defaultExpectation.paramPtrs == nil {
-		mmUpdateEventStatus.defaultExpectation.paramPtrs = &OrderEventRepositoryMockUpdateEventStatusParamPtrs{}
+	if mmUpdateEventStatusBatch.defaultExpectation.paramPtrs == nil {
+		mmUpdateEventStatusBatch.defaultExpectation.paramPtrs = &OrderEventRepositoryMockUpdateEventStatusBatchParamPtrs{}
 	}
-	mmUpdateEventStatus.defaultExpectation.paramPtrs.newStatus = &newStatus
-	mmUpdateEventStatus.defaultExpectation.expectationOrigins.originNewStatus = minimock.CallerInfo(1)
+	mmUpdateEventStatusBatch.defaultExpectation.paramPtrs.newStatus = &newStatus
+	mmUpdateEventStatusBatch.defaultExpectation.expectationOrigins.originNewStatus = minimock.CallerInfo(1)
 
-	return mmUpdateEventStatus
+	return mmUpdateEventStatusBatch
 }
 
-// Inspect accepts an inspector function that has same arguments as the OrderEventRepository.UpdateEventStatus
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Inspect(f func(ctx context.Context, eventID int64, newStatus domain.EventStatus)) *mOrderEventRepositoryMockUpdateEventStatus {
-	if mmUpdateEventStatus.mock.inspectFuncUpdateEventStatus != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("Inspect function is already set for OrderEventRepositoryMock.UpdateEventStatus")
+// Inspect accepts an inspector function that has same arguments as the OrderEventRepository.UpdateEventStatusBatch
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) Inspect(f func(ctx context.Context, eventIDs []int64, newStatus domain.EventStatus)) *mOrderEventRepositoryMockUpdateEventStatusBatch {
+	if mmUpdateEventStatusBatch.mock.inspectFuncUpdateEventStatusBatch != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("Inspect function is already set for OrderEventRepositoryMock.UpdateEventStatusBatch")
 	}
 
-	mmUpdateEventStatus.mock.inspectFuncUpdateEventStatus = f
+	mmUpdateEventStatusBatch.mock.inspectFuncUpdateEventStatusBatch = f
 
-	return mmUpdateEventStatus
+	return mmUpdateEventStatusBatch
 }
 
-// Return sets up results that will be returned by OrderEventRepository.UpdateEventStatus
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Return(err error) *OrderEventRepositoryMock {
-	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+// Return sets up results that will be returned by OrderEventRepository.UpdateEventStatusBatch
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) Return(err error) *OrderEventRepositoryMock {
+	if mmUpdateEventStatusBatch.mock.funcUpdateEventStatusBatch != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by Set")
 	}
 
-	if mmUpdateEventStatus.defaultExpectation == nil {
-		mmUpdateEventStatus.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusExpectation{mock: mmUpdateEventStatus.mock}
+	if mmUpdateEventStatusBatch.defaultExpectation == nil {
+		mmUpdateEventStatusBatch.defaultExpectation = &OrderEventRepositoryMockUpdateEventStatusBatchExpectation{mock: mmUpdateEventStatusBatch.mock}
 	}
-	mmUpdateEventStatus.defaultExpectation.results = &OrderEventRepositoryMockUpdateEventStatusResults{err}
-	mmUpdateEventStatus.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
-	return mmUpdateEventStatus.mock
+	mmUpdateEventStatusBatch.defaultExpectation.results = &OrderEventRepositoryMockUpdateEventStatusBatchResults{err}
+	mmUpdateEventStatusBatch.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmUpdateEventStatusBatch.mock
 }
 
-// Set uses given function f to mock the OrderEventRepository.UpdateEventStatus method
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Set(f func(ctx context.Context, eventID int64, newStatus domain.EventStatus) (err error)) *OrderEventRepositoryMock {
-	if mmUpdateEventStatus.defaultExpectation != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("Default expectation is already set for the OrderEventRepository.UpdateEventStatus method")
+// Set uses given function f to mock the OrderEventRepository.UpdateEventStatusBatch method
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) Set(f func(ctx context.Context, eventIDs []int64, newStatus domain.EventStatus) (err error)) *OrderEventRepositoryMock {
+	if mmUpdateEventStatusBatch.defaultExpectation != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("Default expectation is already set for the OrderEventRepository.UpdateEventStatusBatch method")
 	}
 
-	if len(mmUpdateEventStatus.expectations) > 0 {
-		mmUpdateEventStatus.mock.t.Fatalf("Some expectations are already set for the OrderEventRepository.UpdateEventStatus method")
+	if len(mmUpdateEventStatusBatch.expectations) > 0 {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("Some expectations are already set for the OrderEventRepository.UpdateEventStatusBatch method")
 	}
 
-	mmUpdateEventStatus.mock.funcUpdateEventStatus = f
-	mmUpdateEventStatus.mock.funcUpdateEventStatusOrigin = minimock.CallerInfo(1)
-	return mmUpdateEventStatus.mock
+	mmUpdateEventStatusBatch.mock.funcUpdateEventStatusBatch = f
+	mmUpdateEventStatusBatch.mock.funcUpdateEventStatusBatchOrigin = minimock.CallerInfo(1)
+	return mmUpdateEventStatusBatch.mock
 }
 
-// When sets expectation for the OrderEventRepository.UpdateEventStatus which will trigger the result defined by the following
+// When sets expectation for the OrderEventRepository.UpdateEventStatusBatch which will trigger the result defined by the following
 // Then helper
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) When(ctx context.Context, eventID int64, newStatus domain.EventStatus) *OrderEventRepositoryMockUpdateEventStatusExpectation {
-	if mmUpdateEventStatus.mock.funcUpdateEventStatus != nil {
-		mmUpdateEventStatus.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatus mock is already set by Set")
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) When(ctx context.Context, eventIDs []int64, newStatus domain.EventStatus) *OrderEventRepositoryMockUpdateEventStatusBatchExpectation {
+	if mmUpdateEventStatusBatch.mock.funcUpdateEventStatusBatch != nil {
+		mmUpdateEventStatusBatch.mock.t.Fatalf("OrderEventRepositoryMock.UpdateEventStatusBatch mock is already set by Set")
 	}
 
-	expectation := &OrderEventRepositoryMockUpdateEventStatusExpectation{
-		mock:               mmUpdateEventStatus.mock,
-		params:             &OrderEventRepositoryMockUpdateEventStatusParams{ctx, eventID, newStatus},
-		expectationOrigins: OrderEventRepositoryMockUpdateEventStatusExpectationOrigins{origin: minimock.CallerInfo(1)},
+	expectation := &OrderEventRepositoryMockUpdateEventStatusBatchExpectation{
+		mock:               mmUpdateEventStatusBatch.mock,
+		params:             &OrderEventRepositoryMockUpdateEventStatusBatchParams{ctx, eventIDs, newStatus},
+		expectationOrigins: OrderEventRepositoryMockUpdateEventStatusBatchExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
-	mmUpdateEventStatus.expectations = append(mmUpdateEventStatus.expectations, expectation)
+	mmUpdateEventStatusBatch.expectations = append(mmUpdateEventStatusBatch.expectations, expectation)
 	return expectation
 }
 
-// Then sets up OrderEventRepository.UpdateEventStatus return parameters for the expectation previously defined by the When method
-func (e *OrderEventRepositoryMockUpdateEventStatusExpectation) Then(err error) *OrderEventRepositoryMock {
-	e.results = &OrderEventRepositoryMockUpdateEventStatusResults{err}
+// Then sets up OrderEventRepository.UpdateEventStatusBatch return parameters for the expectation previously defined by the When method
+func (e *OrderEventRepositoryMockUpdateEventStatusBatchExpectation) Then(err error) *OrderEventRepositoryMock {
+	e.results = &OrderEventRepositoryMockUpdateEventStatusBatchResults{err}
 	return e.mock
 }
 
-// Times sets number of times OrderEventRepository.UpdateEventStatus should be invoked
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Times(n uint64) *mOrderEventRepositoryMockUpdateEventStatus {
+// Times sets number of times OrderEventRepository.UpdateEventStatusBatch should be invoked
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) Times(n uint64) *mOrderEventRepositoryMockUpdateEventStatusBatch {
 	if n == 0 {
-		mmUpdateEventStatus.mock.t.Fatalf("Times of OrderEventRepositoryMock.UpdateEventStatus mock can not be zero")
+		mmUpdateEventStatusBatch.mock.t.Fatalf("Times of OrderEventRepositoryMock.UpdateEventStatusBatch mock can not be zero")
 	}
-	mm_atomic.StoreUint64(&mmUpdateEventStatus.expectedInvocations, n)
-	mmUpdateEventStatus.expectedInvocationsOrigin = minimock.CallerInfo(1)
-	return mmUpdateEventStatus
+	mm_atomic.StoreUint64(&mmUpdateEventStatusBatch.expectedInvocations, n)
+	mmUpdateEventStatusBatch.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmUpdateEventStatusBatch
 }
 
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) invocationsDone() bool {
-	if len(mmUpdateEventStatus.expectations) == 0 && mmUpdateEventStatus.defaultExpectation == nil && mmUpdateEventStatus.mock.funcUpdateEventStatus == nil {
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) invocationsDone() bool {
+	if len(mmUpdateEventStatusBatch.expectations) == 0 && mmUpdateEventStatusBatch.defaultExpectation == nil && mmUpdateEventStatusBatch.mock.funcUpdateEventStatusBatch == nil {
 		return true
 	}
 
-	totalInvocations := mm_atomic.LoadUint64(&mmUpdateEventStatus.mock.afterUpdateEventStatusCounter)
-	expectedInvocations := mm_atomic.LoadUint64(&mmUpdateEventStatus.expectedInvocations)
+	totalInvocations := mm_atomic.LoadUint64(&mmUpdateEventStatusBatch.mock.afterUpdateEventStatusBatchCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmUpdateEventStatusBatch.expectedInvocations)
 
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// UpdateEventStatus implements mm_service.OrderEventRepository
-func (mmUpdateEventStatus *OrderEventRepositoryMock) UpdateEventStatus(ctx context.Context, eventID int64, newStatus domain.EventStatus) (err error) {
-	mm_atomic.AddUint64(&mmUpdateEventStatus.beforeUpdateEventStatusCounter, 1)
-	defer mm_atomic.AddUint64(&mmUpdateEventStatus.afterUpdateEventStatusCounter, 1)
+// UpdateEventStatusBatch implements mm_service.OrderEventRepository
+func (mmUpdateEventStatusBatch *OrderEventRepositoryMock) UpdateEventStatusBatch(ctx context.Context, eventIDs []int64, newStatus domain.EventStatus) (err error) {
+	mm_atomic.AddUint64(&mmUpdateEventStatusBatch.beforeUpdateEventStatusBatchCounter, 1)
+	defer mm_atomic.AddUint64(&mmUpdateEventStatusBatch.afterUpdateEventStatusBatchCounter, 1)
 
-	mmUpdateEventStatus.t.Helper()
+	mmUpdateEventStatusBatch.t.Helper()
 
-	if mmUpdateEventStatus.inspectFuncUpdateEventStatus != nil {
-		mmUpdateEventStatus.inspectFuncUpdateEventStatus(ctx, eventID, newStatus)
+	if mmUpdateEventStatusBatch.inspectFuncUpdateEventStatusBatch != nil {
+		mmUpdateEventStatusBatch.inspectFuncUpdateEventStatusBatch(ctx, eventIDs, newStatus)
 	}
 
-	mm_params := OrderEventRepositoryMockUpdateEventStatusParams{ctx, eventID, newStatus}
+	mm_params := OrderEventRepositoryMockUpdateEventStatusBatchParams{ctx, eventIDs, newStatus}
 
 	// Record call args
-	mmUpdateEventStatus.UpdateEventStatusMock.mutex.Lock()
-	mmUpdateEventStatus.UpdateEventStatusMock.callArgs = append(mmUpdateEventStatus.UpdateEventStatusMock.callArgs, &mm_params)
-	mmUpdateEventStatus.UpdateEventStatusMock.mutex.Unlock()
+	mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.mutex.Lock()
+	mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.callArgs = append(mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.callArgs, &mm_params)
+	mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.mutex.Unlock()
 
-	for _, e := range mmUpdateEventStatus.UpdateEventStatusMock.expectations {
+	for _, e := range mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
 			return e.results.err
 		}
 	}
 
-	if mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation != nil {
-		mm_atomic.AddUint64(&mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.Counter, 1)
-		mm_want := mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.params
-		mm_want_ptrs := mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.paramPtrs
+	if mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.defaultExpectation.Counter, 1)
+		mm_want := mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.defaultExpectation.params
+		mm_want_ptrs := mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.defaultExpectation.paramPtrs
 
-		mm_got := OrderEventRepositoryMockUpdateEventStatusParams{ctx, eventID, newStatus}
+		mm_got := OrderEventRepositoryMockUpdateEventStatusBatchParams{ctx, eventIDs, newStatus}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
-				mmUpdateEventStatus.t.Errorf("OrderEventRepositoryMock.UpdateEventStatus got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+				mmUpdateEventStatusBatch.t.Errorf("OrderEventRepositoryMock.UpdateEventStatusBatch got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
 			}
 
-			if mm_want_ptrs.eventID != nil && !minimock.Equal(*mm_want_ptrs.eventID, mm_got.eventID) {
-				mmUpdateEventStatus.t.Errorf("OrderEventRepositoryMock.UpdateEventStatus got unexpected parameter eventID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.expectationOrigins.originEventID, *mm_want_ptrs.eventID, mm_got.eventID, minimock.Diff(*mm_want_ptrs.eventID, mm_got.eventID))
+			if mm_want_ptrs.eventIDs != nil && !minimock.Equal(*mm_want_ptrs.eventIDs, mm_got.eventIDs) {
+				mmUpdateEventStatusBatch.t.Errorf("OrderEventRepositoryMock.UpdateEventStatusBatch got unexpected parameter eventIDs, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.defaultExpectation.expectationOrigins.originEventIDs, *mm_want_ptrs.eventIDs, mm_got.eventIDs, minimock.Diff(*mm_want_ptrs.eventIDs, mm_got.eventIDs))
 			}
 
 			if mm_want_ptrs.newStatus != nil && !minimock.Equal(*mm_want_ptrs.newStatus, mm_got.newStatus) {
-				mmUpdateEventStatus.t.Errorf("OrderEventRepositoryMock.UpdateEventStatus got unexpected parameter newStatus, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.expectationOrigins.originNewStatus, *mm_want_ptrs.newStatus, mm_got.newStatus, minimock.Diff(*mm_want_ptrs.newStatus, mm_got.newStatus))
+				mmUpdateEventStatusBatch.t.Errorf("OrderEventRepositoryMock.UpdateEventStatusBatch got unexpected parameter newStatus, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.defaultExpectation.expectationOrigins.originNewStatus, *mm_want_ptrs.newStatus, mm_got.newStatus, minimock.Diff(*mm_want_ptrs.newStatus, mm_got.newStatus))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
-			mmUpdateEventStatus.t.Errorf("OrderEventRepositoryMock.UpdateEventStatus got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-				mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+			mmUpdateEventStatusBatch.t.Errorf("OrderEventRepositoryMock.UpdateEventStatusBatch got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
 
-		mm_results := mmUpdateEventStatus.UpdateEventStatusMock.defaultExpectation.results
+		mm_results := mmUpdateEventStatusBatch.UpdateEventStatusBatchMock.defaultExpectation.results
 		if mm_results == nil {
-			mmUpdateEventStatus.t.Fatal("No results are set for the OrderEventRepositoryMock.UpdateEventStatus")
+			mmUpdateEventStatusBatch.t.Fatal("No results are set for the OrderEventRepositoryMock.UpdateEventStatusBatch")
 		}
 		return (*mm_results).err
 	}
-	if mmUpdateEventStatus.funcUpdateEventStatus != nil {
-		return mmUpdateEventStatus.funcUpdateEventStatus(ctx, eventID, newStatus)
+	if mmUpdateEventStatusBatch.funcUpdateEventStatusBatch != nil {
+		return mmUpdateEventStatusBatch.funcUpdateEventStatusBatch(ctx, eventIDs, newStatus)
 	}
-	mmUpdateEventStatus.t.Fatalf("Unexpected call to OrderEventRepositoryMock.UpdateEventStatus. %v %v %v", ctx, eventID, newStatus)
+	mmUpdateEventStatusBatch.t.Fatalf("Unexpected call to OrderEventRepositoryMock.UpdateEventStatusBatch. %v %v %v", ctx, eventIDs, newStatus)
 	return
 }
 
-// UpdateEventStatusAfterCounter returns a count of finished OrderEventRepositoryMock.UpdateEventStatus invocations
-func (mmUpdateEventStatus *OrderEventRepositoryMock) UpdateEventStatusAfterCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmUpdateEventStatus.afterUpdateEventStatusCounter)
+// UpdateEventStatusBatchAfterCounter returns a count of finished OrderEventRepositoryMock.UpdateEventStatusBatch invocations
+func (mmUpdateEventStatusBatch *OrderEventRepositoryMock) UpdateEventStatusBatchAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdateEventStatusBatch.afterUpdateEventStatusBatchCounter)
 }
 
-// UpdateEventStatusBeforeCounter returns a count of OrderEventRepositoryMock.UpdateEventStatus invocations
-func (mmUpdateEventStatus *OrderEventRepositoryMock) UpdateEventStatusBeforeCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmUpdateEventStatus.beforeUpdateEventStatusCounter)
+// UpdateEventStatusBatchBeforeCounter returns a count of OrderEventRepositoryMock.UpdateEventStatusBatch invocations
+func (mmUpdateEventStatusBatch *OrderEventRepositoryMock) UpdateEventStatusBatchBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdateEventStatusBatch.beforeUpdateEventStatusBatchCounter)
 }
 
-// Calls returns a list of arguments used in each call to OrderEventRepositoryMock.UpdateEventStatus.
+// Calls returns a list of arguments used in each call to OrderEventRepositoryMock.UpdateEventStatusBatch.
 // The list is in the same order as the calls were made (i.e. recent calls have a higher index)
-func (mmUpdateEventStatus *mOrderEventRepositoryMockUpdateEventStatus) Calls() []*OrderEventRepositoryMockUpdateEventStatusParams {
-	mmUpdateEventStatus.mutex.RLock()
+func (mmUpdateEventStatusBatch *mOrderEventRepositoryMockUpdateEventStatusBatch) Calls() []*OrderEventRepositoryMockUpdateEventStatusBatchParams {
+	mmUpdateEventStatusBatch.mutex.RLock()
 
-	argCopy := make([]*OrderEventRepositoryMockUpdateEventStatusParams, len(mmUpdateEventStatus.callArgs))
-	copy(argCopy, mmUpdateEventStatus.callArgs)
+	argCopy := make([]*OrderEventRepositoryMockUpdateEventStatusBatchParams, len(mmUpdateEventStatusBatch.callArgs))
+	copy(argCopy, mmUpdateEventStatusBatch.callArgs)
 
-	mmUpdateEventStatus.mutex.RUnlock()
+	mmUpdateEventStatusBatch.mutex.RUnlock()
 
 	return argCopy
 }
 
-// MinimockUpdateEventStatusDone returns true if the count of the UpdateEventStatus invocations corresponds
+// MinimockUpdateEventStatusBatchDone returns true if the count of the UpdateEventStatusBatch invocations corresponds
 // the number of defined expectations
-func (m *OrderEventRepositoryMock) MinimockUpdateEventStatusDone() bool {
-	if m.UpdateEventStatusMock.optional {
+func (m *OrderEventRepositoryMock) MinimockUpdateEventStatusBatchDone() bool {
+	if m.UpdateEventStatusBatchMock.optional {
 		// Optional methods provide '0 or more' call count restriction.
 		return true
 	}
 
-	for _, e := range m.UpdateEventStatusMock.expectations {
+	for _, e := range m.UpdateEventStatusBatchMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
 			return false
 		}
 	}
 
-	return m.UpdateEventStatusMock.invocationsDone()
+	return m.UpdateEventStatusBatchMock.invocationsDone()
 }
 
-// MinimockUpdateEventStatusInspect logs each unmet expectation
-func (m *OrderEventRepositoryMock) MinimockUpdateEventStatusInspect() {
-	for _, e := range m.UpdateEventStatusMock.expectations {
+// MinimockUpdateEventStatusBatchInspect logs each unmet expectation
+func (m *OrderEventRepositoryMock) MinimockUpdateEventStatusBatchInspect() {
+	for _, e := range m.UpdateEventStatusBatchMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
-			m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatus at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+			m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatusBatch at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
 		}
 	}
 
-	afterUpdateEventStatusCounter := mm_atomic.LoadUint64(&m.afterUpdateEventStatusCounter)
+	afterUpdateEventStatusBatchCounter := mm_atomic.LoadUint64(&m.afterUpdateEventStatusBatchCounter)
 	// if default expectation was set then invocations count should be greater than zero
-	if m.UpdateEventStatusMock.defaultExpectation != nil && afterUpdateEventStatusCounter < 1 {
-		if m.UpdateEventStatusMock.defaultExpectation.params == nil {
-			m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatus at\n%s", m.UpdateEventStatusMock.defaultExpectation.returnOrigin)
+	if m.UpdateEventStatusBatchMock.defaultExpectation != nil && afterUpdateEventStatusBatchCounter < 1 {
+		if m.UpdateEventStatusBatchMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatusBatch at\n%s", m.UpdateEventStatusBatchMock.defaultExpectation.returnOrigin)
 		} else {
-			m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatus at\n%s with params: %#v", m.UpdateEventStatusMock.defaultExpectation.expectationOrigins.origin, *m.UpdateEventStatusMock.defaultExpectation.params)
+			m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatusBatch at\n%s with params: %#v", m.UpdateEventStatusBatchMock.defaultExpectation.expectationOrigins.origin, *m.UpdateEventStatusBatchMock.defaultExpectation.params)
 		}
 	}
 	// if func was set then invocations count should be greater than zero
-	if m.funcUpdateEventStatus != nil && afterUpdateEventStatusCounter < 1 {
-		m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatus at\n%s", m.funcUpdateEventStatusOrigin)
+	if m.funcUpdateEventStatusBatch != nil && afterUpdateEventStatusBatchCounter < 1 {
+		m.t.Errorf("Expected call to OrderEventRepositoryMock.UpdateEventStatusBatch at\n%s", m.funcUpdateEventStatusBatchOrigin)
 	}
 
-	if !m.UpdateEventStatusMock.invocationsDone() && afterUpdateEventStatusCounter > 0 {
-		m.t.Errorf("Expected %d calls to OrderEventRepositoryMock.UpdateEventStatus at\n%s but found %d calls",
-			mm_atomic.LoadUint64(&m.UpdateEventStatusMock.expectedInvocations), m.UpdateEventStatusMock.expectedInvocationsOrigin, afterUpdateEventStatusCounter)
+	if !m.UpdateEventStatusBatchMock.invocationsDone() && afterUpdateEventStatusBatchCounter > 0 {
+		m.t.Errorf("Expected %d calls to OrderEventRepositoryMock.UpdateEventStatusBatch at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.UpdateEventStatusBatchMock.expectedInvocations), m.UpdateEventStatusBatchMock.expectedInvocationsOrigin, afterUpdateEventStatusBatchCounter)
 	}
 }
 
@@ -1129,7 +1129,7 @@ func (m *OrderEventRepositoryMock) MinimockFinish() {
 
 			m.MinimockInsertInspect()
 
-			m.MinimockUpdateEventStatusInspect()
+			m.MinimockUpdateEventStatusBatchInspect()
 		}
 	})
 }
@@ -1155,5 +1155,5 @@ func (m *OrderEventRepositoryMock) minimockDone() bool {
 	return done &&
 		m.MinimockGetUnprocessedEventsLimitDone() &&
 		m.MinimockInsertDone() &&
-		m.MinimockUpdateEventStatusDone()
+		m.MinimockUpdateEventStatusBatchDone()
 }

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"route256/cart/pkg/logger"
 	"route256/loms/internal/domain"
@@ -10,7 +9,7 @@ import (
 )
 
 type publisher interface {
-	Send(key string, value []byte) error
+	Send(key string, value *domain.OrderEvent) error
 }
 
 type orderEventRepoFactory interface {
@@ -65,7 +64,7 @@ func (o *OrderEventPublisher) sendEvents(ctx context.Context) error {
 	}
 
 	statuses := make(map[int64]domain.EventStatus, len(events))
-	erroredOrders := make(map[int64]struct{})
+	erroredOrders := make(map[int64]struct{}, len(events))
 
 	for _, event := range events {
 		if _, ok := erroredOrders[event.OrderID]; ok {
@@ -75,18 +74,11 @@ func (o *OrderEventPublisher) sendEvents(ctx context.Context) error {
 
 		msg := &domain.OrderEvent{
 			OrderID: event.OrderID,
-			Status:  event.Status,
+			Status:  event.OrderStatus,
 			Moment:  event.Moment.Format(time.RFC3339),
 		}
 
-		msgBytes, innerErr := json.Marshal(msg)
-		if innerErr != nil {
-			statuses[event.ID] = domain.Dead
-			erroredOrders[msg.OrderID] = struct{}{}
-			continue
-		}
-
-		innerErr = o.pub.Send(messageKey(msg), msgBytes)
+		innerErr := o.pub.Send(messageKey(msg), msg)
 		if innerErr != nil {
 			statuses[event.ID] = domain.Dead
 			erroredOrders[msg.OrderID] = struct{}{}
@@ -100,15 +92,34 @@ func (o *OrderEventPublisher) sendEvents(ctx context.Context) error {
 }
 
 func (o *OrderEventPublisher) updateEventsStatusesTx(ctx context.Context, events []*domain.OrderEventOutbox, statuses map[int64]domain.EventStatus) error {
+	completedIDs := make([]int64, 0, len(events))
+	deadIDs := make([]int64, 0, len(events))
+
+	for id, status := range statuses {
+		if status == domain.Complete {
+			completedIDs = append(completedIDs, id)
+			continue
+		}
+
+		if status == domain.Dead {
+			deadIDs = append(deadIDs, id)
+			continue
+		}
+	}
+
 	err := o.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
 		writeOrderEventRepo := o.repositoryFactory.CreateOrderEvent(ctx, FromTx)
 
-		for _, event := range events {
-			err := writeOrderEventRepo.UpdateEventStatus(ctx, event.ID, statuses[event.ID])
-			if err != nil {
-				return fmt.Errorf("не удалось обновить статусы событий заказов в outbox (ошибка на event_id=%d): %w", event.ID, err)
-			}
+		err := writeOrderEventRepo.UpdateEventStatusBatch(ctx, completedIDs, domain.Complete)
+		if err != nil {
+			return fmt.Errorf("не удалось обновить статусы событий заказов в outbox: %w", err)
 		}
+
+		err = writeOrderEventRepo.UpdateEventStatusBatch(ctx, deadIDs, domain.Dead)
+		if err != nil {
+			return fmt.Errorf("не удалось обновить статусы событий заказов в outbox: %w", err)
+		}
+
 		return nil
 	})
 	if err != nil {

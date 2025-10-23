@@ -1,7 +1,9 @@
 package kafka
 
 import (
+	"encoding/json"
 	"fmt"
+	"route256/loms/internal/domain"
 
 	"github.com/IBM/sarama"
 )
@@ -20,11 +22,8 @@ func NewOrderEventTopicKafka(brokers []string, topic string) (*OrderEventTopicKa
 
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 3
-	config.Producer.Partitioner = sarama.NewHashPartitioner
 	config.Producer.Idempotent = false
 	config.Producer.Return.Successes = true
-	config.Producer.Return.Errors = true
 
 	var err error
 	o.producer, err = sarama.NewSyncProducer(brokers, config)
@@ -35,15 +34,24 @@ func NewOrderEventTopicKafka(brokers []string, topic string) (*OrderEventTopicKa
 	return o, nil
 }
 
-// Send публикует сообщение в Kafka с заданным ключом и значением.
-func (o *OrderEventTopicKafka) Send(key string, value []byte) error {
+// Send публикует сообщение в Kafka с заданным ключом и событием заказа.
+func (o *OrderEventTopicKafka) Send(key string, value *domain.OrderEvent) error {
+	valueBytes, err := json.Marshal(&OrderEventKafka{
+		OrderID: value.OrderID,
+		Status:  value.Status,
+		Moment:  value.Moment,
+	})
+	if err != nil {
+		return err
+	}
+
 	msg := &sarama.ProducerMessage{
 		Topic: o.topic,
 		Key:   sarama.StringEncoder(key),
-		Value: sarama.ByteEncoder(value),
+		Value: sarama.ByteEncoder(valueBytes),
 	}
 
-	_, _, err := o.producer.SendMessage(msg)
+	_, _, err = o.producer.SendMessage(msg)
 	if err != nil {
 		return fmt.Errorf("producer.SendMessage: %w", err)
 	}

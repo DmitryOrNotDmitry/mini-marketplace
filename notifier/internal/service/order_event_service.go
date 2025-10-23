@@ -7,21 +7,14 @@ import (
 
 // OrderEventService реализует обработку входящих событий заказа.
 type OrderEventService struct {
-	msgIn <-chan *domain.OrderEvent
 }
 
 // NewOrderEventService создает новый экземпляр OrderEventConsumer.
-func NewOrderEventService(msgIn <-chan *domain.OrderEvent) *OrderEventService {
-	return &OrderEventService{
-		msgIn: msgIn,
-	}
+func NewOrderEventService() *OrderEventService {
+	return &OrderEventService{}
 }
 
-// Start запускает обработку событий заказа.
-func (o *OrderEventService) Start() {
-	go func() {
-		for msg := range o.msgIn {
-			logger.Infow("Событие заказа изменилось", "order_id", msg.OrderID, "status", msg.Status, "moment", msg.Moment)
-		}
-	}()
+// Process логгирует событие о заказе в лог
+func (o *OrderEventService) Process(event *domain.OrderEvent) {
+	logger.Infow("Событие заказа изменилось", "order_id", event.OrderID, "status", event.Status, "moment", event.Moment)
 }

@@ -26,7 +26,7 @@ type OrderEventRepository struct {
 func (oe *OrderEventRepository) Insert(ctx context.Context, order *domain.Order) error {
 	err := oe.querier.InsertOrderEvent(ctx, &sqlcrepos.InsertOrderEventParams{
 		OrderID:     &order.OrderID,
-		Status:      string(order.Status),
+		OrderStatus: string(order.Status),
 		Moment:      now(),
 		EventStatus: string(domain.EventNew),
 	})
@@ -54,10 +54,10 @@ func (oe *OrderEventRepository) GetUnprocessedEventsLimit(ctx context.Context, l
 	res := make([]*domain.OrderEventOutbox, 0, len(rows))
 	for _, row := range rows {
 		res = append(res, &domain.OrderEventOutbox{
-			ID:      row.ID,
-			OrderID: *row.OrderID,
-			Status:  row.Status,
-			Moment:  row.Moment.Time,
+			ID:          row.ID,
+			OrderID:     *row.OrderID,
+			OrderStatus: row.OrderStatus,
+			Moment:      row.Moment.Time,
 		})
 	}
 
@@ -65,9 +65,9 @@ func (oe *OrderEventRepository) GetUnprocessedEventsLimit(ctx context.Context, l
 }
 
 // UpdateEventStatus обновляет статус события.
-func (oe *OrderEventRepository) UpdateEventStatus(ctx context.Context, eventID int64, newStatus domain.EventStatus) error {
-	err := oe.querier.UpdateEventStatus(ctx, &sqlcrepos.UpdateEventStatusParams{
-		ID:          eventID,
+func (oe *OrderEventRepository) UpdateEventStatusBatch(ctx context.Context, eventIDs []int64, newStatus domain.EventStatus) error {
+	err := oe.querier.UpdateEventStatusBatch(ctx, &sqlcrepos.UpdateEventStatusBatchParams{
+		Column1:     eventIDs,
 		EventStatus: string(newStatus),
 	})
 	if err != nil {

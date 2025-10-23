@@ -39,10 +39,13 @@ func NewOrderService(stockService StockServiceI, repositoryFactory OrderRepoFact
 
 // Create создает новый заказ, резервирует товары и возвращает идентификатор заказа.
 func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64, error) {
-	var err error
-	order.OrderID, err = os.createWithStatusNew(ctx, order)
+	err := os.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
+		var innerErr error
+		order.OrderID, innerErr = os.createWithStatusNew(ctx, order)
+		return innerErr
+	})
 	if err != nil {
-		return 0, fmt.Errorf("createWithStatusNew: %w", err)
+		return 0, fmt.Errorf("txManager.WithTransaction: %w", err)
 	}
 
 	var stockErr error
@@ -65,28 +68,21 @@ func (os *OrderService) Create(ctx context.Context, order *domain.Order) (int64,
 }
 
 func (os *OrderService) createWithStatusNew(ctx context.Context, order *domain.Order) (int64, error) {
-	err := os.txManager.WithTransaction(ctx, Write, func(ctx context.Context) error {
-		orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
-		orderEventRepository := os.repositoryFactory.CreateOrderEvent(ctx, FromTx)
+	orderRepository := os.repositoryFactory.CreateOrder(ctx, FromTx)
+	orderEventRepository := os.repositoryFactory.CreateOrderEvent(ctx, FromTx)
 
-		order.Status = domain.New
+	order.Status = domain.New
 
-		var err error
-		order.OrderID, err = orderRepository.Insert(ctx, order)
-		if err != nil {
-			return fmt.Errorf("orderRepository.Insert: %w", err)
-		}
-
-		err = orderEventRepository.Insert(ctx, order)
-		if err != nil {
-			return fmt.Errorf("orderEventRepository.Insert: %w", err)
-		}
-		return nil
-	})
+	var err error
+	order.OrderID, err = orderRepository.Insert(ctx, order)
 	if err != nil {
-		return 0, fmt.Errorf("txManager.WithTransaction: %w", err)
+		return 0, fmt.Errorf("orderRepository.Insert: %w", err)
 	}
 
+	err = orderEventRepository.Insert(ctx, order)
+	if err != nil {
+		return 0, fmt.Errorf("orderEventRepository.Insert: %w", err)
+	}
 	return order.OrderID, nil
 }
 

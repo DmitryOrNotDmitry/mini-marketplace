@@ -22,15 +22,13 @@ func NewApp(ctx context.Context, configPath string) (*App, error) {
 
 	a := &App{Config: c}
 
-	orderEventConsumer, err := kafka.NewOrderEventTopicSubKafka(a.Config.Kafka.ConsumerGroupID, []string{a.Config.Kafka.OrderTopic}, []string{a.Config.Kafka.Brokers})
+	orderEventService := service.NewOrderEventService()
+
+	orderEventConsumer, err := kafka.NewOrderEventTopicSubKafka(a.Config.Kafka.ConsumerGroupID, []string{a.Config.Kafka.OrderTopic}, []string{a.Config.Kafka.Brokers}, orderEventService)
 	if err != nil {
 		return nil, fmt.Errorf("config.LoadConfig: %w", err)
 	}
-
-	msgIn := orderEventConsumer.Start(ctx)
-
-	orderEventService := service.NewOrderEventService(msgIn)
-	orderEventService.Start()
+	orderEventConsumer.Start(ctx)
 
 	return a, nil
 }

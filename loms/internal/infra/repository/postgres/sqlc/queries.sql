@@ -65,17 +65,17 @@ for update;
 
 
 -- name: InsertOrderEvent :exec
-insert into orders_event_outbox(order_id, status, moment, event_status)
+insert into orders_event_outbox(order_id, order_status, moment, event_status)
 values ($1, $2, $3, $4);
 
 -- name: GetUnprocessedEventsLimit :many
-select id, order_id, status, moment
+select id, order_id, order_status, moment
 from orders_event_outbox
 where event_status = 'new'
 order by moment
 limit $1;
 
--- name: UpdateEventStatus :exec
+-- name: UpdateEventStatusBatch :exec
 update orders_event_outbox
 set event_status = $2
-where id = $1;
+where id = ANY($1::bigint[]);

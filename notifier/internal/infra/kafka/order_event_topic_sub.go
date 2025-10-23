@@ -6,26 +6,31 @@ import (
 	"fmt"
 	"route256/cart/pkg/logger"
 	"route256/notifier/internal/domain"
-	"time"
 
 	"github.com/IBM/sarama"
 )
 
 // OrderEventTopicSubKafka реализует подписку на события заказа через Kafka.
 type OrderEventTopicSubKafka struct {
-	consumerGroup sarama.ConsumerGroup
-	topics        []string
+	consumerGroup  sarama.ConsumerGroup
+	topics         []string
+	eventProcessor orderEventProcessor
+}
+
+type orderEventProcessor interface {
+	Process(event *domain.OrderEvent)
 }
 
 // NewOrderEventTopicSubKafka создает новый экземпляр OrderEventTopicSubKafka.
-func NewOrderEventTopicSubKafka(groupID string, topics []string, brokers []string) (*OrderEventTopicSubKafka, error) {
+func NewOrderEventTopicSubKafka(groupID string, topics []string, brokers []string, eventProcessor orderEventProcessor) (*OrderEventTopicSubKafka, error) {
 	o := &OrderEventTopicSubKafka{
-		topics: topics,
+		topics:         topics,
+		eventProcessor: eventProcessor,
 	}
 
 	config := sarama.NewConfig()
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
-	config.Consumer.Offsets.AutoCommit.Enable = false
+	config.Consumer.Offsets.AutoCommit.Enable = true
 
 	var err error
 	o.consumerGroup, err = sarama.NewConsumerGroup(brokers, groupID, config)
@@ -36,29 +41,25 @@ func NewOrderEventTopicSubKafka(groupID string, topics []string, brokers []strin
 	return o, nil
 }
 
-// Start запускает обработку событий заказа и возвращает канал для получения событий.
-func (o *OrderEventTopicSubKafka) Start(ctx context.Context) <-chan *domain.OrderEvent {
-	msgOut := make(chan *domain.OrderEvent)
-
+// Start запускает обработку событий заказа.
+func (o *OrderEventTopicSubKafka) Start(ctx context.Context) {
 	cons := &consumer{
-		msgOut: msgOut,
+		eventProcessor: o.eventProcessor,
 	}
 
 	go func() {
 		for err := range o.consumerGroup.Errors() {
-			logger.Warnw("ConsumerGroup error", "err", err)
+			logger.Errorw("ConsumerGroup error", "err", err)
 		}
 	}()
 
 	go func() {
 		defer o.consumerGroup.Close()
-		defer close(msgOut)
 
 		for {
 			err := o.consumerGroup.Consume(ctx, o.topics, cons)
 			if err != nil {
-				logger.Warnw("consumerGroup.Consume error", "err", err)
-				time.Sleep(1 * time.Second)
+				logger.Errorw("consumerGroup.Consume error", "err", err)
 			}
 
 			if ctx.Err() != nil {
@@ -66,30 +67,35 @@ func (o *OrderEventTopicSubKafka) Start(ctx context.Context) <-chan *domain.Orde
 			}
 		}
 	}()
-
-	return msgOut
 }
 
 type consumer struct {
-	msgOut chan<- *domain.OrderEvent
+	eventProcessor orderEventProcessor
 }
 
 func (c *consumer) Setup(sarama.ConsumerGroupSession) error   { return nil }
 func (c *consumer) Cleanup(sarama.ConsumerGroupSession) error { return nil }
 
 func (c *consumer) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	if sess.Context().Err() != nil {
+		return nil
+	}
+
 	for msg := range claim.Messages() {
-		var orderEvent domain.OrderEvent
+		var orderEvent OrderEventKafka
 		err := json.Unmarshal(msg.Value, &orderEvent)
 		if err != nil {
-			logger.Warnw("can't unmarshall kafka message to json", "err", err, "topic", msg.Topic, "partition", msg.Partition, "offset", msg.Offset)
+			logger.Errorw("can't unmarshall kafka message to json", "err", err, "topic", msg.Topic, "partition", msg.Partition, "offset", msg.Offset)
 			continue
 		}
 
-		c.msgOut <- &orderEvent
+		c.eventProcessor.Process(&domain.OrderEvent{
+			OrderID: orderEvent.OrderID,
+			Status:  orderEvent.Status,
+			Moment:  orderEvent.Moment,
+		})
 
 		sess.MarkMessage(msg, "")
-		sess.Commit()
 	}
 	return nil
 }
