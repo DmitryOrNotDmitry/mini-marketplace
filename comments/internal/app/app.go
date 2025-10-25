@@ -50,15 +50,29 @@ func NewApp(ctx context.Context, configPath string) (*App, error) {
 
 	reflection.Register(app.grpcServer)
 
-	postrgesShard1DSN := dsnBuilder(app.Config.DBShards[0].User, app.Config.DBShards[0].Password, app.Config.DBShards[0].Host,
-		app.Config.DBShards[0].Port, app.Config.DBShards[0].DBName)
+	shards := make([]*postgres.Shard, 0, len(app.Config.DB.Shards))
+	for _, shardConfig := range app.Config.DB.Shards {
+		postgresDSN := dsnBuilder(shardConfig.User, shardConfig.Password, shardConfig.Host,
+			shardConfig.Port, shardConfig.DBName)
 
-	shard1Pool, err := newPool(ctx, postrgesShard1DSN)
-	if err != nil {
-		return nil, fmt.Errorf("newPool: %w", err)
+		shardPool, poolErr := newPool(ctx, postgresDSN)
+		if poolErr != nil {
+			return nil, fmt.Errorf("newPool: %w", poolErr)
+		}
+
+		shards = append(shards, &postgres.Shard{
+			Pool:           shardPool,
+			BucketPosition: shardConfig.BucketPosition,
+		})
 	}
 
-	commentRepository := postgres.NewCommentRepository(shard1Pool)
+	buckets := app.Config.DB.Buckets
+	shardManager, err := postgres.NewShardManager(postgres.GetMurmur3Hashing(buckets), buckets, shards)
+	if err != nil {
+		return nil, fmt.Errorf("postgres.NewShardManager: %w", err)
+	}
+
+	commentRepository := postgres.NewCommentRepository(shardManager)
 
 	duration, err := time.ParseDuration("1s")
 	if err != nil {

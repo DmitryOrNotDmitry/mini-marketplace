@@ -95,7 +95,9 @@ services:
     networks:
       - mart-system
     depends_on:
-      postgres-replica:
+      postgres-comments-shard-1:
+        condition: service_healthy
+      postgres-comments-shard-2:
         condition: service_healthy
 
   postgres-comments-shard-1:
@@ -110,6 +112,23 @@ services:
       - mart-system
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U comments-user-1 -d comments_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  postgres-comments-shard-2:
+    image: gitlab-registry.ozon.dev/go/classroom-20/students/base/postgres:16
+    environment:
+      - POSTGRESQL_USERNAME=comments-user-2
+      - POSTGRESQL_PASSWORD=comments-password-2
+      - POSTGRESQL_DATABASE=comments_db
+    ports:
+      - "5435:5432"
+    networks:
+      - mart-system
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U comments-user-2 -d comments_db"]
       interval: 10s
       timeout: 5s
       retries: 5

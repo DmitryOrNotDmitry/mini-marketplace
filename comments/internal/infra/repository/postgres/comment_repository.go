@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"route256/cart/pkg/logger"
+	"route256/cart/pkg/myerrgroup"
 	"route256/comments/internal/domain"
 	sqlcrepos "route256/comments/internal/infra/repository/postgres/sqlc/generated"
 
@@ -12,20 +14,27 @@ import (
 )
 
 // NewCommentRepository создает новый OrderRepository.
-func NewCommentRepository(pool sqlcrepos.DBTX) *CommentRepository {
+func NewCommentRepository(shardManager *ShardManager) *CommentRepository {
 	return &CommentRepository{
-		sqlcrepos.New(pool),
+		shardManager: shardManager,
 	}
 }
 
 // CommentRepository предоставляет доступ к хранилищу комментариев из postgres.
 type CommentRepository struct {
-	querier sqlcrepos.Querier
+	shardManager *ShardManager
+}
+
+func getQuerier(pool sqlcrepos.DBTX) sqlcrepos.Querier {
+	return sqlcrepos.New(pool)
 }
 
 // Insert вставляет новую строку с комментарием в postgres.
 func (c *CommentRepository) Insert(ctx context.Context, comment *domain.Comment) (int64, error) {
-	commentID, err := c.querier.AddComment(ctx, &sqlcrepos.AddCommentParams{
+	pool, bucketIdx := c.shardManager.GetShardPool(comment.Sku)
+	querier := getQuerier(pool)
+	commentID, err := querier.AddComment(ctx, &sqlcrepos.AddCommentParams{
+		Column1:   bucketIdx,
 		UserID:    comment.UserID,
 		Sku:       comment.Sku,
 		Content:   comment.Content,
@@ -35,12 +44,15 @@ func (c *CommentRepository) Insert(ctx context.Context, comment *domain.Comment)
 		return 0, fmt.Errorf("querier.AddComment: %w", err)
 	}
 
+	logger.Infow("", "bucketIdx", bucketIdx, "commentID", commentID)
+
 	return commentID, err
 }
 
 // UpdateContent обновляет содержание комментария в postgres.
 func (c *CommentRepository) UpdateContent(ctx context.Context, commentID int64, newComment *domain.Comment) error {
-	err := c.querier.UpdateContent(ctx, &sqlcrepos.UpdateContentParams{
+	querier := getQuerier(c.shardManager.GetShardPoolByID(commentID))
+	err := querier.UpdateContent(ctx, &sqlcrepos.UpdateContentParams{
 		ID:      commentID,
 		Content: newComment.Content,
 	})
@@ -53,7 +65,8 @@ func (c *CommentRepository) UpdateContent(ctx context.Context, commentID int64, 
 
 // GetByIDForUpdate возвращает комментарий для обновления в postgres.
 func (c *CommentRepository) GetByIDForUpdate(ctx context.Context, commentID int64) (*domain.Comment, error) {
-	commentDB, err := c.querier.GetCommentByIDForUpdate(ctx, commentID)
+	querier := getQuerier(c.shardManager.GetShardPoolByID(commentID))
+	commentDB, err := querier.GetCommentByIDForUpdate(ctx, commentID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrCommentNotExist
@@ -73,7 +86,8 @@ func (c *CommentRepository) GetByIDForUpdate(ctx context.Context, commentID int6
 
 // GetByID возвращает комментарий в postgres.
 func (c *CommentRepository) GetByID(ctx context.Context, commentID int64) (*domain.Comment, error) {
-	commentDB, err := c.querier.GetCommentByID(ctx, commentID)
+	querier := getQuerier(c.shardManager.GetShardPoolByID(commentID))
+	commentDB, err := querier.GetCommentByID(ctx, commentID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrCommentNotExist
@@ -97,7 +111,9 @@ func toComment(commentDB *sqlcrepos.Comment) *domain.Comment {
 
 // GetListBySKU возвращает список комментариев о товара в postgres.
 func (c *CommentRepository) GetListBySKU(ctx context.Context, sku int64) ([]*domain.Comment, error) {
-	commentsDB, err := c.querier.GetCommentsBySKU(ctx, sku)
+	pool, _ := c.shardManager.GetShardPool(sku)
+	querier := getQuerier(pool)
+	commentsDB, err := querier.GetCommentsBySKU(ctx, sku)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return []*domain.Comment{}, nil
@@ -116,19 +132,50 @@ func (c *CommentRepository) GetListBySKU(ctx context.Context, sku int64) ([]*dom
 
 // GetListByUser возвращает список комментариев от пользователя в postgres.
 func (c *CommentRepository) GetListByUser(ctx context.Context, userID int64) ([]*domain.Comment, error) {
-	commentsDB, err := c.querier.GetCommentsByUser(ctx, userID)
+	pools := c.shardManager.GetAllPools()
+
+	commentsDBList := make([][]*sqlcrepos.Comment, len(pools))
+
+	errgroup := myerrgroup.New()
+	for i, pool := range pools {
+		errgroup.Go(func() error {
+			querier := getQuerier(pool)
+
+			commentsDB, err := querier.GetCommentsByUser(ctx, userID)
+			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					commentsDBList[i] = []*sqlcrepos.Comment{}
+					return nil
+				}
+
+				return fmt.Errorf("querier.GetCommentsByUser: %w", err)
+			}
+
+			commentsDBList[i] = commentsDB
+			return nil
+		})
+	}
+
+	err := errgroup.Wait()
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return []*domain.Comment{}, nil
+		return nil, fmt.Errorf("errgroup.Wait: %w", err)
+	}
+
+	return groupToCommentList(commentsDBList), nil
+}
+
+func groupToCommentList(commentsDBList [][]*sqlcrepos.Comment) []*domain.Comment {
+	sumLen := 0
+	for _, commsDB := range commentsDBList {
+		sumLen += len(commsDB)
+	}
+
+	res := make([]*domain.Comment, 0, sumLen)
+	for _, commsDB := range commentsDBList {
+		for _, commDB := range commsDB {
+			res = append(res, toComment(commDB))
 		}
-
-		return nil, fmt.Errorf("querier.GetCommentsByUser: %w", err)
 	}
 
-	res := make([]*domain.Comment, 0, len(commentsDB))
-	for _, commentDB := range commentsDB {
-		res = append(res, toComment(commentDB))
-	}
-
-	return res, nil
+	return res
 }

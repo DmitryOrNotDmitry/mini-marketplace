@@ -12,12 +12,13 @@ import (
 )
 
 const addComment = `-- name: AddComment :one
-insert into comments(user_id, sku, content, created_at)
-values ($1, $2, $3, $4)
+insert into comments(id, user_id, sku, content, created_at)
+values (nextval('comment_id_manual_seq') + $1, $2, $3, $4, $5)
 returning id
 `
 
 type AddCommentParams struct {
+	Column1   interface{}
 	UserID    int64
 	Sku       int64
 	Content   string
@@ -26,6 +27,7 @@ type AddCommentParams struct {
 
 func (q *Queries) AddComment(ctx context.Context, arg *AddCommentParams) (int64, error) {
 	row := q.db.QueryRow(ctx, addComment,
+		arg.Column1,
 		arg.UserID,
 		arg.Sku,
 		arg.Content,

@@ -9,9 +9,9 @@ import (
 
 // Config главный конфиг сервиса.
 type Config struct {
-	Server   CommentsServiceConfig `yaml:"service"`
-	App      AppConfig             `yaml:"app"`
-	DBShards []DBShardConfig       `yaml:"db_shards"`
+	Server CommentsServiceConfig `yaml:"service"`
+	App    AppConfig             `yaml:"app"`
+	DB     DBConfig              `yaml:"db"`
 }
 
 // CommentsServiceConfig конфиг для сервиса comments.
@@ -35,13 +35,20 @@ type GRPCGateWayConfig struct {
 	IdleTimeout       string `yaml:"idle_timeout"`
 }
 
+// DBConfig конфиг для БД
+type DBConfig struct {
+	Buckets int64           `yaml:"buckets"`
+	Shards  []DBShardConfig `yaml:"shards"`
+}
+
 // DBShardConfig конфиг для шарда БД
 type DBShardConfig struct {
-	Host     string `yaml:"host"`
-	Port     int64  `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	DBName   string `yaml:"db_name"`
+	Host           string `yaml:"host"`
+	Port           int64  `yaml:"port"`
+	User           string `yaml:"user"`
+	Password       string `yaml:"password"`
+	DBName         string `yaml:"db_name"`
+	BucketPosition int64  `yaml:"bucket_position"`
 }
 
 // LoadConfig загружает конфиг из файла .yaml

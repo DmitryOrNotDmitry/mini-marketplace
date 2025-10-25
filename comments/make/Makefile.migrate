@@ -8,10 +8,13 @@ run-migrations:
 
 
 LOCAL_MIGRATIONS_FOLDER := ./migrations/
-LOCAL_DB_DSN := postgresql://comments-user-1:comments-password-1@localhost:5434/comments_db?sslmode=disable
+LOCAL_DB_DSN1 := postgresql://comments-user-1:comments-password-1@localhost:5434/comments_db?sslmode=disable
+LOCAL_DB_DSN2 := postgresql://comments-user-2:comments-password-2@localhost:5435/comments_db?sslmode=disable
 
 migrate:
-	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN)" up
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN1)" up
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN2)" up
 
 migrate-down:
-	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN)" down
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN1)" down
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN2)" down
