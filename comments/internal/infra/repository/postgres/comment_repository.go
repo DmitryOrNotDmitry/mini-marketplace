@@ -56,7 +56,7 @@ func (c *CommentRepository) GetByIDForUpdate(ctx context.Context, commentID int6
 	commentDB, err := c.querier.GetCommentByIDForUpdate(ctx, commentID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, domain.ErrCommentNoExist
+			return nil, domain.ErrCommentNotExist
 		}
 
 		return nil, fmt.Errorf("querier.GetCommentByIDForUpdate: %w", err)
@@ -76,7 +76,7 @@ func (c *CommentRepository) GetByID(ctx context.Context, commentID int64) (*doma
 	commentDB, err := c.querier.GetCommentByID(ctx, commentID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, domain.ErrCommentNoExist
+			return nil, domain.ErrCommentNotExist
 		}
 
 		return nil, fmt.Errorf("querier.GetCommentByID: %w", err)

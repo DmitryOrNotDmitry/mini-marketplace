@@ -16,7 +16,8 @@ service CommentsServiceV1 {
 
     rpc CommentInfoV1(CommentInfoRequest) returns (CommentInfoResponse) {
         option(google.api.http) = {
-            get: "/comment/get-by-id"
+            post: "/comment/get-by-id"
+            body: "*"
         };
     }
 
@@ -29,13 +30,15 @@ service CommentsServiceV1 {
 
     rpc GetCommentsBySKUV1(GetCommentsBySKURequest) returns (GetCommentsBySKUResponse) {
         option(google.api.http) = {
-            get: "/comment/list-by-sku"
+            post: "/comment/list-by-sku"
+            body: "*"
         };
     }
 
     rpc GetCommentsByUserV1(GetCommentsByUserRequest) returns (GetCommentsByUserResponse) {
         option(google.api.http) = {
-            get: "/comment/list-by-user"
+            post: "/comment/list-by-user"
+            body: "*"
         };
     }
 }
@@ -78,14 +81,14 @@ message CommentInfoRequest {
 message CommentInfoResponse {
     int64 id = 1;
     int64 user_id = 2 [
-        json_name = "user_id"
+        json_name = "userId"
     ];
     int64 sku = 3;
     string content = 4 [
         json_name = "comment"
     ];
     google.protobuf.Timestamp created_at = 5 [
-        json_name = "created_at"
+        json_name = "createdAt"
     ];
 }
 
@@ -131,13 +134,13 @@ message GetCommentsBySKUResponse {
 message CommentBySKU {
     int64 id = 1;
     int64 user_id = 2 [
-        json_name = "user_id"
+        json_name = "userId"
     ];
     string content = 3 [
         json_name = "comment"
     ];
     google.protobuf.Timestamp created_at = 4 [
-        json_name = "created_at"
+        json_name = "createdAt"
     ];
 }
 
@@ -161,6 +164,6 @@ message CommentByUser {
         json_name = "comment"
     ];
     google.protobuf.Timestamp created_at = 4 [
-        json_name = "created_at"
+        json_name = "createdAt"
     ];
 }

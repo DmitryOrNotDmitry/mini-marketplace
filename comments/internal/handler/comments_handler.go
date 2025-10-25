@@ -57,7 +57,7 @@ func (c *CommentServerGRPC) AddCommentV1(ctx context.Context, req *comments.AddC
 func (c *CommentServerGRPC) CommentInfoV1(ctx context.Context, req *comments.CommentInfoRequest) (*comments.CommentInfoResponse, error) {
 	comment, err := c.commentService.GetInfoByID(ctx, req.Id)
 	if err != nil {
-		if errors.Is(err, domain.ErrCommentNoExist) {
+		if errors.Is(err, domain.ErrCommentNotExist) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 
@@ -84,7 +84,7 @@ func (c *CommentServerGRPC) EditCommentV1(ctx context.Context, req *comments.Edi
 
 	err := c.commentService.Edit(ctx, req.CommentId, newComment)
 	if err != nil {
-		if errors.Is(err, domain.ErrCommentNoExist) {
+		if errors.Is(err, domain.ErrCommentNotExist) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 

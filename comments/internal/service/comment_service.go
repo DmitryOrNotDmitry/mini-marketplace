@@ -61,7 +61,7 @@ func (c *CommentService) Edit(ctx context.Context, commentID int64, newComment *
 		return domain.ErrEditNotMyComment
 	}
 
-	if time.Since(comment.CreatedAt) > c.editTimeout {
+	if time.Since(comment.CreatedAt) >= c.editTimeout {
 		return domain.ErrEditTimeoutExceed
 	}
 
