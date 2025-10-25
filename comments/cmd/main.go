@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	logLevel      = zap.InfoLevel
-	serviceName   = "comments"
-	configPathVar = "CONFIG_FILE"
+	logLevel                       = zap.InfoLevel
+	serviceName                    = "comments"
+	configPathVar                  = "CONFIG_FILE"
+	defaultGracefulShutdownTimeout = 10 * time.Second
 )
 
 type shutdownMain struct {
@@ -49,7 +50,11 @@ func main() {
 		}
 	}()
 
-	pkgapp.GracefulShutdown(&shutdownMain{cancel: cancel, app: commentsApp}, time.Duration(commentsApp.Config.Server.GracefulShutdownTimeout)*time.Second)
+	gracefulTimeout, err := time.ParseDuration(commentsApp.Config.Server.GracefulShutdownTimeout)
+	if err != nil {
+		gracefulTimeout = defaultGracefulShutdownTimeout
+	}
+	pkgapp.GracefulShutdown(&shutdownMain{cancel: cancel, app: commentsApp}, gracefulTimeout)
 }
 
 func startApp(ctx context.Context, commentsApp *app.App) error {

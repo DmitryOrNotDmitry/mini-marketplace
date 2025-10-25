@@ -20,7 +20,7 @@ type CommentsServiceConfig struct {
 	GRPCPort                string            `yaml:"grpc_port"`
 	HTTPPort                string            `yaml:"http_port"`
 	GRPCGateWay             GRPCGateWayConfig `yaml:"grpc_gateway"`
-	GracefulShutdownTimeout int64             `yaml:"graceful_shutdown_timeout"`
+	GracefulShutdownTimeout string            `yaml:"graceful_shutdown_timeout"`
 }
 
 // AppConfig конфиг для настроек приложения.
@@ -30,9 +30,9 @@ type AppConfig struct {
 
 // GRPCGateWayConfig конфиг для gRPC-gateway.
 type GRPCGateWayConfig struct {
-	ReadHeaderTimeout int64 `yaml:"read_header_timeout"`
-	WriteTimeout      int64 `yaml:"write_timeout"`
-	IdleTimeout       int64 `yaml:"idle_timeout"`
+	ReadHeaderTimeout string `yaml:"read_header_timeout"`
+	WriteTimeout      string `yaml:"write_timeout"`
+	IdleTimeout       string `yaml:"idle_timeout"`
 }
 
 // DBShardConfig конфиг для шарда БД

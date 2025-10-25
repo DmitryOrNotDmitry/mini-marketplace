@@ -20,7 +20,7 @@ type Config struct {
 type CartServiceConfig struct {
 	Host                    string        `yaml:"host"`
 	Port                    string        `yaml:"port"`
-	GracefulShutdownTimeout int64         `yaml:"graceful_shutdown_timeout"`
+	GracefulShutdownTimeout string        `yaml:"graceful_shutdown_timeout"`
 	Tracing                 TracingConfig `yaml:"tracing"`
 }
 

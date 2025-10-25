@@ -6,10 +6,10 @@ service:
   grpc_port: 8085
   http_port: 8086
   grpc_gateway:
-    read_header_timeout: 10
-    write_timeout: 15
-    idle_timeout: 60
-  graceful_shutdown_timeout: 10
+    read_header_timeout: 10s
+    write_timeout: 15s
+    idle_timeout: 60s
+  graceful_shutdown_timeout: 10s
 
 db_shards:
   - host: "postgres-comments-shard-1"

@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	logLevel      = zap.InfoLevel
-	serviceName   = "loms"
-	configPathVar = "CONFIG_FILE"
+	logLevel                       = zap.InfoLevel
+	serviceName                    = "loms"
+	configPathVar                  = "CONFIG_FILE"
+	defaultGracefulShutdownTimeout = 10 * time.Second
 )
 
 type shutdownMain struct {
@@ -49,7 +50,11 @@ func main() {
 		}
 	}()
 
-	pkgapp.GracefulShutdown(&shutdownMain{cancel: cancel, app: lomsApp}, time.Duration(lomsApp.Config.Server.GracefulShutdownTimeout)*time.Second)
+	gracefulTimeout, err := time.ParseDuration(lomsApp.Config.Server.GracefulShutdownTimeout)
+	if err != nil {
+		gracefulTimeout = defaultGracefulShutdownTimeout
+	}
+	pkgapp.GracefulShutdown(&shutdownMain{cancel: cancel, app: lomsApp}, gracefulTimeout)
 }
 
 func startApp(ctx context.Context, lomsApp *app.App) error {

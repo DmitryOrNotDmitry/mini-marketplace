@@ -14,9 +14,10 @@ import (
 )
 
 const (
-	logLevel      = zap.InfoLevel
-	serviceName   = "cart"
-	configPathVar = "CONFIG_FILE"
+	logLevel                       = zap.InfoLevel
+	serviceName                    = "cart"
+	configPathVar                  = "CONFIG_FILE"
+	defaultGracefulShutdownTimeout = 10 * time.Second
 )
 
 type shutdownMain struct {
@@ -42,11 +43,15 @@ func main() {
 	}
 
 	go func() {
-		err := cartApp.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
-			panic(err)
+		httpServerErr := cartApp.ListenAndServe()
+		if httpServerErr != nil && httpServerErr != http.ErrServerClosed {
+			panic(httpServerErr)
 		}
 	}()
 
-	pkgapp.GracefulShutdown(&shutdownMain{cancel: cancel, app: cartApp}, time.Duration(cartApp.Config.Server.GracefulShutdownTimeout)*time.Second)
+	gracefulTimeout, err := time.ParseDuration(cartApp.Config.Server.GracefulShutdownTimeout)
+	if err != nil {
+		gracefulTimeout = defaultGracefulShutdownTimeout
+	}
+	pkgapp.GracefulShutdown(&shutdownMain{cancel: cancel, app: cartApp}, gracefulTimeout)
 }
