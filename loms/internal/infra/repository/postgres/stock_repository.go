@@ -98,9 +98,13 @@ func (sr *StockRepository) GetBySkuID(ctx context.Context, skuID int64) (*domain
 			return nil, domain.ErrItemStockNotExist
 		}
 
-		return nil, fmt.Errorf("querier.GetStockBySKU: %w", err)
+		return nil, fmt.Errorf("querier.GetStockBySKUForUpdate: %w", err)
 	}
 
+	return stockFromDB(ctx, stockDB)
+}
+
+func stockFromDB(ctx context.Context, stockDB *sqlcrepos.Stock) (*domain.Stock, error) {
 	totalCount, err := Int64ToUint32(stockDB.TotalCount)
 	if err != nil {
 		logger.WarnwCtx(ctx, fmt.Sprintf("Int64ToUint32 (TotalCount=%d): %s", stockDB.TotalCount, err.Error()))
@@ -116,4 +120,18 @@ func (sr *StockRepository) GetBySkuID(ctx context.Context, skuID int64) (*domain
 		TotalCount: totalCount,
 		Reserved:   reserved,
 	}, nil
+}
+
+// GetBySkuIDForUpdate возвращает запас по SKU из postgres с блокировкой for update.
+func (sr *StockRepository) GetBySkuIDForUpdate(ctx context.Context, skuID int64) (*domain.Stock, error) {
+	stockDB, err := sr.querier.GetStockBySKUForUpdate(ctx, skuID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrItemStockNotExist
+		}
+
+		return nil, fmt.Errorf("querier.GetStockBySKUForUpdate: %w", err)
+	}
+
+	return stockFromDB(ctx, stockDB)
 }

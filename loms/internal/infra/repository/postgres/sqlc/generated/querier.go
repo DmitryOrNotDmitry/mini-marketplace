@@ -15,9 +15,13 @@ type Querier interface {
 	GetOrderByID(ctx context.Context, orderID int64) (*Order, error)
 	GetOrderItemsOrderBySKU(ctx context.Context, orderID int64) ([]*GetOrderItemsOrderBySKURow, error)
 	GetStockBySKU(ctx context.Context, sku int64) (*Stock, error)
+	GetStockBySKUForUpdate(ctx context.Context, sku int64) (*Stock, error)
+	GetUnprocessedEventsLimit(ctx context.Context, limit int32) ([]*GetUnprocessedEventsLimitRow, error)
+	InsertOrderEvent(ctx context.Context, arg *InsertOrderEventParams) error
 	ReduceTotalAndReserve(ctx context.Context, arg *ReduceTotalAndReserveParams) error
 	RemoveReserve(ctx context.Context, arg *RemoveReserveParams) error
 	Reserve(ctx context.Context, arg *ReserveParams) error
+	UpdateEventStatusBatch(ctx context.Context, arg *UpdateEventStatusBatchParams) error
 	UpdateStatusByID(ctx context.Context, arg *UpdateStatusByIDParams) error
 }
 
