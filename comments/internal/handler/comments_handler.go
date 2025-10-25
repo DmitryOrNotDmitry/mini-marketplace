@@ -65,7 +65,7 @@ func (c *CommentServerGRPC) CommentInfoV1(ctx context.Context, req *comments.Com
 	}
 
 	res := &comments.CommentInfoResponse{
-		Id:        comment.Id,
+		Id:        comment.ID,
 		UserId:    comment.UserID,
 		Sku:       comment.Sku,
 		Content:   comment.Content,
@@ -115,7 +115,7 @@ func (c *CommentServerGRPC) GetCommentsBySKUV1(ctx context.Context, req *comment
 	for _, comment := range commentsData {
 		res.Comments = append(res.Comments,
 			&comments.CommentBySKU{
-				Id:        comment.Id,
+				Id:        comment.ID,
 				UserId:    comment.UserID,
 				Content:   comment.Content,
 				CreatedAt: timestamppb.New(comment.CreatedAt),
@@ -139,7 +139,7 @@ func (c *CommentServerGRPC) GetCommentsByUserV1(ctx context.Context, req *commen
 	for _, comment := range commentsData {
 		res.Comments = append(res.Comments,
 			&comments.CommentByUser{
-				Id:        comment.Id,
+				Id:        comment.ID,
 				Sku:       comment.Sku,
 				Content:   comment.Content,
 				CreatedAt: timestamppb.New(comment.CreatedAt),

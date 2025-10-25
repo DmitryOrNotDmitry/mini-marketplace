@@ -63,7 +63,7 @@ func (c *CommentRepository) GetByIDForUpdate(ctx context.Context, commentID int6
 	}
 
 	return &domain.Comment{
-		Id:        commentID,
+		ID:        commentID,
 		UserID:    commentDB.UserID,
 		Sku:       commentDB.Sku,
 		Content:   commentDB.Content,
@@ -87,7 +87,7 @@ func (c *CommentRepository) GetByID(ctx context.Context, commentID int64) (*doma
 
 func toComment(commentDB *sqlcrepos.Comment) *domain.Comment {
 	return &domain.Comment{
-		Id:        commentDB.ID,
+		ID:        commentDB.ID,
 		UserID:    commentDB.UserID,
 		Sku:       commentDB.Sku,
 		Content:   commentDB.Content,
