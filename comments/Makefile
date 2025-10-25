@@ -1,5 +1,10 @@
 BINDIR=${CURDIR}/bin
+LOCAL_BIN=${CURDIR}/bin
 PACKAGE=route256/comments
+
+PROTO_FILES_PATH := "api"
+
+include make/Makefile.proto
 
 bindir:
 	mkdir -p ${BINDIR}

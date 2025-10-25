@@ -1,0 +1,166 @@
+syntax = "proto3";
+
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "route256/comments/pkg/api/comments/v1;comments";
+
+service CommentsServiceV1 {
+    rpc AddCommentV1(AddCommentRequest) returns (AddCommentResponse) {
+        option(google.api.http) = {
+            post: "/comment/add"
+            body: "*"
+        };
+    }
+
+    rpc CommentInfoV1(CommentInfoRequest) returns (CommentInfoResponse) {
+        option(google.api.http) = {
+            get: "/comment/get-by-id"
+        };
+    }
+
+    rpc EditCommentV1(EditCommentRequest) returns (EditCommentResponse) {
+        option(google.api.http) = {
+            post: "/comment/edit"
+            body: "*"
+        };
+    }
+
+    rpc GetCommentsBySKUV1(GetCommentsBySKURequest) returns (GetCommentsBySKUResponse) {
+        option(google.api.http) = {
+            get: "/comment/list-by-sku"
+        };
+    }
+
+    rpc GetCommentsByUserV1(GetCommentsByUserRequest) returns (GetCommentsByUserResponse) {
+        option(google.api.http) = {
+            get: "/comment/list-by-user"
+        };
+    }
+}
+
+message AddCommentRequest {
+    int64 user_id = 1 [
+        (validate.rules).int64 = {
+            gt: 0
+        },
+        json_name = "user_id"
+    ];
+
+    int64 sku = 2 [
+        (validate.rules).int64 = {
+            gt: 0
+        }
+    ];
+
+    string content = 3 [
+        (validate.rules).string = {
+            min_len: 1,
+            max_len: 255
+        },
+        json_name = "comment"
+    ];
+}
+
+message AddCommentResponse {
+    int64 id = 1;
+}
+
+message CommentInfoRequest {
+    int64 id = 1 [
+        (validate.rules).int64 = {
+            gt: 0
+        }
+    ];
+}
+
+message CommentInfoResponse {
+    int64 id = 1;
+    int64 user_id = 2 [
+        json_name = "user_id"
+    ];
+    int64 sku = 3;
+    string content = 4 [
+        json_name = "comment"
+    ];
+    google.protobuf.Timestamp created_at = 5 [
+        json_name = "created_at"
+    ];
+}
+
+message EditCommentRequest {
+    int64 comment_id = 1 [
+        (validate.rules).int64 = {
+            gt: 0
+        },
+        json_name = "comment_id"
+    ];
+
+    int64 user_id = 2 [
+        (validate.rules).int64 = {
+            gt: 0
+        },
+        json_name = "user_id"
+    ];
+
+    string content = 3 [
+        (validate.rules).string = {
+            min_len: 1,
+            max_len: 255
+        },
+        json_name = "new_comment"
+    ];
+}
+
+message EditCommentResponse {
+}
+
+message GetCommentsBySKURequest {
+    int64 sku = 1 [
+        (validate.rules).int64 = {
+            gt: 0
+        }
+    ];
+}
+
+message GetCommentsBySKUResponse {
+    repeated CommentBySKU comments = 1;
+}
+
+message CommentBySKU {
+    int64 id = 1;
+    int64 user_id = 2 [
+        json_name = "user_id"
+    ];
+    string content = 3 [
+        json_name = "comment"
+    ];
+    google.protobuf.Timestamp created_at = 4 [
+        json_name = "created_at"
+    ];
+}
+
+message GetCommentsByUserRequest {
+    int64 user_id = 1 [
+        (validate.rules).int64 = {
+            gt: 0
+        },
+        json_name = "user_id"
+    ];
+}
+
+message GetCommentsByUserResponse {
+    repeated CommentByUser comments = 1;
+}
+
+message CommentByUser {
+    int64 id = 1;
+    int64 sku = 2;
+    string content = 3 [
+        json_name = "comment"
+    ];
+    google.protobuf.Timestamp created_at = 4 [
+        json_name = "created_at"
+    ];
+}
