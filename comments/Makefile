@@ -4,8 +4,10 @@ PACKAGE=route256/comments
 
 PROTO_FILES_PATH := "api"
 
-include make/Makefile.proto
-include make/Makefile.migrate
+MAKEFILE_DIR := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
+include $(MAKEFILE_DIR)/make/Makefile.proto
+include $(MAKEFILE_DIR)/make/Makefile.migrate
 
 bindir:
 	mkdir -p ${BINDIR}
@@ -13,6 +15,3 @@ bindir:
 build: bindir
 	echo "build comments"
 
-
-run-migrations:
-	echo "run migrations"
