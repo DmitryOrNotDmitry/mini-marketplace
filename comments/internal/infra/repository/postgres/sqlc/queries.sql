@@ -21,7 +21,10 @@ where id = $1;
 -- name: GetCommentsBySKU :many
 select *
 from comments
-where sku = $1;
+where sku = $1
+  and (created_at < $2 or (created_at = $2 and user_id > $3))
+order by created_at desc, user_id asc
+limit $4;
 
 -- name: GetCommentsByUser :many
 select *

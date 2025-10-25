@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"route256/comments/internal/domain"
 	"route256/comments/pkg/api/comments/v1"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,7 +17,7 @@ type commentService interface {
 	Add(ctx context.Context, comment *domain.Comment) (int64, error)
 	GetInfoByID(ctx context.Context, commentID int64) (*domain.Comment, error)
 	Edit(ctx context.Context, commentID int64, newComment *domain.Comment) error
-	GetListBySKU(ctx context.Context, sku int64) ([]*domain.Comment, error)
+	GetListBySKU(ctx context.Context, sku int64, lastCreatedAt time.Time, lastUserID int64) ([]*domain.Comment, error)
 	GetListByUser(ctx context.Context, userID int64) ([]*domain.Comment, error)
 }
 
@@ -104,7 +105,11 @@ func (c *CommentServerGRPC) EditCommentV1(ctx context.Context, req *comments.Edi
 
 // GetCommentsBySKUV1 возвращает список комментарием на товар.
 func (c *CommentServerGRPC) GetCommentsBySKUV1(ctx context.Context, req *comments.GetCommentsBySKURequest) (*comments.GetCommentsBySKUResponse, error) {
-	commentsData, err := c.commentService.GetListBySKU(ctx, req.Sku)
+	if req.LastCreatedAt == nil {
+		req.LastCreatedAt = timestamppb.New(time.Now().Add(time.Hour))
+	}
+
+	commentsData, err := c.commentService.GetListBySKU(ctx, req.Sku, req.LastCreatedAt.AsTime(), req.LastUserId)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Errorf("internal server error: %w", err).Error())
 	}

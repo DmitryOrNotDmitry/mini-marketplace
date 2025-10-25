@@ -12,7 +12,7 @@ type Querier interface {
 	AddComment(ctx context.Context, arg *AddCommentParams) (int64, error)
 	GetCommentByID(ctx context.Context, id int64) (*Comment, error)
 	GetCommentByIDForUpdate(ctx context.Context, id int64) (*Comment, error)
-	GetCommentsBySKU(ctx context.Context, sku int64) ([]*Comment, error)
+	GetCommentsBySKU(ctx context.Context, arg *GetCommentsBySKUParams) ([]*Comment, error)
 	GetCommentsByUser(ctx context.Context, userID int64) ([]*Comment, error)
 	UpdateContent(ctx context.Context, arg *UpdateContentParams) error
 }

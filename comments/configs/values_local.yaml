@@ -1,5 +1,6 @@
 app:
   edit_interval: 1s
+  limit_rows_by_sku: 10
 
 service:
   host: localhost

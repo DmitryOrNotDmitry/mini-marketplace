@@ -125,6 +125,9 @@ message GetCommentsBySKURequest {
             gt: 0
         }
     ];
+
+    google.protobuf.Timestamp last_created_at = 2;
+    int64 last_user_id = 3;
 }
 
 message GetCommentsBySKUResponse {

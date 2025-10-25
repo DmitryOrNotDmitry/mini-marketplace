@@ -25,7 +25,8 @@ type CommentsServiceConfig struct {
 
 // AppConfig конфиг для настроек приложения.
 type AppConfig struct {
-	EditInterval string `yaml:"edit_interval"`
+	EditInterval   string `yaml:"edit_interval"`
+	LimitRowsBySku int32  `yaml:"limit_rows_by_sku"`
 }
 
 // GRPCGateWayConfig конфиг для gRPC-gateway.

@@ -14,7 +14,7 @@ type commentRepository interface {
 	UpdateContent(ctx context.Context, commentID int64, newComment *domain.Comment) error
 	GetByIDForUpdate(ctx context.Context, commentID int64) (*domain.Comment, error)
 	GetByID(ctx context.Context, commentID int64) (*domain.Comment, error)
-	GetListBySKU(ctx context.Context, sku int64) ([]*domain.Comment, error)
+	GetListBySKU(ctx context.Context, sku int64, lastCreatedAt time.Time, lastUserID int64, limit int32) ([]*domain.Comment, error)
 	GetListByUser(ctx context.Context, userID int64) ([]*domain.Comment, error)
 }
 
@@ -22,16 +22,19 @@ type commentRepository interface {
 type CommentService struct {
 	commentRepository commentRepository
 	editTimeout       time.Duration
+	limitRowsBySku    int32
 }
 
 // NewCommentService создает новый сервис CommentService.
-func NewCommentService(commentRepository commentRepository, editTimeout time.Duration) *CommentService {
+func NewCommentService(commentRepository commentRepository, editTimeout time.Duration, limitRowsBySku int32) *CommentService {
 	return &CommentService{
 		commentRepository: commentRepository,
 		editTimeout:       editTimeout,
+		limitRowsBySku:    limitRowsBySku,
 	}
 }
 
+// Add добавляет новый комментарий.
 func (c *CommentService) Add(ctx context.Context, comment *domain.Comment) (int64, error) {
 	comment.CreatedAt = time.Now()
 	commentID, err := c.commentRepository.Insert(ctx, comment)
@@ -42,6 +45,7 @@ func (c *CommentService) Add(ctx context.Context, comment *domain.Comment) (int6
 	return commentID, nil
 }
 
+// GetInfoByID возвращает информацию о комментарии по его идентификатору.
 func (c *CommentService) GetInfoByID(ctx context.Context, commentID int64) (*domain.Comment, error) {
 	comment, err := c.commentRepository.GetByID(ctx, commentID)
 	if err != nil {
@@ -51,6 +55,7 @@ func (c *CommentService) GetInfoByID(ctx context.Context, commentID int64) (*dom
 	return comment, nil
 }
 
+// Edit редактирует комментарий, если это разрешено.
 func (c *CommentService) Edit(ctx context.Context, commentID int64, newComment *domain.Comment) error {
 	comment, err := c.commentRepository.GetByIDForUpdate(ctx, commentID)
 	if err != nil {
@@ -73,13 +78,12 @@ func (c *CommentService) Edit(ctx context.Context, commentID int64, newComment *
 	return nil
 }
 
-func (c *CommentService) GetListBySKU(ctx context.Context, sku int64) ([]*domain.Comment, error) {
-	comments, err := c.commentRepository.GetListBySKU(ctx, sku)
+// GetListBySKU возвращает список комментариев по SKU товара.
+func (c *CommentService) GetListBySKU(ctx context.Context, sku int64, lastCreatedAt time.Time, lastUserID int64) ([]*domain.Comment, error) {
+	comments, err := c.commentRepository.GetListBySKU(ctx, sku, lastCreatedAt, lastUserID, c.limitRowsBySku)
 	if err != nil {
 		return nil, fmt.Errorf("commentRepository.GetListBySKU: %w", err)
 	}
-
-	sortComments(comments)
 
 	return comments, nil
 }
@@ -95,6 +99,7 @@ func sortComments(comments []*domain.Comment) {
 	})
 }
 
+// GetListByUser возвращает список комментариев пользователя.
 func (c *CommentService) GetListByUser(ctx context.Context, userID int64) ([]*domain.Comment, error) {
 	comments, err := c.commentRepository.GetListByUser(ctx, userID)
 	if err != nil {

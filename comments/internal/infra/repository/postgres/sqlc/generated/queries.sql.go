@@ -80,10 +80,25 @@ const getCommentsBySKU = `-- name: GetCommentsBySKU :many
 select id, user_id, sku, content, created_at
 from comments
 where sku = $1
+  and (created_at < $2 or (created_at = $2 and user_id > $3))
+order by created_at desc, user_id asc
+limit $4
 `
 
-func (q *Queries) GetCommentsBySKU(ctx context.Context, sku int64) ([]*Comment, error) {
-	rows, err := q.db.Query(ctx, getCommentsBySKU, sku)
+type GetCommentsBySKUParams struct {
+	Sku       int64
+	CreatedAt pgtype.Timestamp
+	UserID    int64
+	Limit     int32
+}
+
+func (q *Queries) GetCommentsBySKU(ctx context.Context, arg *GetCommentsBySKUParams) ([]*Comment, error) {
+	rows, err := q.db.Query(ctx, getCommentsBySKU,
+		arg.Sku,
+		arg.CreatedAt,
+		arg.UserID,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}

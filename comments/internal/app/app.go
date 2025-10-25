@@ -74,11 +74,11 @@ func NewApp(ctx context.Context, configPath string) (*App, error) {
 
 	commentRepository := postgres.NewCommentRepository(shardManager)
 
-	duration, err := time.ParseDuration("1s")
+	duration, err := time.ParseDuration(app.Config.App.EditInterval)
 	if err != nil {
 		return nil, fmt.Errorf("time.ParseDuration: %w", err)
 	}
-	commentService := service.NewCommentService(commentRepository, duration)
+	commentService := service.NewCommentService(commentRepository, duration, app.Config.App.LimitRowsBySku)
 
 	commentsHandler := handler.NewCommentServerGRPC(commentService)
 

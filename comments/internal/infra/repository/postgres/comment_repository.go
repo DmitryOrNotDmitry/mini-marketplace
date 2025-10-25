@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"route256/cart/pkg/logger"
 	"route256/cart/pkg/myerrgroup"
 	"route256/comments/internal/domain"
 	sqlcrepos "route256/comments/internal/infra/repository/postgres/sqlc/generated"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -43,8 +43,6 @@ func (c *CommentRepository) Insert(ctx context.Context, comment *domain.Comment)
 	if err != nil {
 		return 0, fmt.Errorf("querier.AddComment: %w", err)
 	}
-
-	logger.Infow("", "bucketIdx", bucketIdx, "commentID", commentID)
 
 	return commentID, err
 }
@@ -110,10 +108,15 @@ func toComment(commentDB *sqlcrepos.Comment) *domain.Comment {
 }
 
 // GetListBySKU возвращает список комментариев о товара в postgres.
-func (c *CommentRepository) GetListBySKU(ctx context.Context, sku int64) ([]*domain.Comment, error) {
+func (c *CommentRepository) GetListBySKU(ctx context.Context, sku int64, lastCreatedAt time.Time, lastUserID int64, limit int32) ([]*domain.Comment, error) {
 	pool, _ := c.shardManager.GetShardPool(sku)
 	querier := getQuerier(pool)
-	commentsDB, err := querier.GetCommentsBySKU(ctx, sku)
+	commentsDB, err := querier.GetCommentsBySKU(ctx, &sqlcrepos.GetCommentsBySKUParams{
+		Sku:       sku,
+		CreatedAt: pgtype.Timestamp{Time: lastCreatedAt, Valid: true},
+		UserID:    lastUserID,
+		Limit:     limit,
+	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return []*domain.Comment{}, nil
