@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"route256/cart/pkg/logger"
 	"route256/cart/pkg/myerrgroup"
 	"route256/comments/internal/domain"
 	sqlcrepos "route256/comments/internal/infra/repository/postgres/sqlc/generated"
@@ -47,10 +48,38 @@ func (c *CommentRepository) Insert(ctx context.Context, comment *domain.Comment)
 	return commentID, err
 }
 
-// UpdateContent обновляет содержание комментария в postgres.
-func (c *CommentRepository) UpdateContent(ctx context.Context, commentID int64, newComment *domain.Comment) error {
-	querier := getQuerier(c.shardManager.GetShardPoolByID(commentID))
-	err := querier.UpdateContent(ctx, &sqlcrepos.UpdateContentParams{
+func (c *CommentRepository) UpdateContentWithCheck(ctx context.Context, commentID int64, newComment *domain.Comment, predicate func(oldComment *domain.Comment) error) (err error) {
+	pool := c.shardManager.GetShardPoolByID(commentID)
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("pool.Begin: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			errRollback := tx.Rollback(ctx)
+			logger.Errorw("error with rollback transaction", "err", errRollback)
+		} else {
+			err = tx.Commit(ctx)
+		}
+	}()
+
+	querier := getQuerier(tx)
+	commentDB, err := querier.GetCommentByIDForUpdate(ctx, commentID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.ErrCommentNotExist
+		}
+
+		return fmt.Errorf("querier.GetCommentByIDForUpdate: %w", err)
+	}
+
+	err = predicate(toComment(commentDB))
+	if err != nil {
+		return err
+	}
+
+	err = querier.UpdateContent(ctx, &sqlcrepos.UpdateContentParams{
 		ID:      commentID,
 		Content: newComment.Content,
 	})
@@ -58,28 +87,7 @@ func (c *CommentRepository) UpdateContent(ctx context.Context, commentID int64, 
 		return fmt.Errorf("querier.UpdateContent: %w", err)
 	}
 
-	return nil
-}
-
-// GetByIDForUpdate возвращает комментарий для обновления в postgres.
-func (c *CommentRepository) GetByIDForUpdate(ctx context.Context, commentID int64) (*domain.Comment, error) {
-	querier := getQuerier(c.shardManager.GetShardPoolByID(commentID))
-	commentDB, err := querier.GetCommentByIDForUpdate(ctx, commentID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, domain.ErrCommentNotExist
-		}
-
-		return nil, fmt.Errorf("querier.GetCommentByIDForUpdate: %w", err)
-	}
-
-	return &domain.Comment{
-		ID:        commentID,
-		UserID:    commentDB.UserID,
-		Sku:       commentDB.Sku,
-		Content:   commentDB.Content,
-		CreatedAt: commentDB.CreatedAt.Time,
-	}, nil
+	return
 }
 
 // GetByID возвращает комментарий в postgres.

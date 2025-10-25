@@ -11,8 +11,7 @@ import (
 
 type commentRepository interface {
 	Insert(ctx context.Context, comment *domain.Comment) (int64, error)
-	UpdateContent(ctx context.Context, commentID int64, newComment *domain.Comment) error
-	GetByIDForUpdate(ctx context.Context, commentID int64) (*domain.Comment, error)
+	UpdateContentWithCheck(ctx context.Context, commentID int64, newComment *domain.Comment, predicate func(oldComment *domain.Comment) error) (err error)
 	GetByID(ctx context.Context, commentID int64) (*domain.Comment, error)
 	GetListBySKU(ctx context.Context, sku int64, lastCreatedAt time.Time, lastUserID int64, limit int32) ([]*domain.Comment, error)
 	GetListByUser(ctx context.Context, userID int64) ([]*domain.Comment, error)
@@ -57,22 +56,18 @@ func (c *CommentService) GetInfoByID(ctx context.Context, commentID int64) (*dom
 
 // Edit редактирует комментарий, если это разрешено.
 func (c *CommentService) Edit(ctx context.Context, commentID int64, newComment *domain.Comment) error {
-	comment, err := c.commentRepository.GetByIDForUpdate(ctx, commentID)
+	err := c.commentRepository.UpdateContentWithCheck(ctx, commentID, newComment, func(oldComment *domain.Comment) error {
+		if oldComment.UserID != newComment.UserID {
+			return domain.ErrEditNotMyComment
+		}
+
+		if time.Since(oldComment.CreatedAt) >= c.editTimeout {
+			return domain.ErrEditTimeoutExceed
+		}
+		return nil
+	})
 	if err != nil {
-		return fmt.Errorf("commentRepository.GetByIDForUpdate: %w", err)
-	}
-
-	if comment.UserID != newComment.UserID {
-		return domain.ErrEditNotMyComment
-	}
-
-	if time.Since(comment.CreatedAt) >= c.editTimeout {
-		return domain.ErrEditTimeoutExceed
-	}
-
-	err = c.commentRepository.UpdateContent(ctx, commentID, newComment)
-	if err != nil {
-		return fmt.Errorf("commentRepository.UpdateContent: %w", err)
+		return fmt.Errorf("commentRepository.UpdateContentWithCheck: %w", err)
 	}
 
 	return nil
