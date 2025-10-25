@@ -5,6 +5,7 @@ PACKAGE=route256/comments
 PROTO_FILES_PATH := "api"
 
 include make/Makefile.proto
+include make/Makefile.migrate
 
 bindir:
 	mkdir -p ${BINDIR}

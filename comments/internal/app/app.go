@@ -5,38 +5,31 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	_ "net/http/pprof" // nolint:gosec // profiling enabled for local debugging
 	"time"
+
+	"route256/comments/internal/handler"
+	"route256/comments/internal/infra/config"
+	"route256/comments/internal/infra/repository/postgres"
+	"route256/comments/internal/service"
+	"route256/comments/pkg/api/comments/v1"
 
 	"route256/cart/pkg/logger"
 	"route256/cart/pkg/myerrgroup"
-	postgrespkg "route256/cart/pkg/postgres"
-	"route256/cart/pkg/tracer"
-	"route256/loms/internal/handler"
-	"route256/loms/internal/infra/config"
-	"route256/loms/internal/infra/grpc/interceptor"
-	"route256/loms/internal/infra/repository/postgres"
-	"route256/loms/internal/service"
-	"route256/loms/pkg/api/orders/v1"
-	"route256/loms/pkg/api/stocks/v1"
-	interceptorpkg "route256/loms/pkg/grpc/interceptor"
+	"route256/loms/pkg/grpc/interceptor"
 	"route256/loms/pkg/http/middleware"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/lib/pq" // Import postgres driver
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
-// App создает компоненты для сервиса loms
+// App создает компоненты для сервиса comments
 type App struct {
-	Config        *config.Config
-	grpcServer    *grpc.Server
-	grpcGWServer  *http.Server
-	tracerManager *tracer.Manager
+	Config       *config.Config
+	grpcServer   *grpc.Server
+	grpcGWServer *http.Server
 }
 
 // NewApp конструктор главного приложения.
@@ -47,63 +40,35 @@ func NewApp(ctx context.Context, configPath string) (*App, error) {
 	}
 
 	app := &App{Config: c}
-	app.tracerManager, err = tracer.NewTracerManager(
-		ctx,
-		fmt.Sprintf("http://%s:%s", app.Config.Jaeger.Host, app.Config.Jaeger.Port),
-		app.Config.Server.Tracing.ServiceName,
-		app.Config.Server.Tracing.Environment,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("tracer.NewTracerManager: %w", err)
-	}
 
 	app.grpcServer = grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			interceptorpkg.NewTracing(app.tracerManager).Do,
-			interceptorpkg.Logging,
-			interceptor.Metrics,
-			interceptorpkg.Validate,
+			interceptor.Logging,
+			interceptor.Validate,
 		),
 	)
 
 	reflection.Register(app.grpcServer)
 
-	postgresMasterDSN := dsnBuilder(app.Config.MasterDB.User, app.Config.MasterDB.Password,
-		app.Config.MasterDB.Host, app.Config.MasterDB.Port, app.Config.MasterDB.DBName)
+	postrgesShard1DSN := dsnBuilder(app.Config.DBShards[0].User, app.Config.DBShards[0].Password, app.Config.DBShards[0].Host,
+		app.Config.DBShards[0].Port, app.Config.DBShards[0].DBName)
 
-	postgresReplicaDSN := dsnBuilder(app.Config.ReplicaDB.User, app.Config.ReplicaDB.Password,
-		app.Config.ReplicaDB.Host, app.Config.ReplicaDB.Port, app.Config.ReplicaDB.DBName)
-
-	masterPool, err := newPool(ctx, postgresMasterDSN)
+	shard1Pool, err := newPool(ctx, postrgesShard1DSN)
 	if err != nil {
 		return nil, fmt.Errorf("newPool: %w", err)
 	}
 
-	replicaPools := []*pgxpool.Pool{}
-	for _, dsn := range []string{postgresReplicaDSN} {
-		pool, errPool := newPool(ctx, dsn)
-		if errPool != nil {
-			return nil, fmt.Errorf("newPool: %w", errPool)
-		}
-		replicaPools = append(replicaPools, pool)
-	}
+	commentRepository := postgres.NewCommentRepository(shard1Pool)
 
-	poolManager, err := postgres.NewRRPoolManager(masterPool, replicaPools)
+	duration, err := time.ParseDuration("1s")
 	if err != nil {
-		return nil, fmt.Errorf("postgres.NewRRPoolManager: %w", err)
+		return nil, fmt.Errorf("time.ParseDuration: %w", err)
 	}
+	commentService := service.NewCommentService(commentRepository, duration)
 
-	txManager := postgres.NewPgTxManager(poolManager)
-	repositoryfactory := postgres.NewRepositoryFactory(poolManager)
+	commentsHandler := handler.NewCommentServerGRPC(commentService)
 
-	stockService := service.NewStockService(repositoryfactory, txManager)
-	orderService := service.NewOrderService(stockService, repositoryfactory, txManager)
-
-	stocksHandler := handler.NewStockServerGRPC(stockService)
-	ordersHandler := handler.NewOrderServerGRPC(orderService)
-
-	stocks.RegisterStockServiceV1Server(app.grpcServer, stocksHandler)
-	orders.RegisterOrderServiceV1Server(app.grpcServer, ordersHandler)
+	comments.RegisterCommentsServiceV1Server(app.grpcServer, commentsHandler)
 
 	return app, nil
 }
@@ -117,8 +82,6 @@ func newPool(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("pgxpool.ParseConfig (dsn=%s): %w", dsn, err)
 	}
-
-	config.ConnConfig.Tracer = postgrespkg.NewMetricsQueryTracer()
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
@@ -135,7 +98,7 @@ func (a *App) ListenAndServeGRPC() error {
 		return fmt.Errorf("net.Listen: %w", err)
 	}
 
-	logger.Infow(fmt.Sprintf("Loms service listening gRPC at port %s", a.Config.Server.GRPCPort))
+	logger.Infow(fmt.Sprintf("Comments service listening gRPC at port %s", a.Config.Server.GRPCPort))
 
 	return a.grpcServer.Serve(listener)
 }
@@ -152,20 +115,13 @@ func (a *App) ListenAndServeGRPCGateway(ctx context.Context) error {
 
 	gwMux := runtime.NewServeMux()
 
-	err = orders.RegisterOrderServiceV1Handler(ctx, gwMux, conn)
+	err = comments.RegisterCommentsServiceV1Handler(ctx, gwMux, conn)
 	if err != nil {
-		return fmt.Errorf("orders.RegisterOrderServiceHandler: %w", err)
-	}
-
-	err = stocks.RegisterStockServiceV1Handler(ctx, gwMux, conn)
-	if err != nil {
-		return fmt.Errorf("stocks.RegisterStockServiceHandler: %w", err)
+		return fmt.Errorf("comments.RegisterCommentsServiceV1Handler: %w", err)
 	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/", gwMux)
-	mux.HandleFunc("/debug/pprof/", http.DefaultServeMux.ServeHTTP)
-	mux.Handle("/metrics", promhttp.Handler())
 
 	handler := middleware.CORSAllPass(mux)
 
@@ -177,7 +133,7 @@ func (a *App) ListenAndServeGRPCGateway(ctx context.Context) error {
 		IdleTimeout:       time.Second * time.Duration(a.Config.Server.GRPCGateWay.IdleTimeout),
 	}
 
-	logger.Infow(fmt.Sprintf("Loms service listening gRPC-Gateway (REST) at port %s", a.Config.Server.HTTPPort))
+	logger.Infow(fmt.Sprintf("Comments service listening gRPC-Gateway (REST) at port %s", a.Config.Server.HTTPPort))
 
 	return a.grpcGWServer.ListenAndServe()
 }
@@ -185,9 +141,6 @@ func (a *App) ListenAndServeGRPCGateway(ctx context.Context) error {
 // Shutdown gracefully останавливает приложение.
 func (a *App) Shutdown(ctx context.Context) error {
 	errGroup, ctx := myerrgroup.WithContext(ctx)
-	errGroup.Go(func() error {
-		return a.tracerManager.Stop(ctx)
-	})
 
 	errGroup.Go(func() error {
 		return a.grpcGWServer.Shutdown(ctx)
