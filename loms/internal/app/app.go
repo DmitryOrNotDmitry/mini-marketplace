@@ -16,6 +16,7 @@ import (
 	"route256/loms/internal/infra/config"
 	"route256/loms/internal/infra/grpc/interceptor"
 	"route256/loms/internal/infra/http/middleware"
+	"route256/loms/internal/infra/kafka"
 	"route256/loms/internal/infra/repository/postgres"
 	"route256/loms/internal/service"
 	"route256/loms/pkg/api/orders/v1"
@@ -94,16 +95,25 @@ func NewApp(ctx context.Context, configPath string) (*App, error) {
 	}
 
 	txManager := postgres.NewPgTxManager(poolManager)
-	repositoryfactory := postgres.NewRepositoryFactory(poolManager)
+	repositoryFactory := postgres.NewRepositoryFactory(poolManager)
 
-	stockService := service.NewStockService(repositoryfactory, txManager)
-	orderService := service.NewOrderService(stockService, repositoryfactory, txManager)
+	stockService := service.NewStockService(repositoryFactory, txManager)
+	orderService := service.NewOrderService(stockService, repositoryFactory, txManager)
 
 	stocksHandler := handler.NewStockServerGRPC(stockService)
 	ordersHandler := handler.NewOrderServerGRPC(orderService)
 
 	stocks.RegisterStockServiceV1Server(app.grpcServer, stocksHandler)
 	orders.RegisterOrderServiceV1Server(app.grpcServer, ordersHandler)
+
+	orderEventPubKafka, err := kafka.NewOrderEventTopicKafka([]string{app.Config.Kafka.Brokers}, app.Config.Kafka.OrderTopic)
+	if err != nil {
+		return nil, fmt.Errorf("kafka.NewOrderEventTopicKafka: %w", err)
+	}
+
+	orderEventPublisher := service.NewOrderEventPublisher(orderEventPubKafka, txManager, repositoryFactory, app.Config.OrderOutboxPub.BatchSize,
+		time.Duration(app.Config.OrderOutboxPub.PeriodSeconds)*time.Second)
+	orderEventPublisher.Start(ctx)
 
 	return app, nil
 }

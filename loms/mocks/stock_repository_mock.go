@@ -33,6 +33,13 @@ type StockRepositoryMock struct {
 	beforeGetBySkuIDCounter uint64
 	GetBySkuIDMock          mStockRepositoryMockGetBySkuID
 
+	funcGetBySkuIDForUpdate          func(ctx context.Context, skuID int64) (sp1 *domain.Stock, err error)
+	funcGetBySkuIDForUpdateOrigin    string
+	inspectFuncGetBySkuIDForUpdate   func(ctx context.Context, skuID int64)
+	afterGetBySkuIDForUpdateCounter  uint64
+	beforeGetBySkuIDForUpdateCounter uint64
+	GetBySkuIDForUpdateMock          mStockRepositoryMockGetBySkuIDForUpdate
+
 	funcReduceReserveAndTotal          func(ctx context.Context, skuID int64, delta uint32) (err error)
 	funcReduceReserveAndTotalOrigin    string
 	inspectFuncReduceReserveAndTotal   func(ctx context.Context, skuID int64, delta uint32)
@@ -68,6 +75,9 @@ func NewStockRepositoryMock(t minimock.Tester) *StockRepositoryMock {
 
 	m.GetBySkuIDMock = mStockRepositoryMockGetBySkuID{mock: m}
 	m.GetBySkuIDMock.callArgs = []*StockRepositoryMockGetBySkuIDParams{}
+
+	m.GetBySkuIDForUpdateMock = mStockRepositoryMockGetBySkuIDForUpdate{mock: m}
+	m.GetBySkuIDForUpdateMock.callArgs = []*StockRepositoryMockGetBySkuIDForUpdateParams{}
 
 	m.ReduceReserveAndTotalMock = mStockRepositoryMockReduceReserveAndTotal{mock: m}
 	m.ReduceReserveAndTotalMock.callArgs = []*StockRepositoryMockReduceReserveAndTotalParams{}
@@ -796,6 +806,349 @@ func (m *StockRepositoryMock) MinimockGetBySkuIDInspect() {
 	if !m.GetBySkuIDMock.invocationsDone() && afterGetBySkuIDCounter > 0 {
 		m.t.Errorf("Expected %d calls to StockRepositoryMock.GetBySkuID at\n%s but found %d calls",
 			mm_atomic.LoadUint64(&m.GetBySkuIDMock.expectedInvocations), m.GetBySkuIDMock.expectedInvocationsOrigin, afterGetBySkuIDCounter)
+	}
+}
+
+type mStockRepositoryMockGetBySkuIDForUpdate struct {
+	optional           bool
+	mock               *StockRepositoryMock
+	defaultExpectation *StockRepositoryMockGetBySkuIDForUpdateExpectation
+	expectations       []*StockRepositoryMockGetBySkuIDForUpdateExpectation
+
+	callArgs []*StockRepositoryMockGetBySkuIDForUpdateParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// StockRepositoryMockGetBySkuIDForUpdateExpectation specifies expectation struct of the StockRepository.GetBySkuIDForUpdate
+type StockRepositoryMockGetBySkuIDForUpdateExpectation struct {
+	mock               *StockRepositoryMock
+	params             *StockRepositoryMockGetBySkuIDForUpdateParams
+	paramPtrs          *StockRepositoryMockGetBySkuIDForUpdateParamPtrs
+	expectationOrigins StockRepositoryMockGetBySkuIDForUpdateExpectationOrigins
+	results            *StockRepositoryMockGetBySkuIDForUpdateResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// StockRepositoryMockGetBySkuIDForUpdateParams contains parameters of the StockRepository.GetBySkuIDForUpdate
+type StockRepositoryMockGetBySkuIDForUpdateParams struct {
+	ctx   context.Context
+	skuID int64
+}
+
+// StockRepositoryMockGetBySkuIDForUpdateParamPtrs contains pointers to parameters of the StockRepository.GetBySkuIDForUpdate
+type StockRepositoryMockGetBySkuIDForUpdateParamPtrs struct {
+	ctx   *context.Context
+	skuID *int64
+}
+
+// StockRepositoryMockGetBySkuIDForUpdateResults contains results of the StockRepository.GetBySkuIDForUpdate
+type StockRepositoryMockGetBySkuIDForUpdateResults struct {
+	sp1 *domain.Stock
+	err error
+}
+
+// StockRepositoryMockGetBySkuIDForUpdateOrigins contains origins of expectations of the StockRepository.GetBySkuIDForUpdate
+type StockRepositoryMockGetBySkuIDForUpdateExpectationOrigins struct {
+	origin      string
+	originCtx   string
+	originSkuID string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) Optional() *mStockRepositoryMockGetBySkuIDForUpdate {
+	mmGetBySkuIDForUpdate.optional = true
+	return mmGetBySkuIDForUpdate
+}
+
+// Expect sets up expected params for StockRepository.GetBySkuIDForUpdate
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) Expect(ctx context.Context, skuID int64) *mStockRepositoryMockGetBySkuIDForUpdate {
+	if mmGetBySkuIDForUpdate.mock.funcGetBySkuIDForUpdate != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("StockRepositoryMock.GetBySkuIDForUpdate mock is already set by Set")
+	}
+
+	if mmGetBySkuIDForUpdate.defaultExpectation == nil {
+		mmGetBySkuIDForUpdate.defaultExpectation = &StockRepositoryMockGetBySkuIDForUpdateExpectation{}
+	}
+
+	if mmGetBySkuIDForUpdate.defaultExpectation.paramPtrs != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("StockRepositoryMock.GetBySkuIDForUpdate mock is already set by ExpectParams functions")
+	}
+
+	mmGetBySkuIDForUpdate.defaultExpectation.params = &StockRepositoryMockGetBySkuIDForUpdateParams{ctx, skuID}
+	mmGetBySkuIDForUpdate.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGetBySkuIDForUpdate.expectations {
+		if minimock.Equal(e.params, mmGetBySkuIDForUpdate.defaultExpectation.params) {
+			mmGetBySkuIDForUpdate.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetBySkuIDForUpdate.defaultExpectation.params)
+		}
+	}
+
+	return mmGetBySkuIDForUpdate
+}
+
+// ExpectCtxParam1 sets up expected param ctx for StockRepository.GetBySkuIDForUpdate
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) ExpectCtxParam1(ctx context.Context) *mStockRepositoryMockGetBySkuIDForUpdate {
+	if mmGetBySkuIDForUpdate.mock.funcGetBySkuIDForUpdate != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("StockRepositoryMock.GetBySkuIDForUpdate mock is already set by Set")
+	}
+
+	if mmGetBySkuIDForUpdate.defaultExpectation == nil {
+		mmGetBySkuIDForUpdate.defaultExpectation = &StockRepositoryMockGetBySkuIDForUpdateExpectation{}
+	}
+
+	if mmGetBySkuIDForUpdate.defaultExpectation.params != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("StockRepositoryMock.GetBySkuIDForUpdate mock is already set by Expect")
+	}
+
+	if mmGetBySkuIDForUpdate.defaultExpectation.paramPtrs == nil {
+		mmGetBySkuIDForUpdate.defaultExpectation.paramPtrs = &StockRepositoryMockGetBySkuIDForUpdateParamPtrs{}
+	}
+	mmGetBySkuIDForUpdate.defaultExpectation.paramPtrs.ctx = &ctx
+	mmGetBySkuIDForUpdate.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmGetBySkuIDForUpdate
+}
+
+// ExpectSkuIDParam2 sets up expected param skuID for StockRepository.GetBySkuIDForUpdate
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) ExpectSkuIDParam2(skuID int64) *mStockRepositoryMockGetBySkuIDForUpdate {
+	if mmGetBySkuIDForUpdate.mock.funcGetBySkuIDForUpdate != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("StockRepositoryMock.GetBySkuIDForUpdate mock is already set by Set")
+	}
+
+	if mmGetBySkuIDForUpdate.defaultExpectation == nil {
+		mmGetBySkuIDForUpdate.defaultExpectation = &StockRepositoryMockGetBySkuIDForUpdateExpectation{}
+	}
+
+	if mmGetBySkuIDForUpdate.defaultExpectation.params != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("StockRepositoryMock.GetBySkuIDForUpdate mock is already set by Expect")
+	}
+
+	if mmGetBySkuIDForUpdate.defaultExpectation.paramPtrs == nil {
+		mmGetBySkuIDForUpdate.defaultExpectation.paramPtrs = &StockRepositoryMockGetBySkuIDForUpdateParamPtrs{}
+	}
+	mmGetBySkuIDForUpdate.defaultExpectation.paramPtrs.skuID = &skuID
+	mmGetBySkuIDForUpdate.defaultExpectation.expectationOrigins.originSkuID = minimock.CallerInfo(1)
+
+	return mmGetBySkuIDForUpdate
+}
+
+// Inspect accepts an inspector function that has same arguments as the StockRepository.GetBySkuIDForUpdate
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) Inspect(f func(ctx context.Context, skuID int64)) *mStockRepositoryMockGetBySkuIDForUpdate {
+	if mmGetBySkuIDForUpdate.mock.inspectFuncGetBySkuIDForUpdate != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("Inspect function is already set for StockRepositoryMock.GetBySkuIDForUpdate")
+	}
+
+	mmGetBySkuIDForUpdate.mock.inspectFuncGetBySkuIDForUpdate = f
+
+	return mmGetBySkuIDForUpdate
+}
+
+// Return sets up results that will be returned by StockRepository.GetBySkuIDForUpdate
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) Return(sp1 *domain.Stock, err error) *StockRepositoryMock {
+	if mmGetBySkuIDForUpdate.mock.funcGetBySkuIDForUpdate != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("StockRepositoryMock.GetBySkuIDForUpdate mock is already set by Set")
+	}
+
+	if mmGetBySkuIDForUpdate.defaultExpectation == nil {
+		mmGetBySkuIDForUpdate.defaultExpectation = &StockRepositoryMockGetBySkuIDForUpdateExpectation{mock: mmGetBySkuIDForUpdate.mock}
+	}
+	mmGetBySkuIDForUpdate.defaultExpectation.results = &StockRepositoryMockGetBySkuIDForUpdateResults{sp1, err}
+	mmGetBySkuIDForUpdate.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGetBySkuIDForUpdate.mock
+}
+
+// Set uses given function f to mock the StockRepository.GetBySkuIDForUpdate method
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) Set(f func(ctx context.Context, skuID int64) (sp1 *domain.Stock, err error)) *StockRepositoryMock {
+	if mmGetBySkuIDForUpdate.defaultExpectation != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("Default expectation is already set for the StockRepository.GetBySkuIDForUpdate method")
+	}
+
+	if len(mmGetBySkuIDForUpdate.expectations) > 0 {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("Some expectations are already set for the StockRepository.GetBySkuIDForUpdate method")
+	}
+
+	mmGetBySkuIDForUpdate.mock.funcGetBySkuIDForUpdate = f
+	mmGetBySkuIDForUpdate.mock.funcGetBySkuIDForUpdateOrigin = minimock.CallerInfo(1)
+	return mmGetBySkuIDForUpdate.mock
+}
+
+// When sets expectation for the StockRepository.GetBySkuIDForUpdate which will trigger the result defined by the following
+// Then helper
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) When(ctx context.Context, skuID int64) *StockRepositoryMockGetBySkuIDForUpdateExpectation {
+	if mmGetBySkuIDForUpdate.mock.funcGetBySkuIDForUpdate != nil {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("StockRepositoryMock.GetBySkuIDForUpdate mock is already set by Set")
+	}
+
+	expectation := &StockRepositoryMockGetBySkuIDForUpdateExpectation{
+		mock:               mmGetBySkuIDForUpdate.mock,
+		params:             &StockRepositoryMockGetBySkuIDForUpdateParams{ctx, skuID},
+		expectationOrigins: StockRepositoryMockGetBySkuIDForUpdateExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmGetBySkuIDForUpdate.expectations = append(mmGetBySkuIDForUpdate.expectations, expectation)
+	return expectation
+}
+
+// Then sets up StockRepository.GetBySkuIDForUpdate return parameters for the expectation previously defined by the When method
+func (e *StockRepositoryMockGetBySkuIDForUpdateExpectation) Then(sp1 *domain.Stock, err error) *StockRepositoryMock {
+	e.results = &StockRepositoryMockGetBySkuIDForUpdateResults{sp1, err}
+	return e.mock
+}
+
+// Times sets number of times StockRepository.GetBySkuIDForUpdate should be invoked
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) Times(n uint64) *mStockRepositoryMockGetBySkuIDForUpdate {
+	if n == 0 {
+		mmGetBySkuIDForUpdate.mock.t.Fatalf("Times of StockRepositoryMock.GetBySkuIDForUpdate mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmGetBySkuIDForUpdate.expectedInvocations, n)
+	mmGetBySkuIDForUpdate.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGetBySkuIDForUpdate
+}
+
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) invocationsDone() bool {
+	if len(mmGetBySkuIDForUpdate.expectations) == 0 && mmGetBySkuIDForUpdate.defaultExpectation == nil && mmGetBySkuIDForUpdate.mock.funcGetBySkuIDForUpdate == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmGetBySkuIDForUpdate.mock.afterGetBySkuIDForUpdateCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGetBySkuIDForUpdate.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// GetBySkuIDForUpdate implements mm_service.StockRepository
+func (mmGetBySkuIDForUpdate *StockRepositoryMock) GetBySkuIDForUpdate(ctx context.Context, skuID int64) (sp1 *domain.Stock, err error) {
+	mm_atomic.AddUint64(&mmGetBySkuIDForUpdate.beforeGetBySkuIDForUpdateCounter, 1)
+	defer mm_atomic.AddUint64(&mmGetBySkuIDForUpdate.afterGetBySkuIDForUpdateCounter, 1)
+
+	mmGetBySkuIDForUpdate.t.Helper()
+
+	if mmGetBySkuIDForUpdate.inspectFuncGetBySkuIDForUpdate != nil {
+		mmGetBySkuIDForUpdate.inspectFuncGetBySkuIDForUpdate(ctx, skuID)
+	}
+
+	mm_params := StockRepositoryMockGetBySkuIDForUpdateParams{ctx, skuID}
+
+	// Record call args
+	mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.mutex.Lock()
+	mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.callArgs = append(mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.callArgs, &mm_params)
+	mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.mutex.Unlock()
+
+	for _, e := range mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.sp1, e.results.err
+		}
+	}
+
+	if mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.defaultExpectation.Counter, 1)
+		mm_want := mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.defaultExpectation.params
+		mm_want_ptrs := mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.defaultExpectation.paramPtrs
+
+		mm_got := StockRepositoryMockGetBySkuIDForUpdateParams{ctx, skuID}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmGetBySkuIDForUpdate.t.Errorf("StockRepositoryMock.GetBySkuIDForUpdate got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.skuID != nil && !minimock.Equal(*mm_want_ptrs.skuID, mm_got.skuID) {
+				mmGetBySkuIDForUpdate.t.Errorf("StockRepositoryMock.GetBySkuIDForUpdate got unexpected parameter skuID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.defaultExpectation.expectationOrigins.originSkuID, *mm_want_ptrs.skuID, mm_got.skuID, minimock.Diff(*mm_want_ptrs.skuID, mm_got.skuID))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmGetBySkuIDForUpdate.t.Errorf("StockRepositoryMock.GetBySkuIDForUpdate got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmGetBySkuIDForUpdate.GetBySkuIDForUpdateMock.defaultExpectation.results
+		if mm_results == nil {
+			mmGetBySkuIDForUpdate.t.Fatal("No results are set for the StockRepositoryMock.GetBySkuIDForUpdate")
+		}
+		return (*mm_results).sp1, (*mm_results).err
+	}
+	if mmGetBySkuIDForUpdate.funcGetBySkuIDForUpdate != nil {
+		return mmGetBySkuIDForUpdate.funcGetBySkuIDForUpdate(ctx, skuID)
+	}
+	mmGetBySkuIDForUpdate.t.Fatalf("Unexpected call to StockRepositoryMock.GetBySkuIDForUpdate. %v %v", ctx, skuID)
+	return
+}
+
+// GetBySkuIDForUpdateAfterCounter returns a count of finished StockRepositoryMock.GetBySkuIDForUpdate invocations
+func (mmGetBySkuIDForUpdate *StockRepositoryMock) GetBySkuIDForUpdateAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetBySkuIDForUpdate.afterGetBySkuIDForUpdateCounter)
+}
+
+// GetBySkuIDForUpdateBeforeCounter returns a count of StockRepositoryMock.GetBySkuIDForUpdate invocations
+func (mmGetBySkuIDForUpdate *StockRepositoryMock) GetBySkuIDForUpdateBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetBySkuIDForUpdate.beforeGetBySkuIDForUpdateCounter)
+}
+
+// Calls returns a list of arguments used in each call to StockRepositoryMock.GetBySkuIDForUpdate.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmGetBySkuIDForUpdate *mStockRepositoryMockGetBySkuIDForUpdate) Calls() []*StockRepositoryMockGetBySkuIDForUpdateParams {
+	mmGetBySkuIDForUpdate.mutex.RLock()
+
+	argCopy := make([]*StockRepositoryMockGetBySkuIDForUpdateParams, len(mmGetBySkuIDForUpdate.callArgs))
+	copy(argCopy, mmGetBySkuIDForUpdate.callArgs)
+
+	mmGetBySkuIDForUpdate.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockGetBySkuIDForUpdateDone returns true if the count of the GetBySkuIDForUpdate invocations corresponds
+// the number of defined expectations
+func (m *StockRepositoryMock) MinimockGetBySkuIDForUpdateDone() bool {
+	if m.GetBySkuIDForUpdateMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.GetBySkuIDForUpdateMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.GetBySkuIDForUpdateMock.invocationsDone()
+}
+
+// MinimockGetBySkuIDForUpdateInspect logs each unmet expectation
+func (m *StockRepositoryMock) MinimockGetBySkuIDForUpdateInspect() {
+	for _, e := range m.GetBySkuIDForUpdateMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to StockRepositoryMock.GetBySkuIDForUpdate at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterGetBySkuIDForUpdateCounter := mm_atomic.LoadUint64(&m.afterGetBySkuIDForUpdateCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.GetBySkuIDForUpdateMock.defaultExpectation != nil && afterGetBySkuIDForUpdateCounter < 1 {
+		if m.GetBySkuIDForUpdateMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to StockRepositoryMock.GetBySkuIDForUpdate at\n%s", m.GetBySkuIDForUpdateMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to StockRepositoryMock.GetBySkuIDForUpdate at\n%s with params: %#v", m.GetBySkuIDForUpdateMock.defaultExpectation.expectationOrigins.origin, *m.GetBySkuIDForUpdateMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcGetBySkuIDForUpdate != nil && afterGetBySkuIDForUpdateCounter < 1 {
+		m.t.Errorf("Expected call to StockRepositoryMock.GetBySkuIDForUpdate at\n%s", m.funcGetBySkuIDForUpdateOrigin)
+	}
+
+	if !m.GetBySkuIDForUpdateMock.invocationsDone() && afterGetBySkuIDForUpdateCounter > 0 {
+		m.t.Errorf("Expected %d calls to StockRepositoryMock.GetBySkuIDForUpdate at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GetBySkuIDForUpdateMock.expectedInvocations), m.GetBySkuIDForUpdateMock.expectedInvocationsOrigin, afterGetBySkuIDForUpdateCounter)
 	}
 }
 
@@ -1895,6 +2248,8 @@ func (m *StockRepositoryMock) MinimockFinish() {
 
 			m.MinimockGetBySkuIDInspect()
 
+			m.MinimockGetBySkuIDForUpdateInspect()
+
 			m.MinimockReduceReserveAndTotalInspect()
 
 			m.MinimockRemoveReserveInspect()
@@ -1925,6 +2280,7 @@ func (m *StockRepositoryMock) minimockDone() bool {
 	return done &&
 		m.MinimockAddReserveDone() &&
 		m.MinimockGetBySkuIDDone() &&
+		m.MinimockGetBySkuIDForUpdateDone() &&
 		m.MinimockReduceReserveAndTotalDone() &&
 		m.MinimockRemoveReserveDone() &&
 		m.MinimockUpsertDone()

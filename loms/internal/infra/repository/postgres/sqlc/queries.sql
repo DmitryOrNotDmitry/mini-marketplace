@@ -55,3 +55,27 @@ where sku = $1;
 select *
 from stocks
 where sku = $1;
+
+-- name: GetStockBySKUForUpdate :one
+select *
+from stocks
+where sku = $1
+for update;
+
+
+
+-- name: InsertOrderEvent :exec
+insert into orders_event_outbox(order_id, order_status, moment, event_status)
+values ($1, $2, $3, $4);
+
+-- name: GetUnprocessedEventsLimit :many
+select id, order_id, order_status, moment
+from orders_event_outbox
+where event_status = 'new'
+order by moment
+limit $1;
+
+-- name: UpdateEventStatusBatch :exec
+update orders_event_outbox
+set event_status = $2
+where id = ANY($1::bigint[]);

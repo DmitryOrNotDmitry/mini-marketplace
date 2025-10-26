@@ -1,3 +1,6 @@
+service:
+  graceful_shutdown_timeout: 10
+
 kafka:
   host: kafka
   port: 29092
