@@ -15,7 +15,6 @@ import (
 	"route256/loms/internal/handler"
 	"route256/loms/internal/infra/config"
 	"route256/loms/internal/infra/grpc/interceptor"
-	"route256/loms/internal/infra/http/middleware"
 	"route256/loms/internal/infra/kafka"
 	"route256/loms/internal/infra/repository/postgres"
 	"route256/loms/internal/service"
