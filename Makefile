@@ -18,14 +18,17 @@ stop-monitor:
 test:
 	$(MAKE) -C ./cart test
 	$(MAKE) -C ./loms test
+	$(MAKE) -C ./comments test
 
 test-cover:
 	$(MAKE) -C ./cart test-cover
 	$(MAKE) -C ./loms test-cover
+	$(MAKE) -C ./comments test-cover
 
 test-race:
 	$(MAKE) -C ./cart test-race
 	$(MAKE) -C ./loms test-race
+	$(MAKE) -C ./comments test-race
 
 
 test-integration:

@@ -48,6 +48,7 @@ func (c *CommentRepository) Insert(ctx context.Context, comment *domain.Comment)
 	return commentID, err
 }
 
+// UpdateContentWithCheck обновляет содержимое комментария, предварительно проверяя predicate на старом комментарии.
 func (c *CommentRepository) UpdateContentWithCheck(ctx context.Context, commentID int64, newComment *domain.Comment, predicate func(oldComment *domain.Comment) error) (err error) {
 	pool := c.shardManager.GetShardPoolByID(commentID)
 	tx, err := pool.Begin(ctx)
@@ -58,7 +59,9 @@ func (c *CommentRepository) UpdateContentWithCheck(ctx context.Context, commentI
 	defer func() {
 		if err != nil {
 			errRollback := tx.Rollback(ctx)
-			logger.Errorw("error with rollback transaction", "err", errRollback)
+			if errRollback != nil {
+				logger.Errorw("error with rollback transaction", "err", errRollback)
+			}
 		} else {
 			err = tx.Commit(ctx)
 		}
