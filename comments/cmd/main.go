@@ -8,7 +8,7 @@ import (
 
 	"route256/cart/pkg/logger"
 	"route256/cart/pkg/myerrgroup"
-	"route256/loms/internal/app"
+	"route256/comments/internal/app"
 	pkgapp "route256/loms/pkg/app"
 
 	"go.uber.org/zap"
@@ -16,7 +16,7 @@ import (
 
 const (
 	logLevel                       = zap.InfoLevel
-	serviceName                    = "loms"
+	serviceName                    = "comments"
 	configPathVar                  = "CONFIG_FILE"
 	defaultGracefulShutdownTimeout = 10 * time.Second
 )
@@ -38,33 +38,33 @@ func main() {
 	})
 
 	mainCtx, cancel := context.WithCancel(context.Background())
-	lomsApp, err := app.NewApp(mainCtx, os.Getenv(configPathVar))
+	commentsApp, err := app.NewApp(mainCtx, os.Getenv(configPathVar))
 	if err != nil {
 		panic(err)
 	}
 
 	go func() {
-		err = startApp(mainCtx, lomsApp)
+		err = startApp(mainCtx, commentsApp)
 		if err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
 	}()
 
-	gracefulTimeout, err := time.ParseDuration(lomsApp.Config.Server.GracefulShutdownTimeout)
+	gracefulTimeout, err := time.ParseDuration(commentsApp.Config.Server.GracefulShutdownTimeout)
 	if err != nil {
 		gracefulTimeout = defaultGracefulShutdownTimeout
 	}
-	pkgapp.GracefulShutdown(&shutdownMain{cancel: cancel, app: lomsApp}, gracefulTimeout)
+	pkgapp.GracefulShutdown(&shutdownMain{cancel: cancel, app: commentsApp}, gracefulTimeout)
 }
 
-func startApp(ctx context.Context, lomsApp *app.App) error {
+func startApp(ctx context.Context, commentsApp *app.App) error {
 	errGroup := myerrgroup.New()
 	errGroup.Go(func() error {
-		return lomsApp.ListenAndServeGRPCGateway(ctx)
+		return commentsApp.ListenAndServeGRPCGateway(ctx)
 	})
 
 	errGroup.Go(func() error {
-		return lomsApp.ListenAndServeGRPC()
+		return commentsApp.ListenAndServeGRPC()
 	})
 
 	return errGroup.Wait()

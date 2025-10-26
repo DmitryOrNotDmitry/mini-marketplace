@@ -15,13 +15,13 @@ import (
 	"route256/loms/internal/handler"
 	"route256/loms/internal/infra/config"
 	"route256/loms/internal/infra/grpc/interceptor"
-	"route256/loms/internal/infra/http/middleware"
 	"route256/loms/internal/infra/kafka"
 	"route256/loms/internal/infra/repository/postgres"
 	"route256/loms/internal/service"
 	"route256/loms/pkg/api/orders/v1"
 	"route256/loms/pkg/api/stocks/v1"
 	interceptorpkg "route256/loms/pkg/grpc/interceptor"
+	"route256/loms/pkg/http/middleware"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -61,9 +61,9 @@ func NewApp(ctx context.Context, configPath string) (*App, error) {
 	app.grpcServer = grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptorpkg.NewTracing(app.tracerManager).Do,
-			interceptor.Logging,
+			interceptorpkg.Logging,
 			interceptor.Metrics,
-			interceptor.Validate,
+			interceptorpkg.Validate,
 		),
 	)
 
@@ -179,12 +179,25 @@ func (a *App) ListenAndServeGRPCGateway(ctx context.Context) error {
 
 	handler := middleware.CORSAllPass(mux)
 
+	readHeaderTimeout, err := time.ParseDuration(a.Config.Server.GRPCGateWay.ReadHeaderTimeout)
+	if err != nil {
+		return fmt.Errorf("time.ParseDuration: %w", err)
+	}
+	writeTimeout, err := time.ParseDuration(a.Config.Server.GRPCGateWay.WriteTimeout)
+	if err != nil {
+		return fmt.Errorf("time.ParseDuration: %w", err)
+	}
+	idleTimeout, err := time.ParseDuration(a.Config.Server.GRPCGateWay.IdleTimeout)
+	if err != nil {
+		return fmt.Errorf("time.ParseDuration: %w", err)
+	}
+
 	a.grpcGWServer = &http.Server{
 		Addr:              fmt.Sprintf(":%s", a.Config.Server.HTTPPort),
 		Handler:           handler,
-		ReadHeaderTimeout: time.Second * time.Duration(a.Config.Server.GRPCGateWay.ReadHeaderTimeout),
-		WriteTimeout:      time.Second * time.Duration(a.Config.Server.GRPCGateWay.WriteTimeout),
-		IdleTimeout:       time.Second * time.Duration(a.Config.Server.GRPCGateWay.IdleTimeout),
+		ReadHeaderTimeout: readHeaderTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
 	}
 
 	logger.Infow(fmt.Sprintf("Loms service listening gRPC-Gateway (REST) at port %s", a.Config.Server.HTTPPort))
