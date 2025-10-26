@@ -1,0 +1,20 @@
+CI_MIGRATIONS_FOLDER := ./comments/migrations/
+CI_DB_DSN_SHARD1 := postgresql://comments-user-1:comments-password-1@postgres-comments-shard-1:5432/comments_db?sslmode=disable
+CI_DB_DSN_SHARD2 := postgresql://comments-user-2:comments-password-2@postgres-comments-shard-2:5432/comments_db?sslmode=disable
+
+run-migrations:
+	goose -dir $(CI_MIGRATIONS_FOLDER) postgres "$(CI_DB_DSN_SHARD1)" up
+	goose -dir $(CI_MIGRATIONS_FOLDER) postgres "$(CI_DB_DSN_SHARD2)" up
+
+
+LOCAL_MIGRATIONS_FOLDER := ./migrations/
+LOCAL_DB_DSN1 := postgresql://comments-user-1:comments-password-1@localhost:5434/comments_db?sslmode=disable
+LOCAL_DB_DSN2 := postgresql://comments-user-2:comments-password-2@localhost:5435/comments_db?sslmode=disable
+
+migrate:
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN1)" up
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN2)" up
+
+migrate-down:
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN1)" down
+	goose -dir $(LOCAL_MIGRATIONS_FOLDER) postgres "$(LOCAL_DB_DSN2)" down
