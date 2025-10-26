@@ -34,3 +34,7 @@ kafka:
   port: 29092
   order_topic: loms.order-events
   brokers: kafka:29092
+
+order_outbox_publisher:
+  batch_size: 10
+  period_seconds: 1

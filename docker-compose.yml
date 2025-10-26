@@ -23,6 +23,18 @@ services:
     depends_on:
       postgres-replica:
         condition: service_healthy
+      kafka-init-topics:
+        condition: service_completed_successfully
+
+  notifier:
+    build:
+      context: .
+      dockerfile: notifier/Dockerfile
+    networks:
+      - mart-system
+    depends_on:
+      kafka-init-topics:
+        condition: service_completed_successfully
 
   products:
     image: gitlab-registry.ozon.dev/go/classroom-20/students/homework-draft/products:latest
@@ -82,7 +94,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U loms-user -d loms_db"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
       start_period: 10s
 
   comments:
@@ -133,6 +145,15 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  kafka-init-topics:
+    container_name: kafka-init-topics
+    image: confluentinc/cp-kafka:7.7.1.arm64
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+      cub kafka-ready -b kafka0:29092 1 90 && \
+      kafka-topics --create --topic loms.order-events --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092'"
+    networks:
+      - mart-system
 
 networks:
   mart-system:

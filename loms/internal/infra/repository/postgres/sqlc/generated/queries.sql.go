@@ -7,6 +7,8 @@ package repo_sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addOrder = `-- name: AddOrder :one
@@ -122,6 +124,82 @@ func (q *Queries) GetStockBySKU(ctx context.Context, sku int64) (*Stock, error) 
 	return &i, err
 }
 
+const getStockBySKUForUpdate = `-- name: GetStockBySKUForUpdate :one
+select sku, total_count, reserved
+from stocks
+where sku = $1
+for update
+`
+
+func (q *Queries) GetStockBySKUForUpdate(ctx context.Context, sku int64) (*Stock, error) {
+	row := q.db.QueryRow(ctx, getStockBySKUForUpdate, sku)
+	var i Stock
+	err := row.Scan(&i.Sku, &i.TotalCount, &i.Reserved)
+	return &i, err
+}
+
+const getUnprocessedEventsLimit = `-- name: GetUnprocessedEventsLimit :many
+select id, order_id, order_status, moment
+from orders_event_outbox
+where event_status = 'new'
+order by moment
+limit $1
+`
+
+type GetUnprocessedEventsLimitRow struct {
+	ID          int64
+	OrderID     *int64
+	OrderStatus string
+	Moment      pgtype.Timestamp
+}
+
+func (q *Queries) GetUnprocessedEventsLimit(ctx context.Context, limit int32) ([]*GetUnprocessedEventsLimitRow, error) {
+	rows, err := q.db.Query(ctx, getUnprocessedEventsLimit, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetUnprocessedEventsLimitRow
+	for rows.Next() {
+		var i GetUnprocessedEventsLimitRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrderID,
+			&i.OrderStatus,
+			&i.Moment,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertOrderEvent = `-- name: InsertOrderEvent :exec
+insert into orders_event_outbox(order_id, order_status, moment, event_status)
+values ($1, $2, $3, $4)
+`
+
+type InsertOrderEventParams struct {
+	OrderID     *int64
+	OrderStatus string
+	Moment      pgtype.Timestamp
+	EventStatus string
+}
+
+func (q *Queries) InsertOrderEvent(ctx context.Context, arg *InsertOrderEventParams) error {
+	_, err := q.db.Exec(ctx, insertOrderEvent,
+		arg.OrderID,
+		arg.OrderStatus,
+		arg.Moment,
+		arg.EventStatus,
+	)
+	return err
+}
+
 const reduceTotalAndReserve = `-- name: ReduceTotalAndReserve :exec
 update stocks
 set reserved    = reserved - $2,
@@ -168,6 +246,22 @@ type ReserveParams struct {
 
 func (q *Queries) Reserve(ctx context.Context, arg *ReserveParams) error {
 	_, err := q.db.Exec(ctx, reserve, arg.Sku, arg.Reserved)
+	return err
+}
+
+const updateEventStatusBatch = `-- name: UpdateEventStatusBatch :exec
+update orders_event_outbox
+set event_status = $2
+where id = ANY($1::bigint[])
+`
+
+type UpdateEventStatusBatchParams struct {
+	Column1     []int64
+	EventStatus string
+}
+
+func (q *Queries) UpdateEventStatusBatch(ctx context.Context, arg *UpdateEventStatusBatchParams) error {
+	_, err := q.db.Exec(ctx, updateEventStatusBatch, arg.Column1, arg.EventStatus)
 	return err
 }
 

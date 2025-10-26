@@ -142,7 +142,6 @@ func (cs *LomsSuite) TestOrderCancel(t provider.T) {
 func (cs *LomsSuite) TestCreateManyOrders(t provider.T) {
 	t.Title("Оформляем заказ успешно 100 раз параллельно и проверяем стоки")
 
-	//count := uint32(1)
 	userID := int64(5)
 	skuID1 := int64(3618852)
 	skuID2 := int64(4288068)
@@ -177,16 +176,12 @@ func (cs *LomsSuite) TestCreateManyOrders(t provider.T) {
 	})
 
 	t.WithNewStep("Добавляем 100 заказов", func(t provider.StepCtx) {
-		var start sync.WaitGroup
 		var finish sync.WaitGroup
-		start.Add(100)
 		finish.Add(100)
 
 		for i := 0; i < 50; i++ {
 			go func() {
 				defer finish.Done()
-				start.Done()
-				start.Wait()
 
 				var resStatus int
 				_, resStatus = cs.lomsClient.CreateOrder(ctx, t, order)
@@ -195,8 +190,6 @@ func (cs *LomsSuite) TestCreateManyOrders(t provider.T) {
 
 			go func() {
 				defer finish.Done()
-				start.Done()
-				start.Wait()
 
 				var resStatus int
 				_, resStatus = cs.lomsClient.CreateOrder(ctx, t, failOrder)

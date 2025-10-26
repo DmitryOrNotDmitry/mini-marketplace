@@ -86,7 +86,7 @@ func TestStockService(t *testing.T) {
 		}
 
 		tc.repoFactoryMock.CreateStockMock.Return(tc.stockRepoMock)
-		tc.stockRepoMock.GetBySkuIDMock.Return(stock, nil)
+		tc.stockRepoMock.GetBySkuIDForUpdateMock.Return(stock, nil)
 		tc.stockRepoMock.AddReserveMock.Return(nil)
 
 		err := tc.stockService.ReserveFor(ctx, order)
@@ -115,7 +115,7 @@ func TestStockService(t *testing.T) {
 		}
 
 		tc.repoFactoryMock.CreateStockMock.Return(tc.stockRepoMock)
-		tc.stockRepoMock.GetBySkuIDMock.Return(stock, nil)
+		tc.stockRepoMock.GetBySkuIDForUpdateMock.Return(stock, nil)
 		tc.stockRepoMock.AddReserveMock.When(ctx, order.Items[0].SkuID, order.Items[0].Count).Then(nil)
 		tc.stockRepoMock.AddReserveMock.When(ctx, order.Items[1].SkuID, order.Items[1].Count).Then(domain.ErrCanNotReserveItem)
 
